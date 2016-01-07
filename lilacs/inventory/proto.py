@@ -1,6 +1,10 @@
-class InventoryResolver(Object):
+class InventoryResolver(object):
     ALL_PAGE = None
-    DEFAULT_PAGE = Resolver.ALL_PAGE
+    DEFAULT_PAGE = None
+
+    def __init__(self, resource):
+        self.resource = resource
+
     def cache(self, fn):
         raise NotImplemented
 
