@@ -12,7 +12,7 @@ setup(
   license='MIT',
   packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
   install_requires=[
-    "MyCapytains>=0.0.6"
+    "MyCapytain>=0.0.9"
   ],
   test_suite="tests",
   zip_safe=False

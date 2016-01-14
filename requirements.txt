@@ -1,1 +1,1 @@
-MyCapytains>=0.0.9
+MyCapytain>=0.0.9
