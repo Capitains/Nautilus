@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-import lilacs
+# import lilacs
 
 setup(
   name='lilacs',
-  version=lilacs.__version__,
+  version="0.0.1",
   description='MyCapytains CTS 5 Endpoint implementation for a xml / directory based system',
   url='http://github.com/Capitains/lilacs',
   author='Thibault Clerice',
@@ -14,6 +14,6 @@ setup(
   install_requires=[
     "MyCapytain>=0.0.9"
   ],
-  test_suite="tests",
-  zip_safe=False
+  test_suite="tests"#,
+  # zip_safe=True
 )
