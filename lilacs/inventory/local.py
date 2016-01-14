@@ -32,9 +32,13 @@ class XMLFolderResolver(InventoryResolver):
 
                 for __subcts__ in glob("{parent}/*/__cts__.xml".format(parent=os.path.dirname(__cts__))):
                     with open(__subcts__) as __xml__:
-                        work = Work(resource=__xml__)
+                        work = Work(
+                            resource=__xml__,
+                            parents=tuple([self.resource.textgroups[str(textgroup.urn)]])
+                        )
                         work.urn = URN(work.xml.get("urn"))
                     self.resource.textgroups[str(textgroup.urn)].works[str(work.urn)] = work
+
                     for __text__ in self.resource.textgroups[str(textgroup.urn)].works[str(work.urn)].texts.values():
                         __text__.path = "{directory}/{textgroup}.{work}.{version}.xml".format(
                             directory=os.path.dirname(__subcts__),
@@ -42,6 +46,7 @@ class XMLFolderResolver(InventoryResolver):
                             work=__text__.urn[4],
                             version=__text__.urn[5]
                         )
+                        self.__texts__.append(__text__)
 
     def getText(self, urn):
         """ Returns a Text object
