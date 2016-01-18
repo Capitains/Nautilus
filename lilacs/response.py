@@ -10,6 +10,7 @@ from MyCapytain.resources.inventory import TextInventory
 JSON = "application/text"
 XML = "text/xml"
 
+
 def capabilities(texts, format=XML):
     """ Transform a list of texts into a string representation
 
