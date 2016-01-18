@@ -12,7 +12,7 @@ XML = "text/xml"
 CTS_XML = "text/xml:CTS"
 
 
-def capabilities(texts, page=None, count=None, format=XML, **kwargs):
+def getcapabilities(texts, page=None, count=None, format=XML, **kwargs):
     """ Transform a list of texts into a string representation
 
     :param texts: List of Text objects
@@ -61,7 +61,7 @@ def capabilities(texts, page=None, count=None, format=XML, **kwargs):
             )
 
 
-def text(passage, metadata, request_urn, format=XML):
+def getpassage(passage, metadata, request_urn, format=XML):
     if format == XML:
         return """
             <GetPassage xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">

@@ -23,11 +23,7 @@ class NautilusEndpoint(CTS):
         :param kwargs:
         :return:
         """
-        return capabilities(
-            *self.resolver.getCapabilities(inventory=inventory, **kwargs),
-            format=format,
-            **kwargs
-        )
+        return getcapabilities(*self.resolver.getCapabilities(inventory=inventory, **kwargs), format=format, **kwargs)
 
     def getPassage(self, urn, inventory=None, context=None, format=XML):
         """
@@ -57,4 +53,4 @@ class NautilusEndpoint(CTS):
         if format == MY_CAPYTAIN:
             return _text.getPassage(urn["reference"]), metadata
         else:
-            return text(_text.getPassage(urn["reference"]), metadata, original_urn, format=format)
+            return getpassage(_text.getPassage(urn["reference"]), metadata, original_urn, format=format)
