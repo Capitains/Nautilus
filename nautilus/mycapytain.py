@@ -9,6 +9,9 @@ MY_CAPYTAIN = "MyCapytain"
 
 
 class NautilusEndpoint(CTS):
+    """
+
+    """
     def __init__(self, folders=[]):
         self.resolver = XMLFolderResolver(resource=folders)
 
@@ -53,5 +56,5 @@ class NautilusEndpoint(CTS):
         # return passage_formatter()
         if format == MY_CAPYTAIN:
             return _text.getPassage(urn["reference"]), metadata
-        elif format == XML:
-            return text(_text.getPassage(urn["reference"]), metadata, original_urn, format=XML)
+        else:
+            return text(_text.getPassage(urn["reference"]), metadata, original_urn, format=format)
