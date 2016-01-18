@@ -69,20 +69,33 @@ class XMLFolderResolver(InventoryResolver):
         return resource, text
 
     def getCapabilities(self, urn=None, page=None, limit=None, inventory=None, lang=None, category=None):
-        """
+        """ Retrieve a slice of the inventory filtered by given arguments
 
         :param urn: Partial URN to use to filter out resources
+        :type urn: str
         :param page: Page to show
+        :type page: int
         :param limit: Item Per Page
+        :type limit: int
         :param inventory: Inventory name
+        :type inventory: str
         :param lang: Language to filter on
+        :type lang: str
         :param category: Type of elements to show
+        :type category: str
         :return: ([Matches], Page, Count)
+        :rtype: ([Text], int, int)
         """
+        urn_part = None
+        if urn is not None:
+            _urn = URN(urn)
+            urn_part = ["full", "urn_namespace", "cts_namespace", "textgroup", "work", "text", "full"][len(_urn)]
+
         matches = [
             text
             for text in self.__texts__
             if (lang is None or (lang is not None and lang == text.lang)) and
+            (urn is None or (urn is not None and text.urn[urn_part] == urn)) and
             (category not in ["edition", "translation"] or (category in ["edition", "translation"] and category.lower() == text.subtype.lower()))
         ]
         start_index, end_index, page, count = XMLFolderResolver.pagination(page, limit, len(matches))

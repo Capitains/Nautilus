@@ -71,3 +71,11 @@ class TestXMLFolderResolver(TestCase):
             len(Repository.getCapabilities(page=2, limit=2)[0]), 1,
             "Pagination works without other filters at list end"
         )
+        self.assertEqual(
+            len(Repository.getCapabilities(urn="urn:cts:farsiLit")[0]), 3,
+            "URN Filtering works"
+        )
+        self.assertEqual(
+            len(Repository.getCapabilities(urn="urn:cts:farsiLit:hafez.divan.perseus-eng1")[0]), 1,
+            "Complete URN filtering works"
+        )
