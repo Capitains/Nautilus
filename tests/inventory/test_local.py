@@ -44,30 +44,30 @@ class TestXMLFolderResolver(TestCase):
             ["./tests/test_data/farsiLit"]
         )
         self.assertEqual(
-            len(Repository.getCapabilities()), 3,
+            len(Repository.getCapabilities()[0]), 3,
             "General no filter works"
         )
         self.assertEqual(
-            len(Repository.getCapabilities(category="edition")), 1,
+            len(Repository.getCapabilities(category="edition")[0]), 1,
             "Type filter works"
         )
         self.assertEqual(
-            len(Repository.getCapabilities(lang="ger")), 1,
+            len(Repository.getCapabilities(lang="ger")[0]), 1,
             "Filtering on language works"
         )
         self.assertEqual(
-            len(Repository.getCapabilities(category="edition", lang="ger")), 0,
+            len(Repository.getCapabilities(category="edition", lang="ger")[0]), 0,
             "Type filter + lang works"
         )
         self.assertEqual(
-            len(Repository.getCapabilities(category="translation", lang="ger")), 1,
+            len(Repository.getCapabilities(category="translation", lang="ger")[0]), 1,
             "Type filter + lang works"
         )
         self.assertEqual(
-            len(Repository.getCapabilities(page=1, limit=2)), 2,
+            len(Repository.getCapabilities(page=1, limit=2)[0]), 2,
             "Pagination works without other filters"
         )
         self.assertEqual(
-            len(Repository.getCapabilities(page=2, limit=2)), 1,
+            len(Repository.getCapabilities(page=2, limit=2)[0]), 1,
             "Pagination works without other filters at list end"
         )

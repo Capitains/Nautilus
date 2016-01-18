@@ -71,19 +71,19 @@ class XMLFolderResolver(InventoryResolver):
     def getCapabilities(self, urn=None, page=None, limit=None, inventory=None, lang=None, category=None):
         """
 
-        :param urn:
-        :param page:
-        :param limit:
-        :param inventory:
-        :param lang:
-        :param category:
+        :param urn: Partial URN to use to filter out resources
+        :param page: Page to show
+        :param limit: Item Per Page
+        :param inventory: Inventory name
+        :param lang: Language to filter on
+        :param category: Type of elements to show
         :return: ([Matches], Page, Count)
         """
         matches = [
             text
             for text in self.__texts__
             if (lang is None or (lang is not None and lang == text.lang)) and
-            (category is None or (category is not None and category.lower() == text.subtype.lower()))
+            (category not in ["edition", "translation"] or (category in ["edition", "translation"] and category.lower() == text.subtype.lower()))
         ]
         start_index, end_index, page, count = XMLFolderResolver.pagination(page, limit, len(matches))
 
