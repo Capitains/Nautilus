@@ -11,7 +11,7 @@ JSON = "application/text"
 XML = "text/xml"
 
 
-def capabilities(texts, format=XML):
+def capabilities(texts, page=None, count=None, format=XML):
     """ Transform a list of texts into a string representation
 
     :param texts: List of Text objects

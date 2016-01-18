@@ -1,6 +1,6 @@
 from unittest import TestCase
-from lilacs.inventory.local import XMLFolderResolver
-from lilacs.response import *
+from nautilus.inventory.local import XMLFolderResolver
+from nautilus.response import *
 from MyCapytain.resources.inventory import TextInventory
 
 
@@ -22,9 +22,8 @@ class ResponseTest(TestCase):
         )
 
     def test_with_get_capabilities(self):
-        texts, page, counter = self.inventory.getCapabilities(category="translation")
         response = capabilities(
-            texts
+            *self.inventory.getCapabilities(category="translation")
         )
         ti = TextInventory(resource=response)
         self.assertEqual(

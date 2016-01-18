@@ -2,10 +2,10 @@ from MyCapytain.resources.inventory import TextInventory, TextGroup, Work
 from MyCapytain.resources.texts.local import Text
 from MyCapytain.common.reference import URN
 from MyCapytain.common.utils import xmlparser
-from lilacs.errors import *
+from nautilus.errors import *
 from glob import glob
 import os.path
-from lilacs.inventory.proto import InventoryResolver
+from nautilus.inventory.proto import InventoryResolver
 
 
 class XMLFolderResolver(InventoryResolver):

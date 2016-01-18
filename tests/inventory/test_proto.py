@@ -1,4 +1,4 @@
-from lilacs.inventory.proto import InventoryResolver
+from nautilus.inventory.proto import InventoryResolver
 from unittest import TestCase
 
 

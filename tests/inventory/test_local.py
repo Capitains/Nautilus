@@ -1,4 +1,4 @@
-from lilacs.inventory.local import XMLFolderResolver
+from nautilus.inventory.local import XMLFolderResolver
 from MyCapytain.common.reference import URN, Reference
 from unittest import TestCase
 

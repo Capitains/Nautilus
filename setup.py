@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
-# import lilacs
+# import nautilus
 
 setup(
-  name='lilacs',
+  name='nautilus',
   version="0.0.1",
   description='MyCapytains CTS 5 Endpoint implementation for a xml / directory based system',
-  url='http://github.com/Capitains/lilacs',
+  url='http://github.com/Capitains/nautilus',
   author='Thibault Clerice',
   author_email='leponteineptique@gmail.com',
   license='MIT',
