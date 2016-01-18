@@ -22,7 +22,8 @@ class NautilusEndpoint(CTS):
         """
         return capabilities(
             *self.resolver.getCapabilities(inventory=inventory, **kwargs),
-            format=format
+            format=format,
+            **kwargs
         )
 
     def getPassage(self, urn, inventory=None, context=None, format=XML):
@@ -34,6 +35,7 @@ class NautilusEndpoint(CTS):
         :return:
         """
         # If we don't have version
+        original_urn = urn
         urn = URN(urn)
         if len(urn) == 4:
             matches, page, counter = self.resolver.getCapabilities(
@@ -51,3 +53,5 @@ class NautilusEndpoint(CTS):
         # return passage_formatter()
         if format == MY_CAPYTAIN:
             return _text.getPassage(urn["reference"]), metadata
+        elif format == XML:
+            return text(_text.getPassage(urn["reference"]), metadata, original_urn, format=XML)

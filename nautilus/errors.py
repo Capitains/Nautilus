@@ -26,6 +26,7 @@ class InvalidContext(CTSError):
     """	Invalid value for context parameter in GetPassage or GetPassagePlus request """
     CODE = 5
 
+
 class UnknownResource(CTSError):
     """ Resource requested is not found """
     CODE = 6
