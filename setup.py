@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 setup(
   name='nautilus',
   version="0.0.1",
-  description='MyCapytains CTS 5 Endpoint implementation for a xml / directory based system',
+  description='Resolver for Capitains Guidelines Repository',
   url='http://github.com/Capitains/nautilus',
   author='Thibault Clerice',
   author_email='leponteineptique@gmail.com',
