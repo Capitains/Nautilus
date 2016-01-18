@@ -89,3 +89,41 @@ def getpassage(passage, metadata, request_urn, format=XML):
             lang=metadata.lang,
             passage=etree.tostring(passage.xml, encoding=str)
         )
+
+
+def getpassageplus(passage, metadata, request_urn, format=XML):
+    if format == XML:
+        return """
+            <GetPassage xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
+            <request>
+                <requestName>GetPassage</requestName>
+                <requestUrn>{request_urn}</requestUrn>
+            </request>
+            <reply>
+                <urn>{full_urn}</urn>
+                <passage>
+                    <TEI xmlns="http://www.tei-c.org/ns/1.0">
+                        <text>
+                            <body>
+                                <div type="{category}" n="{urn}" xml:lang="{lang}">{passage}</div>
+                            </body>
+                        </text>
+                    </TEI>
+                </passage>
+                <prevnext>
+                    <prev><urn>{prev}</urn></prev>
+                    <next><urn>{next}</urn></next>
+                </prevnext>
+                <label>
+                </label>
+            </reply>
+            </GetPassage>""".format(
+            request_urn=request_urn,
+            full_urn=str(passage.urn),
+            category=metadata.subtype.lower(),
+            urn=str(metadata.urn),
+            lang=metadata.lang,
+            passage=etree.tostring(passage.xml, encoding=str),
+            prev=passage.prev.urn or "",
+            next=passage.next.urn or ""
+        )

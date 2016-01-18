@@ -54,3 +54,7 @@ class NautilusEndpoint(CTS):
             return _text.getPassage(urn["reference"]), metadata
         else:
             return getpassage(_text.getPassage(urn["reference"]), metadata, original_urn, format=format)
+
+    def getPassagePlus(self, urn, inventory=None, context=None, format=XML):
+        passage, metadata = self.getPassage(urn, inventory, context, format=MY_CAPYTAIN)
+        return getpassageplus(passage, metadata, urn, format=format)

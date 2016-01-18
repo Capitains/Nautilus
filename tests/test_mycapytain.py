@@ -56,3 +56,20 @@ class ResponseTest(TestCase):
             "الا یا ایها الساقی ادر کاسا و ناولها ###",
             "API Response should be parsable by MyCapytain Library"
         )
+
+    def test_get_passage_formatted(self):
+        response = self.endpoint.getPassagePlus("urn:cts:farsiLit:hafez.divan:1.1.1.2", format=XML)
+        parsed_response = Passage(resource=xmlparser(response), urn="urn:cts:farsiLit:hafez.divan:1.1.1.2")
+        self.assertEqual(
+            parsed_response.text().strip(),
+            "که عشق آسان نمود اول ولی افتاد مشکل‌ها ***",
+            "API Response should be parsable by MyCapytain Library"
+        )
+        self.assertIn(
+            "<prev><urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1.1.1</urn></prev>", response,
+            "Previous URN should be found"
+        )
+        self.assertIn(
+            "<next><urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1.2.1</urn></next>", response,
+            "Next URN should be found"
+        )
