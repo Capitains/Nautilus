@@ -46,7 +46,7 @@ class ResponseTest(TestCase):
         self.assertEqual(
             response.text(),
             "الا یا ایها الساقی ادر کاسا و ناولها ### ",
-            "It should be possible to retrieve text from edition without veersion"
+            "It should be possible to retrieve text from edition without version"
         )
 
     def test_get_passage_formatted(self):
