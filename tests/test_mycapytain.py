@@ -57,7 +57,7 @@ class ResponseTest(TestCase):
             "API Response should be parsable by MyCapytain Library"
         )
 
-    def test_get_passage_formatted(self):
+    def test_get_passage_plus_formatted(self):
         response = self.endpoint.getPassagePlus("urn:cts:farsiLit:hafez.divan:1.1.1.2", format=XML)
         parsed_response = Passage(resource=xmlparser(response), urn="urn:cts:farsiLit:hafez.divan:1.1.1.2")
         self.assertEqual(
