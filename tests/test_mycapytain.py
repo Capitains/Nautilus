@@ -73,3 +73,37 @@ class ResponseTest(TestCase):
             "<next><urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1.2.1</urn></next>", response,
             "Next URN should be found"
         )
+
+    def test_get_valid_reff(self):
+        """ With reference """
+        response = self.endpoint.getValidReff("urn:cts:farsiLit:hafez.divan:1.1", format=XML)
+        self.assertIn(
+            "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1.1</urn>", response,
+            "First URN should be found"
+        )
+        self.assertNotIn(
+            "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.2.1</urn>", response,
+            "First URN should be found"
+        )
+
+    def test_get_valid_reff_simple(self):
+        """ Without reference """
+        response = self.endpoint.getValidReff("urn:cts:farsiLit:hafez.divan", format=XML)
+        self.assertIn(
+            "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1</urn>", response,
+            "First URN should be found"
+        )
+        self.assertNotIn(
+            "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1</urn>", response,
+            "First URN should be found"
+        )
+
+        response = self.endpoint.getValidReff("urn:cts:farsiLit:hafez.divan", level=4, format=XML)
+        self.assertIn(
+            "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1.1.2</urn>", response,
+            "First URN should be found"
+        )
+        self.assertNotIn(
+            "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1</urn>", response,
+            "First URN should be found"
+        )

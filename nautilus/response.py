@@ -10,6 +10,7 @@ from lxml import etree
 JSON = "application/text"
 XML = "text/xml"
 CTS_XML = "text/xml:CTS"
+MY_CAPYTAIN = "MyCapytain"
 
 
 def getcapabilities(texts, page=None, count=None, format=XML, **kwargs):
@@ -126,4 +127,22 @@ def getpassageplus(passage, metadata, request_urn, format=XML):
             passage=etree.tostring(passage.xml, encoding=str),
             prev=passage.prev.urn or "",
             next=passage.next.urn or ""
+        )
+
+
+def getvalidreff(reffs, level, request_urn, format=XML):
+    if format == XML:
+        return """
+            <GetValidReff xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
+            <request>
+                <requestName>GetValidReff</requestName>
+                <requestUrn>{request_urn}</requestUrn>
+            </request>
+            <reply>
+                <reff level="{level}">{reffs}</reff>
+            </reply>
+            </GetValidReff>""".format(
+            request_urn=request_urn,
+            reffs="".join(["<urn>{}</urn>".format(reff) for reff in reffs]),
+            level=level
         )

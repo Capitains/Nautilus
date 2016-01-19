@@ -14,6 +14,9 @@ setup(
   install_requires=[
     "MyCapytain>=0.0.9"
   ],
+  dependency_links=[
+    "https://github.com/Capitains/MyCapytain/tarball/0.0.10dev#egg=MyCapytain-0.0.10"
+  ],
   test_suite="tests"#,
   # zip_safe=True
 )
