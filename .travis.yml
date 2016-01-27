@@ -1,16 +1,28 @@
 language: python
 python:
+  - "2.7"
   - "3.4"
   - "3.5"
+  - "pypy"
+  - "pypy3"
+
+matrix:
+  allow_failures:
+    - python: pypy
+    - python: pypy3
+
 # command to install dependencies
 install:
     - pip install -r requirements.txt
     - pip install coveralls
+
 # command to run tests
 script:
     - coverage run --source=nautilus setup.py test
+
 after_success:
     - if [[ $TRAVIS_PYTHON_VERSION == 3* ]]; then coveralls; fi
+
 branches:
   only:
     - master

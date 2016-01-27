@@ -1,5 +1,4 @@
 from MyCapytain.endpoints.cts5 import CTS
-from MyCapytain.resources.texts.local import Text
 from MyCapytain.common.reference import URN
 from nautilus.inventory.local import XMLFolderResolver
 from nautilus.response import *

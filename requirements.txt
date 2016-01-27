@@ -1,1 +1,1 @@
--e git+https://github.com/Capitains/MyCapytain.git@0.0.10dev#egg=MyCapytain
+-e git+https://github.com/Capitains/MyCapytain.git@0.1.0dev#egg=MyCapytain
