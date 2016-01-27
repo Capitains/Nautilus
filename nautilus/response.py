@@ -5,11 +5,11 @@
 from __future__ import unicode_literals
 from six import text_type as str
 
-
 import json
 from collections import OrderedDict
 from copy import copy
 from MyCapytain.resources.inventory import TextInventory
+from MyCapytain.common.reference import URN
 from lxml import etree
 
 JSON = "application/text"
@@ -98,6 +98,13 @@ def getpassage(passage, metadata, request_urn, format=XML):
 
 
 def getpassageplus(passage, metadata, request_urn, format=XML):
+    _prev = None
+    _next = None
+
+    if passage.prev:
+        _prev = URN("{}:{}".format(passage.urn["text"], str(passage.prev)))
+    if passage.next:
+        _next = URN("{}:{}".format(passage.urn["text"], str(passage.next)))
     if format == XML:
         return """
             <GetPassage xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
@@ -130,8 +137,8 @@ def getpassageplus(passage, metadata, request_urn, format=XML):
             urn=str(metadata.urn),
             lang=metadata.lang,
             passage=passage.tostring(encoding=str),
-            prev=passage.prev or "",
-            next=passage.next or ""
+            prev=_prev or "",
+            next=_next or ""
         )
 
 
