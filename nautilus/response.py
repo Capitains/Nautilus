@@ -93,7 +93,7 @@ def getpassage(passage, metadata, request_urn, format=XML):
             category=metadata.subtype.lower(),
             urn=str(metadata.urn),
             lang=metadata.lang,
-            passage=etree.tostring(passage.xml, encoding=str)
+            passage=passage.tostring(encoding=str)
         )
 
 
@@ -129,9 +129,9 @@ def getpassageplus(passage, metadata, request_urn, format=XML):
             category=metadata.subtype.lower(),
             urn=str(metadata.urn),
             lang=metadata.lang,
-            passage=etree.tostring(passage.xml, encoding=str),
-            prev=passage.prev.urn or "",
-            next=passage.next.urn or ""
+            passage=passage.tostring(encoding=str),
+            prev=passage.prev or "",
+            next=passage.next or ""
         )
 
 
