@@ -78,13 +78,7 @@ def getpassage(passage, metadata, request_urn, format=XML):
             <reply>
                 <urn>{full_urn}</urn>
                 <passage>
-                    <TEI xmlns="http://www.tei-c.org/ns/1.0">
-                        <text>
-                            <body>
-                                <div type="{category}" n="{urn}" xml:lang="{lang}">{passage}</div>
-                            </body>
-                        </text>
-                    </TEI>
+                    {passage}
                 </passage>
             </reply>
             </GetPassage>""".format(
@@ -115,13 +109,7 @@ def getpassageplus(passage, metadata, request_urn, format=XML):
             <reply>
                 <urn>{full_urn}</urn>
                 <passage>
-                    <TEI xmlns="http://www.tei-c.org/ns/1.0">
-                        <text>
-                            <body>
-                                <div type="{category}" n="{urn}" xml:lang="{lang}">{passage}</div>
-                            </body>
-                        </text>
-                    </TEI>
+                    {passage}
                 </passage>
                 <prevnext>
                     <prev><urn>{prev}</urn></prev>
