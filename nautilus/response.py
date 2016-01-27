@@ -1,6 +1,11 @@
+# -*- coding: utf-8 -*-
 """
     Response generator for the queries
 """
+from __future__ import unicode_literals
+from six import text_type as str
+
+
 import json
 from collections import OrderedDict
 from copy import copy

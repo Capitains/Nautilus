@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from six import text_type as str
+
 from nautilus.mycapytain import NautilusEndpoint, MY_CAPYTAIN, XML
 
 from MyCapytain.resources.inventory import TextInventory

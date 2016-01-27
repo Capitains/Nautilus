@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from six import text_type as str
+
 from unittest import TestCase
 from nautilus.inventory.local import XMLFolderResolver
 from nautilus.response import *

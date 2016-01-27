@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+from six import text_type as str
+
 from MyCapytain.endpoints.cts5 import CTS
 from MyCapytain.common.reference import URN
 from nautilus.inventory.local import XMLFolderResolver
