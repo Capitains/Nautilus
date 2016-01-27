@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+from six import text_type as str
+from io import open
+
 from MyCapytain.resources.inventory import TextInventory, TextGroup, Work
 from MyCapytain.resources.texts.local import Text
 from MyCapytain.common.reference import URN
