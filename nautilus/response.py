@@ -3,6 +3,7 @@
     Response generator for the queries
 """
 from __future__ import unicode_literals
+from past.builtins import basestring
 from six import text_type as str
 
 import json
