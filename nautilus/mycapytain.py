@@ -90,6 +90,45 @@ class NautilusEndpoint(CTS):
 
         return getvalidreff(reffs, level=level, request_urn=original_urn, format=format)
 
+    def getPrevNextUrn(self, urn, inventory=None):
+        """
+
+        :param urn:
+        :param inventory:
+        :return:
+        """
+        passage, metadata = self.getPassage(
+            urn, inventory,
+            format=MY_CAPYTAIN
+        )
+        return getprevnext(passage, urn, format=format)
+
+    def getFirstUrn(self, urn, inventory=None):
+        """
+
+        :param urn:
+        :param inventory:
+        :return:
+        """
+        passage, metadata = self.getPassage(
+            urn, inventory,
+            format=MY_CAPYTAIN
+        )
+        return getfirst(passage, urn, format=format)
+
+    def getLabel(self, urn, inventory=None):
+        """
+
+        :param urn:
+        :param inventory:
+        :return:
+        """
+        passage, metadata = self.getPassage(
+            urn, inventory,
+            format=MY_CAPYTAIN
+        )
+        return getlabel(metadata, passage.urn, urn, format=format)
+
     def getText(self, urn, inventory=None):
         """ Retrieves a text in the inventory in case of partial URN or throw error when text is not accessible
 

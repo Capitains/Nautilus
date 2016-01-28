@@ -115,8 +115,7 @@ def getpassageplus(passage, metadata, request_urn, format=XML):
                     <prev><urn>{prev}</urn></prev>
                     <next><urn>{next}</urn></next>
                 </prevnext>
-                <label>
-                </label>
+                <label>{metadata}</label>
             </reply>
             </GetPassage>""".format(
             request_urn=request_urn,
@@ -126,7 +125,8 @@ def getpassageplus(passage, metadata, request_urn, format=XML):
             lang=metadata.lang,
             passage=passage.tostring(encoding=str),
             prev=_prev or "",
-            next=_next or ""
+            next=_next or "",
+            metadata=metadata
         )
 
 
@@ -134,15 +134,91 @@ def getvalidreff(reffs, level, request_urn, format=XML):
     if format == XML:
         return """
             <GetValidReff xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
-            <request>
-                <requestName>GetValidReff</requestName>
-                <requestUrn>{request_urn}</requestUrn>
-            </request>
-            <reply>
-                <reff level="{level}">{reffs}</reff>
-            </reply>
+                <request>
+                    <requestName>GetValidReff</requestName>
+                    <requestUrn>{request_urn}</requestUrn>
+                    <requestLevel>{level}</requestLevel>
+                </request>
+                <reply>
+                    <reff>{reffs}</reff>
+                </reply>
             </GetValidReff>""".format(
             request_urn=request_urn,
             reffs="".join(["<urn>{}</urn>".format(reff) for reff in reffs]),
             level=level
+        )
+
+
+def getprevnext(passage, request_urn, format=XML):
+    _prev = None
+    _next = None
+
+    if passage.prev:
+        _prev = URN("{}:{}".format(passage.urn["text"], str(passage.prev)))
+    if passage.next:
+        _next = URN("{}:{}".format(passage.urn["text"], str(passage.next)))
+
+    if format == XML:
+        return """
+            <GetPrevNext xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
+                <request>
+                    <requestName>GetPrevNext</requestName>
+                    <requestUrn>{request_urn}</requestUrn>
+                </request>
+                <reply>
+                    <urn>{full_urn}</urn>
+                    <prevnext>
+                        <prev><urn>{prev}</urn></prev>
+                        <next><urn>{next}</urn></next>
+                    </prevnext>
+                </reply>
+            </GetPrevNext>""".format(
+            request_urn=request_urn,
+            urn=passage.urn,
+            prev=_prev,
+            next=_next
+        )
+
+def getfirst(passage, request_urn, format=XML):
+    _first = None
+
+    if passage.first:
+        _first = URN("{}:{}".format(passage.urn["text"], str(passage.first)))
+
+    if format == XML:
+        return """
+            <GetPrevNext xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
+                <request>
+                    <requestName>GetPrevNext</requestName>
+                    <requestUrn>{request_urn}</requestUrn>
+                </request>
+                <reply>
+                    <urn>{full_urn}</urn>
+                    <first>
+                        <urn>{first}</urn>
+                    </first>
+                </reply>
+            </GetPrevNext>""".format(
+            request_urn=request_urn,
+            urn=passage.urn,
+            first=_first
+        )
+
+
+def getlabel(metadata, full_urn, request_urn, format=XML):
+    if format == XML:
+        return """
+            <GetLabel xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
+            <request>
+                <requestName>GetPassage</requestName>
+                <requestUrn>{request_urn}</requestUrn>
+            </request>
+            <reply>
+                <urn>{full_urn}</urn>
+                <label>{metadata}</label>
+            </reply>
+            </GetLabel>""".format(
+            request_urn=request_urn,
+            full_urn=full_urn,
+            metadata=metadata
         )
