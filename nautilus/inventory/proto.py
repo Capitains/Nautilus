@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals, division
+from six import text_type as str
 from math import ceil
 
 

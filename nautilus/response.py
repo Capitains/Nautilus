@@ -10,7 +10,6 @@ from collections import OrderedDict
 from copy import copy
 from MyCapytain.resources.inventory import TextInventory
 from MyCapytain.common.reference import URN
-from lxml import etree
 
 JSON = "application/text"
 XML = "text/xml"

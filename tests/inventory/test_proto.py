@@ -9,6 +9,7 @@ from unittest import TestCase
 
 class TestProto(TestCase):
     def test_pagination(self):
+        print(InventoryResolver.pagination(5, 40, 150))
         self.assertEqual(
             InventoryResolver.pagination(2, 30, 150), (30, 60, 2, 30),
             " Pagination should return Array limits "
