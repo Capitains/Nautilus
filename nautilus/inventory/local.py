@@ -17,16 +17,20 @@ from nautilus.inventory.proto import InventoryResolver
 class XMLFolderResolver(InventoryResolver):
     """ XML Folder Based resolver.
 
-     .. warning :: This resolver does not support inventories
-     """
-    def __init__(self, resource, cache_folder="./cache"):
-        """ Initiate the XMLResolver
+    :param resource: Resource should be a list of folders retaining data as Capitains Guidelines Repositories
+    :type resource: [str]
 
-        :param resource: Resource should be a list of folders retaining data as Capitains Guidelines Repositories
-        :type resource: [str]
+    .. warning :: This resolver does not support inventories
+    """
+    TEXT_CLASS = Text
+
+
+    def __init__(self, resource):
+        """ Initiate the XMLResolver
         """
         super(XMLFolderResolver, self).__init__(resource=TextInventory())
 
+        self.TEXT_CLASS = XMLFolderResolver.TEXT_CLASS
         self.works = []
         for folder in resource:
             textgroups = glob("{base_folder}/data/*/__cts__.xml".format(base_folder=folder))
@@ -70,7 +74,7 @@ class XMLFolderResolver(InventoryResolver):
 
         text = self.resource[str(urn)]
         with open(text.path) as __xml__:
-            resource = Text(urn=urn, resource=xmlparser(__xml__))
+            resource = self.TEXT_CLASS(urn=urn, resource=xmlparser(__xml__))
 
         return resource, text
 

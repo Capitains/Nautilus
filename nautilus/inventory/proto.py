@@ -3,7 +3,7 @@
 from __future__ import unicode_literals, division
 from six import text_type as str
 from math import ceil
-
+from werkzeug.contrib.cache import NullCache
 
 class InventoryResolver(object):
     ALL_PAGE = None
@@ -13,6 +13,7 @@ class InventoryResolver(object):
     def __init__(self, resource):
         self.resource = resource
         self.__texts__ = []
+        self.cache = NullCache()
 
     @property
     def texts(self):

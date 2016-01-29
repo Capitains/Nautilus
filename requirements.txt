@@ -1,1 +1,2 @@
 -e git+https://github.com/Capitains/MyCapytain.git@0.1.0dev#egg=MyCapytain
+Flask-Cache>=0.13.1.
