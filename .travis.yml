@@ -6,6 +6,8 @@ python:
   - "pypy"
   - "pypy3"
 
+services:
+  - "redis"
 matrix:
   allow_failures:
     - python: pypy

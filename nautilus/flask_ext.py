@@ -64,7 +64,7 @@ class FlaskNautilus(object):
             self.app = app
 
         if not self.__http_cache:
-            self.__http_cache = Cache()
+            self.__http_cache = Cache(config={'CACHE_TYPE': 'simple'})
 
         self.init_blueprint()
 
