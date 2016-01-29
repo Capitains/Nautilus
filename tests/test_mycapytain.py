@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+from future.types import range
 from six import text_type as str
 
-from nautilus.mycapytain import NautilusEndpoint, MY_CAPYTAIN, XML
+from nautilus.mycapytain import NautilusEndpoint, MY_CAPYTAIN, XML, Text
 
 from MyCapytain.resources.inventory import TextInventory
 from MyCapytain.resources.texts.api import Passage
 from MyCapytain.common.utils import xmlparser
 from unittest import TestCase
+from werkzeug.contrib.cache import SimpleCache
 
 
 class ResponseTest(TestCase):
-
     def setUp(self):
         self.endpoint = NautilusEndpoint(["./tests/test_data/farsiLit"])
 
@@ -115,3 +116,20 @@ class ResponseTest(TestCase):
             "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1</urn>", response,
             "First URN should be found"
         )
+
+    def test_cache_speed(self):
+        from datetime import datetime
+        Text.CACHE_CLASS = SimpleCache(default_timeout=84600)
+        self.endpoint.resolver.TEXT_CLASS = Text
+
+        ticks = []
+        for i in range(1, 10):
+            ticks.append(datetime.now())
+            self.endpoint.getPassagePlus("urn:cts:farsiLit:hafez.divan:1.1.1.2", format=XML)
+            ticks[-1] = datetime.now() - ticks[-1]
+
+        self.assertGreater(
+            ticks[0].microseconds, int(sum(map(lambda x: int(x.microseconds), ticks[1:]))/9),
+            "First Call should be longer than the average of other calls"
+        )
+

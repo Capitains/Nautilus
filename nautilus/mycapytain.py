@@ -3,9 +3,42 @@ from __future__ import unicode_literals
 from six import text_type as str
 
 from MyCapytain.endpoints.cts5 import CTS
+from MyCapytain.resources.texts.local import Text as _Text, ContextPassage as _ContextPassage
 from nautilus.inventory.local import XMLFolderResolver
 from nautilus.response import *
 from nautilus.errors import InvalidURN, UnknownResource
+from werkzeug.contrib.cache import NullCache, BaseCache
+from nautilus import _cache_key
+
+
+class Text(_Text):
+    TIMEOUT = {
+        "getValidReff":  604800
+    }
+    CACHE_CLASS = NullCache  # By default cache has no cache
+
+    def __init__(self, *args, **kwargs):
+        super(Text, self).__init__(*args, **kwargs)
+        if isinstance(Text.CACHE_CLASS, BaseCache):
+            self.cache = Text.CACHE_CLASS
+        else:
+            self.cache = Text.CACHE_CLASS()
+
+    def getValidReff(self, level=1, reference=None):
+        """ Cached method of the original object
+
+        :param level:
+        :param reference: Reference object
+        :return: References
+        """
+        __cache_key = _cache_key("Text_GetValidReff", level, str(reference))
+        __cached = self.cache.get(__cache_key)
+        if __cached:
+            return __cached
+        else:
+            __cached = super(Text, self).getValidReff(level, reference)
+            self.cache.set(__cache_key, __cached, timeout=Text.TIMEOUT["getValidReff"])
+            return __cached
 
 
 class NautilusEndpoint(CTS):
@@ -14,9 +47,14 @@ class NautilusEndpoint(CTS):
     :param folders: List of Capitains Guidelines structured folders
     :type folders: list(str)
 
+    :ivar resolver: Resolver for repository and text path
+    :type resolver: XMLFolderResolver
+
     """
-    def __init__(self, folders=[]):
+    def __init__(self, folders=[], cache=True):
         self.resolver = XMLFolderResolver(resource=folders)
+        if cache is True:
+            self.resolver.TEXT_CLASS = Text
 
     def getCapabilities(self, inventory=None, format=XML, **kwargs):
         """ Retrieve the inventory information of an API
