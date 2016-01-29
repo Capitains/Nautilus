@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from __future__ import unicode_literals
 from six import text_type as str
 from io import BytesIO
@@ -10,6 +11,7 @@ from flask_cache import Cache
 from unittest import TestCase
 from MyCapytain.resources.inventory import TextInventory
 from MyCapytain.resources.texts.api import Text, Passage
+from MyCapytain.common.utils import xmlparser
 
 
 class TestRestAPI(TestCase):
@@ -29,4 +31,11 @@ class TestRestAPI(TestCase):
         a = TextInventory(resource=BytesIO(response.data))
         self.assertEqual(
             str(a["urn:cts:latinLit:phi1294.phi002.perseus-lat2"].urn), "urn:cts:latinLit:phi1294.phi002.perseus-lat2",
+        )
+
+    def test_get_passage(self):
+        response = self.app.get("/?request=GetPassage&urn=urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr.1")
+        a = Passage(resource=xmlparser(BytesIO(response.data)), urn="urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr.1")
+        self.assertEqual(
+            a.text(), "Spero me secutum in libellis meis tale temperamen-"
         )
