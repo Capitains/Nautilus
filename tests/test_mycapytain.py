@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-from future.types import range
 from six import text_type as str
+from builtins import range
 
 from nautilus.mycapytain import NautilusEndpoint, MY_CAPYTAIN, XML, Text
 
