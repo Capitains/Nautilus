@@ -3,14 +3,16 @@ from __future__ import unicode_literals
 from six import text_type as str
 
 from MyCapytain.endpoints.cts5 import CTS
-from MyCapytain.common.reference import URN
 from nautilus.inventory.local import XMLFolderResolver
 from nautilus.response import *
 from nautilus.errors import InvalidURN, UnknownResource
 
 
 class NautilusEndpoint(CTS):
-    """
+    """ Nautilus Implementation of MyCapytain Endpoint
+
+    :param folders: List of Capitains Guidelines structured folders
+    :type folders: list(str)
 
     """
     def __init__(self, folders=[]):
@@ -21,20 +23,23 @@ class NautilusEndpoint(CTS):
 
         :param inventory: Name of the inventory
         :type inventory: text
-        :param format:
-        :type format:
-        :return: Formatted output, according to format
+        :param format: Format type of response. `nautilus.response`
+        :type format: str
+        :return: Formatted output of the inventory
         :rtype: str
         """
         return getcapabilities(*self.resolver.getCapabilities(inventory=inventory, **kwargs), format=format, **kwargs)
 
     def getPassage(self, urn, inventory=None, context=None, format=XML):
-        """
+        """ Get a Passage from the repository
 
-        :param urn:
-        :param inventory:
-        :param context:
-        :return:
+        :param urn: URN identifying the passage
+        :param inventory: Name of the inventory
+        :type inventory: text
+        :param format: Format type of response. `nautilus.response`
+        :type format: str
+        :param context: Unused parameter for now
+        :return: Passage asked for, in given format
         """
         original_urn, urn, _text, metadata = self.getText(urn, inventory)
 
@@ -44,13 +49,15 @@ class NautilusEndpoint(CTS):
             return getpassage(_text.getPassage(urn["reference"]), metadata, original_urn, format=format)
 
     def getPassagePlus(self, urn, inventory=None, context=None, format=XML):
-        """
+        """Get a Passage and its metadata from the repository
 
-        :param urn:
-        :param inventory:
-        :param context:
-        :param format:
-        :return:
+        :param urn: URN identifying the passage
+        :param inventory: Name of the inventory
+        :type inventory: text
+        :param format: Format type of response. `nautilus.response`
+        :type format: str
+        :param context: Unused parameter for now
+        :return: Passage asked for, in given format
         """
         passage, metadata = self.getPassage(
             urn, inventory, context,
@@ -91,11 +98,14 @@ class NautilusEndpoint(CTS):
         return getvalidreff(reffs, level=level, request_urn=original_urn, format=format)
 
     def getPrevNextUrn(self, urn, inventory=None):
-        """
+        """ Retrieve valid previous and next URN
 
-        :param urn:
-        :param inventory:
-        :return:
+        :param urn: URN identifying the text
+        :type urn: text
+        :param inventory: Name of the inventory
+        :type inventory: text
+        :return: Formatted response with prev and next urn
+        :rtype: str
         """
         passage, metadata = self.getPassage(
             urn, inventory,
@@ -104,11 +114,14 @@ class NautilusEndpoint(CTS):
         return getprevnext(passage, urn, format=format)
 
     def getFirstUrn(self, urn, inventory=None):
-        """
+        """ Retrieve valid first URN
 
-        :param urn:
-        :param inventory:
-        :return:
+        :param urn: URN identifying the text
+        :type urn: text
+        :param inventory: Name of the inventory
+        :type inventory: text
+        :return: Formatted response with first URN
+        :rtype: str
         """
         passage, metadata = self.getPassage(
             urn, inventory,
@@ -117,11 +130,14 @@ class NautilusEndpoint(CTS):
         return getfirst(passage, urn, format=format)
 
     def getLabel(self, urn, inventory=None):
-        """
+        """ Retrieve label informations
 
-        :param urn:
-        :param inventory:
-        :return:
+        :param urn: URN identifying the text
+        :type urn: text
+        :param inventory: Name of the inventory
+        :type inventory: text
+        :return: Formatted response with metadata
+        :rtype: str
         """
         passage, metadata = self.getPassage(
             urn, inventory,
@@ -132,8 +148,9 @@ class NautilusEndpoint(CTS):
     def getText(self, urn, inventory=None):
         """ Retrieves a text in the inventory in case of partial URN or throw error when text is not accessible
 
-        :param urn:
-        :param inventory:
+        :param urn: URN identifying the text
+        :type urn: text
+        :param inventory: Name of
         :return: ( Original URN, Corrected URN,  Text, Metadata Text)
         """
         # If we don't have version
