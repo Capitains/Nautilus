@@ -101,7 +101,7 @@ def getpassageplus(passage, metadata, request_urn, format=XML):
         _next = URN("{}:{}".format(passage.urn["text"], str(passage.next)))
     if format == XML:
         return """
-            <GetPassage xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
+            <GetPassagePlus xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
             <request>
                 <requestName>GetPassage</requestName>
                 <requestUrn>{request_urn}</requestUrn>
@@ -117,7 +117,7 @@ def getpassageplus(passage, metadata, request_urn, format=XML):
                 </prevnext>
                 <label>{metadata}</label>
             </reply>
-            </GetPassage>""".format(
+            </GetPassagePlus>""".format(
             request_urn=request_urn,
             full_urn=str(passage.urn),
             category=metadata.subtype.lower(),

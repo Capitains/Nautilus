@@ -24,7 +24,6 @@ class XMLFolderResolver(InventoryResolver):
     """
     TEXT_CLASS = Text
 
-
     def __init__(self, resource):
         """ Initiate the XMLResolver
         """
@@ -78,7 +77,7 @@ class XMLFolderResolver(InventoryResolver):
 
         return resource, text
 
-    def getCapabilities(self, urn=None, page=None, limit=None, inventory=None, lang=None, category=None):
+    def getCapabilities(self, urn=None, page=None, limit=None, inventory=None, lang=None, category=None, pagination=True):
         """ Retrieve a slice of the inventory filtered by given arguments
 
         :param urn: Partial URN to use to filter out resources
@@ -93,6 +92,8 @@ class XMLFolderResolver(InventoryResolver):
         :type lang: str
         :param category: Type of elements to show
         :type category: str
+        :param pagination: Activate pagination
+        :type pagination: bool
         :return: ([Matches], Page, Count)
         :rtype: ([Text], int, int)
         """
@@ -108,6 +109,9 @@ class XMLFolderResolver(InventoryResolver):
             (urn is None or (urn is not None and text.urn[urn_part] == urn)) and
             (category not in ["edition", "translation"] or (category in ["edition", "translation"] and category.lower() == text.subtype.lower()))
         ]
-        start_index, end_index, page, count = XMLFolderResolver.pagination(page, limit, len(matches))
+        if pagination:
+            start_index, end_index, page, count = XMLFolderResolver.pagination(page, limit, len(matches))
+        else:
+            start_index, end_index, page, count = None, None, 0, len(matches)
 
         return matches[start_index:end_index], page, count

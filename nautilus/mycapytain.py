@@ -51,7 +51,8 @@ class NautilusEndpoint(CTS):
     :type resolver: XMLFolderResolver
 
     """
-    def __init__(self, folders=[], cache=True):
+    def __init__(self, folders=[], cache=True, pagination=True):
+        self.__pagination = False
         self.resolver = XMLFolderResolver(resource=folders)
         if cache is True:
             self.resolver.TEXT_CLASS = Text
@@ -66,7 +67,10 @@ class NautilusEndpoint(CTS):
         :return: Formatted output of the inventory
         :rtype: str
         """
-        return getcapabilities(*self.resolver.getCapabilities(inventory=inventory, **kwargs), format=format, **kwargs)
+        return getcapabilities(
+            *self.resolver.getCapabilities(inventory=inventory, pagination=self.__pagination, **kwargs),
+            format=format, **kwargs
+        )
 
     def getPassage(self, urn, inventory=None, context=None, format=XML):
         """ Get a Passage from the repository
@@ -119,11 +123,13 @@ class NautilusEndpoint(CTS):
 
         if urn[6] is not None and level <= len(urn["reference"]):
             level = len(urn["reference"]) + 1
+            print(level)
 
         if len(_text.citation) < level:
             reffs = []
         else:
-            reffs = _text.getValidReff(level=level)
+            print(urn.reference)
+            reffs = _text.getValidReff(level=level, reference=urn.reference)
             if urn[6] is not None:
                 reffs = [
                     "{}:{}".format(urn["text"], reff)

@@ -1,2 +1,3 @@
 -e git+https://github.com/Capitains/MyCapytain.git@0.1.0dev#egg=MyCapytain
 Werkzeug==0.11.3
+Flask-Compress==1.3.0

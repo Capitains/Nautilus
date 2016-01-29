@@ -2,6 +2,8 @@
 .idea
 env
 
+cache_dir
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
