@@ -18,7 +18,7 @@ CTS_XML = "text/xml:CTS"
 MY_CAPYTAIN = "MyCapytain"
 
 
-def getcapabilities(texts, page=None, count=None, format=XML, **kwargs):
+def getcapabilities(texts, page=None, count=None, output=XML, **kwargs):
     """ Transform a list of texts into a string representation
 
     :param texts: List of Text objects
@@ -47,9 +47,9 @@ def getcapabilities(texts, page=None, count=None, format=XML, **kwargs):
             inventory.textgroups[tg_urn],
             inventory.textgroups[tg_urn].works[wk_urn]
         ])
-    if format == JSON:
+    if output == JSON:
         inventory_str = ""
-    elif format == CTS_XML:
+    elif output == CTS_XML:
         return str(inventory)
     else:
         return """
@@ -67,8 +67,8 @@ def getcapabilities(texts, page=None, count=None, format=XML, **kwargs):
             )
 
 
-def getpassage(passage, metadata, request_urn, format=XML):
-    if format == XML:
+def getpassage(passage, metadata, request_urn, output=XML):
+    if output == XML:
         return """
             <GetPassage xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
             <request>
@@ -91,7 +91,7 @@ def getpassage(passage, metadata, request_urn, format=XML):
         )
 
 
-def getpassageplus(passage, metadata, request_urn, format=XML):
+def getpassageplus(passage, metadata, request_urn, output=XML):
     _prev = None
     _next = None
 
@@ -99,7 +99,7 @@ def getpassageplus(passage, metadata, request_urn, format=XML):
         _prev = URN("{}:{}".format(passage.urn["text"], str(passage.prev)))
     if passage.next:
         _next = URN("{}:{}".format(passage.urn["text"], str(passage.next)))
-    if format == XML:
+    if output == XML:
         return """
             <GetPassagePlus xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
             <request>
@@ -130,8 +130,8 @@ def getpassageplus(passage, metadata, request_urn, format=XML):
         )
 
 
-def getvalidreff(reffs, level, request_urn, format=XML):
-    if format == XML:
+def getvalidreff(reffs, level, request_urn, output=XML):
+    if output == XML:
         return """
             <GetValidReff xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
                 <request>
@@ -149,16 +149,16 @@ def getvalidreff(reffs, level, request_urn, format=XML):
         )
 
 
-def getprevnext(passage, request_urn, format=XML):
-    _prev = None
-    _next = None
+def getprevnext(passage, request_urn, output=XML):
+    _prev = ""
+    _next = ""
 
     if passage.prev:
         _prev = URN("{}:{}".format(passage.urn["text"], str(passage.prev)))
     if passage.next:
         _next = URN("{}:{}".format(passage.urn["text"], str(passage.next)))
 
-    if format == XML:
+    if output == XML:
         return """
             <GetPrevNext xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
                 <request>
@@ -174,18 +174,19 @@ def getprevnext(passage, request_urn, format=XML):
                 </reply>
             </GetPrevNext>""".format(
             request_urn=request_urn,
-            urn=passage.urn,
-            prev=_prev,
-            next=_next
+            full_urn=str(passage.urn),
+            prev=str(_prev),
+            next=str(_next)
         )
 
-def getfirst(passage, request_urn, format=XML):
+
+def getfirst(passage, request_urn, output=XML):
     _first = None
 
     if passage.first:
         _first = URN("{}:{}".format(passage.urn["text"], str(passage.first)))
 
-    if format == XML:
+    if output == XML:
         return """
             <GetPrevNext xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
                 <request>
@@ -205,8 +206,8 @@ def getfirst(passage, request_urn, format=XML):
         )
 
 
-def getlabel(metadata, full_urn, request_urn, format=XML):
-    if format == XML:
+def getlabel(metadata, full_urn, request_urn, output=XML):
+    if output == XML:
         return """
             <GetLabel xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
             <request>

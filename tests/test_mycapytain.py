@@ -18,7 +18,7 @@ class ResponseTest(TestCase):
         self.endpoint = NautilusEndpoint(["./tests/test_data/farsiLit"])
 
     def test_with_get_capabilities(self):
-        response = self.endpoint.getCapabilities(category="translation", format=MY_CAPYTAIN)
+        response = self.endpoint.getCapabilities(category="translation", output=MY_CAPYTAIN)
         ti = TextInventory(resource=response)
         self.assertEqual(
             len(ti["urn:cts:farsiLit:hafez.divan"].texts), 2,
@@ -26,7 +26,7 @@ class ResponseTest(TestCase):
         )
 
     def test_with_get_capabilities_cts_response(self):
-        response = self.endpoint.getCapabilities(category="translation", format=XML)
+        response = self.endpoint.getCapabilities(category="translation", output=XML)
         self.assertIn(
             "<requestFilters>category=translation</requestFilters>", response,
             "Filters should be listed"
@@ -39,7 +39,7 @@ class ResponseTest(TestCase):
 
     def test_get_passage_complete_urn(self):
         """ Test Get Passage """
-        response, metadata = self.endpoint.getPassage("urn:cts:farsiLit:hafez.divan.perseus-eng1:1.1.1.1", format=MY_CAPYTAIN)
+        response, metadata = self.endpoint.getPassage("urn:cts:farsiLit:hafez.divan.perseus-eng1:1.1.1.1", output=MY_CAPYTAIN)
         self.assertEqual(
             response.text(),
             "Ho ! Saki, pass around and offer the bowl (of love for God) : ### ",
@@ -48,7 +48,7 @@ class ResponseTest(TestCase):
 
     def test_get_passage_partial_urn(self):
         """ Test Get Passage """
-        response, metadata = self.endpoint.getPassage("urn:cts:farsiLit:hafez.divan:1.1.1.1", format=MY_CAPYTAIN)
+        response, metadata = self.endpoint.getPassage("urn:cts:farsiLit:hafez.divan:1.1.1.1", output=MY_CAPYTAIN)
         self.assertEqual(
             response.text(),
             "الا یا ایها الساقی ادر کاسا و ناولها ### ",
@@ -56,7 +56,7 @@ class ResponseTest(TestCase):
         )
 
     def test_get_passage_formatted(self):
-        response = self.endpoint.getPassage("urn:cts:farsiLit:hafez.divan:1.1.1.1", format=XML)
+        response = self.endpoint.getPassage("urn:cts:farsiLit:hafez.divan:1.1.1.1", output=XML)
         p = Passage(resource=xmlparser(response), urn="urn:cts:farsiLit:hafez.divan:1.1.1.1")
         """
         self.assertEqual(
@@ -67,7 +67,7 @@ class ResponseTest(TestCase):
         """
 
     def test_get_passage_plus_formatted(self):
-        response = self.endpoint.getPassagePlus("urn:cts:farsiLit:hafez.divan:1.1.1.2", format=XML)
+        response = self.endpoint.getPassagePlus("urn:cts:farsiLit:hafez.divan:1.1.1.2", output=XML)
         parsed_response = Passage(resource=xmlparser(response), urn="urn:cts:farsiLit:hafez.divan:1.1.1.2")
         self.assertEqual(
             parsed_response.text().strip(),
@@ -85,7 +85,7 @@ class ResponseTest(TestCase):
 
     def test_get_valid_reff(self):
         """ With reference """
-        response = self.endpoint.getValidReff("urn:cts:farsiLit:hafez.divan:1.1", format=XML)
+        response = self.endpoint.getValidReff("urn:cts:farsiLit:hafez.divan:1.1", output=XML)
         self.assertIn(
             "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1.1</urn>", response,
             "First URN should be found"
@@ -97,7 +97,7 @@ class ResponseTest(TestCase):
 
     def test_get_valid_reff_simple(self):
         """ Without reference """
-        response = self.endpoint.getValidReff("urn:cts:farsiLit:hafez.divan", format=XML)
+        response = self.endpoint.getValidReff("urn:cts:farsiLit:hafez.divan", output=XML)
         self.assertIn(
             "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1</urn>", response,
             "First URN should be found"
@@ -107,7 +107,7 @@ class ResponseTest(TestCase):
             "First URN should be found"
         )
 
-        response = self.endpoint.getValidReff("urn:cts:farsiLit:hafez.divan", level=4, format=XML)
+        response = self.endpoint.getValidReff("urn:cts:farsiLit:hafez.divan", level=4, output=XML)
         self.assertIn(
             "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1.1.2</urn>", response,
             "First URN should be found"
@@ -126,7 +126,7 @@ class ResponseTest(TestCase):
         ticks = []
         for i in range(1, 100):
             ticks.append(datetime.now())
-            self.endpoint.getPassagePlus("urn:cts:farsiLit:hafez.divan:1.1.1.2", format=XML)
+            self.endpoint.getPassagePlus("urn:cts:farsiLit:hafez.divan:1.1.1.2", output=XML)
             ticks[-1] = datetime.now() - ticks[-1]
 
         self.assertGreater(

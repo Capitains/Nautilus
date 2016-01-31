@@ -109,12 +109,12 @@ class TestRestAPI(TestCase):
 
     def test_get_prevnext_urn(self):
         text = Text(urn="urn:cts:latinLit:phi1294.phi002.perseus-lat2", resource=self.parent)
-        response = text.getPrevNextURN(Reference("1.pr.1"))
+        prev, next = text.getPrevNextUrn(Reference("1.pr.1"))
         self.assertEqual(
-            response._prev, None
+            prev, None
         )
         self.assertEqual(
-            str(response._next.reference), "1.pr.2"
+            str(next.reference), "1.pr.2"
         )
 
         response = text.getPassagePlus(Reference("1.pr.10"))

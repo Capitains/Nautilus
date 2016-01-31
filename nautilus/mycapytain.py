@@ -57,7 +57,7 @@ class NautilusEndpoint(CTS):
         if cache is True:
             self.resolver.TEXT_CLASS = Text
 
-    def getCapabilities(self, inventory=None, format=XML, **kwargs):
+    def getCapabilities(self, inventory=None, output=XML, **kwargs):
         """ Retrieve the inventory information of an API
 
         :param inventory: Name of the inventory
@@ -68,11 +68,9 @@ class NautilusEndpoint(CTS):
         :rtype: str
         """
         return getcapabilities(
-            *self.resolver.getCapabilities(inventory=inventory, pagination=self.__pagination, **kwargs),
-            format=format, **kwargs
-        )
+            *self.resolver.getCapabilities(inventory=inventory, pagination=self.__pagination, **kwargs), output=output, **kwargs)
 
-    def getPassage(self, urn, inventory=None, context=None, format=XML):
+    def getPassage(self, urn, inventory=None, context=None, output=XML):
         """ Get a Passage from the repository
 
         :param urn: URN identifying the passage
@@ -85,12 +83,12 @@ class NautilusEndpoint(CTS):
         """
         original_urn, urn, _text, metadata = self.getText(urn, inventory)
 
-        if format == MY_CAPYTAIN:
+        if output == MY_CAPYTAIN:
             return _text.getPassage(urn["reference"]), metadata
         else:
-            return getpassage(_text.getPassage(urn["reference"]), metadata, original_urn, format=format)
+            return getpassage(_text.getPassage(urn["reference"]), metadata, original_urn, output=output)
 
-    def getPassagePlus(self, urn, inventory=None, context=None, format=XML):
+    def getPassagePlus(self, urn, inventory=None, context=None, output=XML):
         """Get a Passage and its metadata from the repository
 
         :param urn: URN identifying the passage
@@ -103,11 +101,11 @@ class NautilusEndpoint(CTS):
         """
         passage, metadata = self.getPassage(
             urn, inventory, context,
-            format=MY_CAPYTAIN
+            output=MY_CAPYTAIN
         )
-        return getpassageplus(passage, metadata, urn, format=format)
+        return getpassageplus(passage, metadata, urn, output=output)
 
-    def getValidReff(self, urn, inventory=None, level=1, format=XML):
+    def getValidReff(self, urn, inventory=None, level=1, output=XML):
         """ Retrieve valid urn-references for a text
 
         :param urn: URN identifying the text
@@ -123,12 +121,10 @@ class NautilusEndpoint(CTS):
 
         if urn[6] is not None and level <= len(urn["reference"]):
             level = len(urn["reference"]) + 1
-            print(level)
 
         if len(_text.citation) < level:
             reffs = []
         else:
-            print(urn.reference)
             reffs = _text.getValidReff(level=level, reference=urn.reference)
             if urn[6] is not None:
                 reffs = [
@@ -139,9 +135,9 @@ class NautilusEndpoint(CTS):
             else:
                 reffs = ["{}:{}".format(urn["text"], reff) for reff in reffs]
 
-        return getvalidreff(reffs, level=level, request_urn=original_urn, format=format)
+        return getvalidreff(reffs, level=level, request_urn=original_urn, output=output)
 
-    def getPrevNextUrn(self, urn, inventory=None):
+    def getPrevNextUrn(self, urn, inventory=None, output=XML):
         """ Retrieve valid previous and next URN
 
         :param urn: URN identifying the text
@@ -153,11 +149,11 @@ class NautilusEndpoint(CTS):
         """
         passage, metadata = self.getPassage(
             urn, inventory,
-            format=MY_CAPYTAIN
+            output=MY_CAPYTAIN
         )
-        return getprevnext(passage, urn, format=format)
+        return getprevnext(passage, urn, output=output)
 
-    def getFirstUrn(self, urn, inventory=None):
+    def getFirstUrn(self, urn, inventory=None, output=XML):
         """ Retrieve valid first URN
 
         :param urn: URN identifying the text
@@ -169,11 +165,11 @@ class NautilusEndpoint(CTS):
         """
         passage, metadata = self.getPassage(
             urn, inventory,
-            format=MY_CAPYTAIN
+            output=MY_CAPYTAIN
         )
-        return getfirst(passage, urn, format=format)
+        return getfirst(passage, urn, output=output)
 
-    def getLabel(self, urn, inventory=None):
+    def getLabel(self, urn, inventory=None, output=XML):
         """ Retrieve label informations
 
         :param urn: URN identifying the text
@@ -185,9 +181,9 @@ class NautilusEndpoint(CTS):
         """
         passage, metadata = self.getPassage(
             urn, inventory,
-            format=MY_CAPYTAIN
+            output=MY_CAPYTAIN
         )
-        return getlabel(metadata, passage.urn, urn, format=format)
+        return getlabel(metadata, passage.urn, urn, output=output)
 
     def getText(self, urn, inventory=None):
         """ Retrieves a text in the inventory in case of partial URN or throw error when text is not accessible
