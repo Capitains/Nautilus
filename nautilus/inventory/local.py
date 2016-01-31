@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from six import text_type as str
 from io import open
 
-from MyCapytain.resources.inventory import TextInventory, TextGroup, Work
+from MyCapytain.resources.inventory import TextInventory, TextGroup, Work, Citation
 from MyCapytain.resources.texts.local import Text
 from MyCapytain.common.reference import URN
 from MyCapytain.common.utils import xmlparser
@@ -55,6 +55,25 @@ class XMLFolderResolver(InventoryResolver):
                             work=__text__.urn[4],
                             version=__text__.urn[5]
                         )
+                        if os.path.isfile(__text__.path):
+                            with open(__text__.path) as f:
+                                t = Text(resource=f)
+                                cites = list()
+                                for cite in [c for c in t.citation][::-1]:
+                                    if len(cites) >= 1:
+                                        cites.append(Citation(
+                                            xpath=cite.xpath.replace("'", '"'),
+                                            scope=cite.scope.replace("'", '"'),
+                                            name=cite.name,
+                                            child=cites[-1]
+                                        ))
+                                    else:
+                                        cites.append(Citation(
+                                            xpath=cite.xpath.replace("'", '"'),
+                                            scope=cite.scope.replace("'", '"'),
+                                            name=cite.name
+                                        ))
+                            __text__.citation = cites[-1]
                         self.__texts__.append(__text__)
 
     def getText(self, urn):

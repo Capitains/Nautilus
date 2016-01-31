@@ -25,6 +25,9 @@ class ResponseTest(TestCase):
             len(ti["urn:cts:farsiLit:hafez.divan"].texts), 2,
             "Asserts that only two texts has been added to the TI"
         )
+        self.assertEqual(
+            len(ti["urn:cts:farsiLit:hafez.divan.perseus-eng1"].citation), 4
+        )
 
     def test_with_get_capabilities(self):
         response = getcapabilities(*self.inventory.getCapabilities(category="translation"))

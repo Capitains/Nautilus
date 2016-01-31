@@ -106,3 +106,32 @@ class TestRestAPI(TestCase):
             str(response._next.reference), "1.pr.12-1.pr.13",
             "Check Range works on GetPassagePlus and compute right next"
         )
+
+    def test_get_prevnext_urn(self):
+        text = Text(urn="urn:cts:latinLit:phi1294.phi002.perseus-lat2", resource=self.parent)
+        response = text.getPrevNextURN(Reference("1.pr.1"))
+        self.assertEqual(
+            response._prev, None
+        )
+        self.assertEqual(
+            str(response._next.reference), "1.pr.2"
+        )
+
+        response = text.getPassagePlus(Reference("1.pr.10"))
+        self.assertEqual(
+            str(response._prev.reference), "1.pr.9",
+            "Check Range works on normal middle GetPassage"
+        )
+        self.assertEqual(
+            str(response._next.reference), "1.pr.11"
+        )
+
+        response = text.getPassagePlus(Reference("1.pr.10-1.pr.11"))
+        self.assertEqual(
+            str(response._prev.reference), "1.pr.8-1.pr.9",
+            "Check Range works on GetPassagePlus and compute right prev"
+        )
+        self.assertEqual(
+            str(response._next.reference), "1.pr.12-1.pr.13",
+            "Check Range works on GetPassagePlus and compute right next"
+        )
