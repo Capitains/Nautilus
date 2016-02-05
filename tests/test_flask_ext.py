@@ -52,7 +52,6 @@ class TestRestAPI(TestCase):
 
         self.parent.call = lambda x: call(self.parent, x)
 
-
     def test_get_capabilities(self):
         response = self.app.get("/?request=GetCapabilities")
         a = TextInventory(resource=BytesIO(response.data))
@@ -74,10 +73,10 @@ class TestRestAPI(TestCase):
             response.text(), "Spero me secutum in libellis meis tale temperamen-"
         )
         self.assertEqual(
-            response._prev, None
+            response.prev, None
         )
         self.assertEqual(
-            str(response._next.reference), "1.pr.2"
+            str(response.next.reference), "1.pr.2"
         )
 
         response = text.getPassagePlus(Reference("1.pr.10"))
@@ -86,10 +85,10 @@ class TestRestAPI(TestCase):
             "Check Range works on normal middle GetPassage"
         )
         self.assertEqual(
-            str(response._prev.reference), "1.pr.9"
+            str(response.prev.reference), "1.pr.9"
         )
         self.assertEqual(
-            str(response._next.reference), "1.pr.11"
+            str(response.next.reference), "1.pr.11"
         )
 
         response = text.getPassagePlus(Reference("1.pr.10-1.pr.11"))
@@ -99,11 +98,11 @@ class TestRestAPI(TestCase):
             "Check Range works on GetPassagePlus"
         )
         self.assertEqual(
-            str(response._prev.reference), "1.pr.8-1.pr.9",
+            str(response.prev.reference), "1.pr.8-1.pr.9",
             "Check Range works on GetPassagePlus and compute right prev"
         )
         self.assertEqual(
-            str(response._next.reference), "1.pr.12-1.pr.13",
+            str(response.next.reference), "1.pr.12-1.pr.13",
             "Check Range works on GetPassagePlus and compute right next"
         )
 
@@ -119,19 +118,19 @@ class TestRestAPI(TestCase):
 
         response = text.getPassagePlus(Reference("1.pr.10"))
         self.assertEqual(
-            str(response._prev.reference), "1.pr.9",
+            str(response.prev.reference), "1.pr.9",
             "Check Range works on normal middle GetPassage"
         )
         self.assertEqual(
-            str(response._next.reference), "1.pr.11"
+            str(response.next.reference), "1.pr.11"
         )
 
         response = text.getPassagePlus(Reference("1.pr.10-1.pr.11"))
         self.assertEqual(
-            str(response._prev.reference), "1.pr.8-1.pr.9",
+            str(response.prev.reference), "1.pr.8-1.pr.9",
             "Check Range works on GetPassagePlus and compute right prev"
         )
         self.assertEqual(
-            str(response._next.reference), "1.pr.12-1.pr.13",
+            str(response.next.reference), "1.pr.12-1.pr.13",
             "Check Range works on GetPassagePlus and compute right next"
         )
