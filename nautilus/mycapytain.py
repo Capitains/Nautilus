@@ -31,7 +31,7 @@ class Text(_Text):
         :param reference: Reference object
         :return: References
         """
-        __cache_key = _cache_key("Text_GetValidReff", level, str(reference))
+        __cache_key = _cache_key("Text_GetValidReff", level, str(self.urn), str(reference))
         __cached = self.cache.get(__cache_key)
         if __cached:
             return __cached
