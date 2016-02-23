@@ -21,13 +21,15 @@ class XMLFolderResolver(InventoryResolver):
 
     :param resource: Resource should be a list of folders retaining data as Capitains Guidelines Repositories
     :type resource: [str]
+    :param name: Key used to differentiate Repository and thus enabling different repo to be used
 
     .. warning :: This resolver does not support inventories
     """
     TEXT_CLASS = Text
 
-    def __init__(self, resource, inventories=None, cache=None):
+    def __init__(self, resource, inventories=None, cache=None, name=None):
         """ Initiate the XMLResolver
+
         """
         super(XMLFolderResolver, self).__init__(resource=TextInventory())
 
@@ -35,19 +37,21 @@ class XMLFolderResolver(InventoryResolver):
             cache = NullCache()
 
         self.cache = cache
-
+        self.name = name
+        if not name:
+            self.name = "repository"
         self.TEXT_CLASS = XMLFolderResolver.TEXT_CLASS
         self.works = []
 
-        __inventory__ = self.cache.get(_cache_key("Nautilus", "Inventory", "Resources"))
-        __texts__ = self.cache.get(_cache_key("Nautilus", "Inventory", "Texts"))
+        __inventory__ = self.cache.get(_cache_key("Nautilus", "Inventory", "Resources", self.name))
+        __texts__ = self.cache.get(_cache_key("Nautilus", "Inventory", "Texts", self.name))
 
         if __inventory__ and __texts__:
             self.resource, self.__texts__ = __inventory__, __texts__
         else:
             __inventory__, __texts__ = self.__parseDirectories(resource)
-            self.cache.set(_cache_key("Nautilus", "Inventory", "Resources"), __inventory__)
-            self.cache.set(_cache_key("Nautilus", "Inventory", "Texts"), __texts__)
+            self.cache.set(_cache_key("Nautilus", "Inventory", "Resources", self.name), __inventory__)
+            self.cache.set(_cache_key("Nautilus", "Inventory", "Texts", self.name), __texts__)
 
     def __parseDirectories(self, resource):
         """

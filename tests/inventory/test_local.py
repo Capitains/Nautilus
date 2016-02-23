@@ -36,6 +36,12 @@ class TestXMLFolderResolver(TestCase):
             cache=RedisCache(key_prefix="test_nautilus")
         )
         self.assertEqual(len(Repository.resource), 3)
+        Repository = XMLFolderResolver(
+            ["./tests/test_data/farsiLit", "./tests/test_data/latinLit"],
+            cache=RedisCache(key_prefix="test_nautilus"),
+            name="secondrepo"
+        )
+        self.assertEqual(len(Repository.resource), 174)
 
     def test_text_resource(self):
         """ Test to get the text resource to perform other queries """

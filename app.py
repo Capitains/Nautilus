@@ -7,8 +7,8 @@ nautilus_cache = RedisCache()
 app = Flask("Nautilus")
 nautilus = FlaskNautilus(
     app=app,
-    resources=["./tests/test_data/latinLit", "./tests/test_data/farsiLit"],
+    resources=["/home/thibault/dev/canonicals/canonical-latinLit"],
     parser_cache=nautilus_cache,
     http_cache=Cache(config={'CACHE_TYPE': 'redis'})
 )
-app.run(debug=True)
+app.run(debug=True)#, host='192.168.1.177')
