@@ -6,6 +6,7 @@ from six import text_type as str
 from nautilus.inventory.local import XMLFolderResolver
 from MyCapytain.common.reference import URN, Reference
 from unittest import TestCase
+from werkzeug.contrib.cache import RedisCache
 
 
 class TestXMLFolderResolver(TestCase):
@@ -28,6 +29,13 @@ class TestXMLFolderResolver(TestCase):
             len(Repository.resource["urn:cts:farsiLit:hafez.divan"].texts), 3,
             "Divan has 3 children"
         )
+
+    def test_caching_system(self):
+        Repository = XMLFolderResolver(
+            ["./tests/test_data/farsiLit"],
+            cache=RedisCache(key_prefix="test_nautilus")
+        )
+        self.assertEqual(len(Repository.resource), 3)
 
     def test_text_resource(self):
         """ Test to get the text resource to perform other queries """

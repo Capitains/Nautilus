@@ -12,6 +12,8 @@ from nautilus.errors import *
 from glob import glob
 import os.path
 from nautilus.inventory.proto import InventoryResolver
+from werkzeug.contrib.cache import NullCache, BaseCache
+from nautilus import _cache_key
 
 
 class XMLFolderResolver(InventoryResolver):
@@ -24,13 +26,35 @@ class XMLFolderResolver(InventoryResolver):
     """
     TEXT_CLASS = Text
 
-    def __init__(self, resource):
+    def __init__(self, resource, inventories=None, cache=None):
         """ Initiate the XMLResolver
         """
         super(XMLFolderResolver, self).__init__(resource=TextInventory())
 
+        if not isinstance(cache, BaseCache):
+            cache = NullCache()
+
+        self.cache = cache
+
         self.TEXT_CLASS = XMLFolderResolver.TEXT_CLASS
         self.works = []
+
+        __inventory__ = self.cache.get(_cache_key("Nautilus", "Inventory", "Resources"))
+        __texts__ = self.cache.get(_cache_key("Nautilus", "Inventory", "Texts"))
+
+        if __inventory__ and __texts__:
+            self.resource, self.__texts__ = __inventory__, __texts__
+        else:
+            __inventory__, __texts__ = self.__parseDirectories(resource)
+            self.cache.set(_cache_key("Nautilus", "Inventory", "Resources"), __inventory__)
+            self.cache.set(_cache_key("Nautilus", "Inventory", "Texts"), __texts__)
+
+    def __parseDirectories(self, resource):
+        """
+
+        :param resource:
+        :return:
+        """
         for folder in resource:
             textgroups = glob("{base_folder}/data/*/__cts__.xml".format(base_folder=folder))
             for __cts__ in textgroups:
@@ -43,7 +67,7 @@ class XMLFolderResolver(InventoryResolver):
                     with open(__subcts__) as __xml__:
                         work = Work(
                             resource=__xml__,
-                            parents=tuple([self.resource.textgroups[str(textgroup.urn)]])
+                            parents=[self.resource.textgroups[str(textgroup.urn)]]
                         )
                         work.urn = URN(work.xml.get("urn"))
                     self.resource.textgroups[str(textgroup.urn)].works[str(work.urn)] = work
@@ -75,6 +99,8 @@ class XMLFolderResolver(InventoryResolver):
                                         ))
                             __text__.citation = cites[-1]
                         self.__texts__.append(__text__)
+
+        return self.resource, self.__texts__
 
     def getText(self, urn):
         """ Returns a Text object

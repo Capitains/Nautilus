@@ -1,7 +1,5 @@
 from setuptools import setup, find_packages
 
-# import nautilus
-
 setup(
   name='nautilus',
   version="0.0.1",
@@ -12,10 +10,10 @@ setup(
   license='MIT',
   packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
   install_requires=[
-    "MyCapytain>=0.0.9"
+    "MyCapytain>=0.1.0"
   ],
   dependency_links=[
-    "https://github.com/Capitains/MyCapytain/tarball/0.0.10dev#egg=MyCapytain-0.0.10"
+    "https://github.com/Capitains/MyCapytain/tarball/0.1.0dev#egg=MyCapytain-0.1.0"
   ],
   test_suite="tests"#,
   # zip_safe=True
