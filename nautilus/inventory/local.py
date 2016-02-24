@@ -104,7 +104,7 @@ class XMLFolderResolver(InventoryResolver):
                                 __text__.citation = cites[-1]
                             except Exception:
                                 print(__text__.path + " does not accept parsing at some level (most probably citation) ")
-                        self.__texts__.appendg(__text__)
+                        self.__texts__.append(__text__)
 
         return self.resource, self.__texts__
 
