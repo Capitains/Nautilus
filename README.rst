@@ -27,9 +27,7 @@ This small tutorial takes that you have one or more Capitains formated repositor
 2. **With production version (not available for now):**
     - Install from pip : `pip install capitains-nautilus`
 3. You will be able now to call capitains nautilus help information through `capitains-nautilus --help`
-4. Basic setting for testing a directory is `capitains-nautilus --debug /home/USERNAME/repository1`. This can take
-more than one repository at the end such as `capitains-nautilus --debug /home/USERNAME/repository1 /home/USERNAME/repository2`.
-You can force host and port through --host and --port parameters.
+4. Basic setting for testing a directory is `capitains-nautilus --debug /home/USERNAME/repository1`. This can take more than one repository at the end such as `capitains-nautilus --debug /home/USERNAME/repository1 /home/USERNAME/repository2`. You can force host and port through --host and --port parameters.
 
 Source for the tests
 ####################
