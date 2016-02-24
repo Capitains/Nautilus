@@ -147,7 +147,7 @@ class FlaskNautilus(object):
         :param urn:
         :return:
         """
-        return self.endpoint.getCapabilities(inventory=inv, urn=urn).strip(), 200, {"content-type": "text/xml"}
+        return self.endpoint.getCapabilities(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetPassage(self, urn, inv):
         """
@@ -155,7 +155,7 @@ class FlaskNautilus(object):
         :param urn:
         :return:
         """
-        return self.endpoint.getPassage(inventory=inv, urn=urn).strip(), 200, {"content-type": "text/xml"}
+        return self.endpoint.getPassage(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetPassagePlus(self, urn, inv):
         """
@@ -163,7 +163,7 @@ class FlaskNautilus(object):
         :param urn:
         :return:
         """
-        return self.endpoint.getPassagePlus(inventory=inv, urn=urn).strip(), 200, {"content-type": "text/xml"}
+        return self.endpoint.getPassagePlus(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetValidReff(self, urn, inv, level):
         """
@@ -171,7 +171,7 @@ class FlaskNautilus(object):
         :param urn:
         :return:
         """
-        return self.endpoint.getValidReff(inventory=inv, urn=urn, level=level).strip(), 200, {"content-type": "text/xml"}
+        return self.endpoint.getValidReff(inventory=inv, urn=urn, level=level).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetPrevNext(self, urn, inv):
         """
@@ -179,7 +179,7 @@ class FlaskNautilus(object):
         :param urn:
         :return:
         """
-        return self.endpoint.getPrevNextUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "text/xml"}
+        return self.endpoint.getPrevNextUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetFirstUrn(self, urn, inv):
         """
@@ -187,7 +187,7 @@ class FlaskNautilus(object):
         :param urn:
         :return:
         """
-        return self.endpoint.getFirstUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "text/xml"}
+        return self.endpoint.getFirstUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetLabel(self, urn, inv):
         """
@@ -195,4 +195,4 @@ class FlaskNautilus(object):
         :param urn:
         :return:
         """
-        return self.endpoint.getLabel(inventory=inv, urn=urn).strip(), 200, {"content-type": "text/xml"}
+        return self.endpoint.getLabel(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}

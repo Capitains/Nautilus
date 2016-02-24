@@ -61,50 +61,54 @@ class XMLFolderResolver(InventoryResolver):
         for folder in resource:
             textgroups = glob("{base_folder}/data/*/__cts__.xml".format(base_folder=folder))
             for __cts__ in textgroups:
-                with open(__cts__) as __xml__:
-                    textgroup = TextGroup(resource=__xml__)
-                    textgroup.urn = URN(textgroup.xml.get("urn"))
-                self.resource.textgroups[str(textgroup.urn)] = textgroup
+                try:
+                    with open(__cts__) as __xml__:
+                        textgroup = TextGroup(resource=__xml__)
+                        textgroup.urn = URN(textgroup.xml.get("urn"))
+                    self.resource.textgroups[str(textgroup.urn)] = textgroup
 
-                for __subcts__ in glob("{parent}/*/__cts__.xml".format(parent=os.path.dirname(__cts__))):
-                    with open(__subcts__) as __xml__:
-                        work = Work(
-                            resource=__xml__,
-                            parents=[self.resource.textgroups[str(textgroup.urn)]]
-                        )
-                        work.urn = URN(work.xml.get("urn"))
-                    self.resource.textgroups[str(textgroup.urn)].works[str(work.urn)] = work
+                    for __subcts__ in glob("{parent}/*/__cts__.xml".format(parent=os.path.dirname(__cts__))):
+                        with open(__subcts__) as __xml__:
+                            work = Work(
+                                resource=__xml__,
+                                parents=[self.resource.textgroups[str(textgroup.urn)]]
+                            )
+                            work.urn = URN(work.xml.get("urn"))
+                    
+                            self.resource.textgroups[str(textgroup.urn)].works[str(work.urn)] = work
 
-                    for __text__ in self.resource.textgroups[str(textgroup.urn)].works[str(work.urn)].texts.values():
-                        __text__.path = "{directory}/{textgroup}.{work}.{version}.xml".format(
-                            directory=os.path.dirname(__subcts__),
-                            textgroup=__text__.urn[3],
-                            work=__text__.urn[4],
-                            version=__text__.urn[5]
-                        )
-                        if os.path.isfile(__text__.path):
-                            try:
-                                with open(__text__.path) as f:
-                                    t = Text(resource=f)
-                                    cites = list()
-                                    for cite in [c for c in t.citation][::-1]:
-                                        if len(cites) >= 1:
-                                            cites.append(Citation(
-                                                xpath=cite.xpath.replace("'", '"'),
-                                                scope=cite.scope.replace("'", '"'),
-                                                name=cite.name,
-                                                child=cites[-1]
-                                            ))
-                                        else:
-                                            cites.append(Citation(
-                                                xpath=cite.xpath.replace("'", '"'),
-                                                scope=cite.scope.replace("'", '"'),
-                                                name=cite.name
-                                            ))
-                                __text__.citation = cites[-1]
-                            except Exception:
-                                print(__text__.path + " does not accept parsing at some level (most probably citation) ")
-                        self.__texts__.append(__text__)
+                        for __text__ in self.resource.textgroups[str(textgroup.urn)].works[str(work.urn)].texts.values():
+                            __text__.path = "{directory}/{textgroup}.{work}.{version}.xml".format(
+                                directory=os.path.dirname(__subcts__),
+                                textgroup=__text__.urn[3],
+                                work=__text__.urn[4],
+                                version=__text__.urn[5]
+                            )
+                            if os.path.isfile(__text__.path):
+                                try:
+                                    with open(__text__.path) as f:
+                                        t = Text(resource=f)
+                                        cites = list()
+                                        for cite in [c for c in t.citation][::-1]:
+                                            if len(cites) >= 1:
+                                                cites.append(Citation(
+                                                    xpath=cite.xpath.replace("'", '"'),
+                                                    scope=cite.scope.replace("'", '"'),
+                                                    name=cite.name,
+                                                    child=cites[-1]
+                                                ))
+                                            else:
+                                                cites.append(Citation(
+                                                    xpath=cite.xpath.replace("'", '"'),
+                                                    scope=cite.scope.replace("'", '"'),
+                                                    name=cite.name
+                                                ))
+                                    __text__.citation = cites[-1]
+                                except Exception:
+                                    print(__text__.path + " does not accept parsing at some level (most probably citation) ")
+                            self.__texts__.append(__text__)
+                except Exception:
+                    print("Error parsing " + __cts__)
 
         return self.resource, self.__texts__
 
