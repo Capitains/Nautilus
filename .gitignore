@@ -3,6 +3,8 @@
 env
 
 cache_dir
+benchmarking/node_modules
+benchmarking/output_folder
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -32,7 +32,6 @@ class XMLFolderResolver(InventoryResolver):
 
         """
         super(XMLFolderResolver, self).__init__(resource=TextInventory())
-
         if not isinstance(cache, BaseCache):
             cache = NullCache()
 

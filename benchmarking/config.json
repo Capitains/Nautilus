@@ -1,0 +1,18 @@
+{
+  "service": {
+    "Nautilus": "http://localhost:5000"
+  },
+  "endpoints": {
+    "getCapabilities": "/?request=GetCapabilities",
+    "simplePassage": "/?request=GetPassage&urn=urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr.1",
+    "rangePassage": "/?request=GetPassage&urn=urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr.1-1.pr.8",
+    "passagePlus": "/?request=GetPassagePlus&urn=urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr.1-1.pr.8"
+  },
+  "options": {
+    "minSamples": 2000,
+    "runMode": "parallel",
+    "maxConcurrentRequests": 100,
+    "debug": true,
+    "stopOnError": false
+  }
+}

@@ -5,7 +5,6 @@ from six import text_type as str
 from flask import Flask, Blueprint, request
 from flask_cache import Cache
 from flask_compress import Compress
-from werkzeug.contrib.cache import BaseCache, NullCache
 
 from nautilus.mycapytain import Text, NautilusEndpoint
 
@@ -33,9 +32,11 @@ class FlaskNautilus(object):
         """
 
         # Set up endpoints with cache system
-        self.endpoint = NautilusEndpoint(resources, pagination=pagination)
         if parser_cache:
             Text.CACHE_CLASS = parser_cache
+            self.endpoint = NautilusEndpoint(resources, pagination=pagination, cache=parser_cache)
+        else:
+            self.endpoint = NautilusEndpoint(resources, pagination=pagination)
         self.endpoint.resolver.TEXT_CLASS = Text
 
         self.app = app

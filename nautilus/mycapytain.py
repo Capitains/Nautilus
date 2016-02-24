@@ -51,11 +51,10 @@ class NautilusEndpoint(CTS):
     :type resolver: XMLFolderResolver
 
     """
-    def __init__(self, folders=[], cache=True, pagination=True):
+    def __init__(self, folders=[], cache=None, pagination=True):
         self.__pagination = False
-        self.resolver = XMLFolderResolver(resource=folders)
-        if cache is True:
-            self.resolver.TEXT_CLASS = Text
+        self.resolver = XMLFolderResolver(resource=folders, cache=cache)
+        self.resolver.TEXT_CLASS = Text
 
     def getCapabilities(self, inventory=None, output=XML, **kwargs):
         """ Retrieve the inventory information of an API

@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "grunt-api-benchmark": ">=0.1.3"
+  },
+  "name": "benchmarking",
+  "version": "1.0.0",
+  "description": "Benchmarking API",
+  "main": "Gruntfile.js",
+  "devDependencies": {
+    "grunt-api-benchmark": "^0.1.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Thibault Clérice <leponteineptique@gmail.com> (http://algorythme.net)",
+  "license": "ISC"
+}
