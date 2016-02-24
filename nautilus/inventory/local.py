@@ -83,25 +83,28 @@ class XMLFolderResolver(InventoryResolver):
                             version=__text__.urn[5]
                         )
                         if os.path.isfile(__text__.path):
-                            with open(__text__.path) as f:
-                                t = Text(resource=f)
-                                cites = list()
-                                for cite in [c for c in t.citation][::-1]:
-                                    if len(cites) >= 1:
-                                        cites.append(Citation(
-                                            xpath=cite.xpath.replace("'", '"'),
-                                            scope=cite.scope.replace("'", '"'),
-                                            name=cite.name,
-                                            child=cites[-1]
-                                        ))
-                                    else:
-                                        cites.append(Citation(
-                                            xpath=cite.xpath.replace("'", '"'),
-                                            scope=cite.scope.replace("'", '"'),
-                                            name=cite.name
-                                        ))
-                            __text__.citation = cites[-1]
-                        self.__texts__.append(__text__)
+                            try:
+                                with open(__text__.path) as f:
+                                    t = Text(resource=f)
+                                    cites = list()
+                                    for cite in [c for c in t.citation][::-1]:
+                                        if len(cites) >= 1:
+                                            cites.append(Citation(
+                                                xpath=cite.xpath.replace("'", '"'),
+                                                scope=cite.scope.replace("'", '"'),
+                                                name=cite.name,
+                                                child=cites[-1]
+                                            ))
+                                        else:
+                                            cites.append(Citation(
+                                                xpath=cite.xpath.replace("'", '"'),
+                                                scope=cite.scope.replace("'", '"'),
+                                                name=cite.name
+                                            ))
+                                __text__.citation = cites[-1]
+                            except Exception:
+                                print(__text__.path + " does not accept parsing at some level (most probably citation) ")
+                        self.__texts__.appendg(__text__)
 
         return self.resource, self.__texts__
 

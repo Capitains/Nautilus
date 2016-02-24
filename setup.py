@@ -24,6 +24,5 @@ setup(
   entry_points={
       'console_scripts': ['capitains-nautilus=nautilus.cmd:cmd'],
   },
-  test_suite="tests"#,
-  # zip_safe=True
+  test_suite="tests"
 )
