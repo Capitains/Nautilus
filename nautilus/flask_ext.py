@@ -27,7 +27,7 @@ class FlaskNautilus(object):
         ('/', "r_dispatcher", ["GET"])
     ]
     Access_Control_Allow_Methods = {
-        "r_dispatcher": "OPTION, GET"
+        "r_dispatcher": "OPTIONS, GET"
     }
     Access_Control_Allow_Origin = "*"
 
