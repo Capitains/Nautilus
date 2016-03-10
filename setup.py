@@ -18,9 +18,6 @@ setup(
     "redis==2.10.5",
     "Flask-Cache==0.13.1"
   ],
-  dependency_links=[
-    "https://github.com/Capitains/MyCapytain/tarball/0.1.0dev#egg=MyCapytain-0.1.0"
-  ],
   entry_points={
       'console_scripts': ['capitains-nautilus=nautilus.cmd:cmd'],
   },
