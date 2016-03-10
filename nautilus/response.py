@@ -96,9 +96,9 @@ def getpassageplus(passage, metadata, request_urn, output=XML):
     _next = None
 
     if passage.prev:
-        _prev = URN("{}:{}".format(passage.urn["text"], str(passage.prev)))
+        _prev = URN("{}:{}".format(passage.urn.upTo(URN.VERSION), str(passage.prev)))
     if passage.next:
-        _next = URN("{}:{}".format(passage.urn["text"], str(passage.next)))
+        _next = URN("{}:{}".format(passage.urn.upTo(URN.VERSION), str(passage.next)))
     if output == XML:
         return """
             <GetPassagePlus xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
@@ -154,9 +154,9 @@ def getprevnext(passage, request_urn, output=XML):
     _next = ""
 
     if passage.prev:
-        _prev = URN("{}:{}".format(passage.urn["text"], str(passage.prev)))
+        _prev = URN("{}:{}".format(passage.urn.upTo(URN.VERSION), str(passage.prev)))
     if passage.next:
-        _next = URN("{}:{}".format(passage.urn["text"], str(passage.next)))
+        _next = URN("{}:{}".format(passage.urn.upTo(URN.VERSION), str(passage.next)))
 
     if output == XML:
         return """
@@ -184,7 +184,7 @@ def getfirst(passage, request_urn, output=XML):
     _first = None
 
     if passage.first:
-        _first = URN("{}:{}".format(passage.urn["text"], str(passage.first)))
+        _first = URN("{}:{}".format(passage.urn.upTo(URN.VERSION), str(passage.first)))
 
     if output == XML:
         return """

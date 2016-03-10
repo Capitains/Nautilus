@@ -80,9 +80,9 @@ class XMLFolderResolver(InventoryResolver):
                         for __text__ in self.resource.textgroups[str(textgroup.urn)].works[str(work.urn)].texts.values():
                             __text__.path = "{directory}/{textgroup}.{work}.{version}.xml".format(
                                 directory=os.path.dirname(__subcts__),
-                                textgroup=__text__.urn[3],
-                                work=__text__.urn[4],
-                                version=__text__.urn[5]
+                                textgroup=__text__.urn.textgroup,
+                                work=__text__.urn.work,
+                                version=__text__.urn.version
                             )
                             if os.path.isfile(__text__.path):
                                 try:
@@ -122,7 +122,6 @@ class XMLFolderResolver(InventoryResolver):
         """
         if not isinstance(urn, URN):
             urn = URN(urn)
-
         if len(urn) != 5:
             raise InvalidURN
 
@@ -155,13 +154,13 @@ class XMLFolderResolver(InventoryResolver):
         urn_part = None
         if urn is not None:
             _urn = URN(urn)
-            urn_part = ["full", "urn_namespace", "cts_namespace", "textgroup", "work", "text", "full"][len(_urn)]
+            __PART = [None, None, URN.NAMESPACE, URN.TEXTGROUP, URN.WORK, URN.VERSION, URN.COMPLETE][len(_urn)]
 
         matches = [
             text
             for text in self.__texts__
             if (lang is None or (lang is not None and lang == text.lang)) and
-            (urn is None or (urn is not None and text.urn[urn_part] == urn)) and
+            (urn is None or (urn is not None and text.urn.upTo(__PART) == urn)) and
             (category not in ["edition", "translation"] or (category in ["edition", "translation"] and category.lower() == text.subtype.lower()))
         ]
         if pagination:

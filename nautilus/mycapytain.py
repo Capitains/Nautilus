@@ -83,9 +83,9 @@ class NautilusEndpoint(CTS):
         original_urn, urn, _text, metadata = self.getText(urn, inventory)
 
         if output == MY_CAPYTAIN:
-            return _text.getPassage(urn["reference"]), metadata
+            return _text.getPassage(urn.reference), metadata
         else:
-            return getpassage(_text.getPassage(urn["reference"]), metadata, original_urn, output=output)
+            return getpassage(_text.getPassage(urn.reference), metadata, original_urn, output=output)
 
     def getPassagePlus(self, urn, inventory=None, context=None, output=XML):
         """Get a Passage and its metadata from the repository
@@ -118,21 +118,21 @@ class NautilusEndpoint(CTS):
         """
         original_urn, urn, _text, metadata = self.getText(urn, inventory)
 
-        if urn[6] is not None and level <= len(urn["reference"]):
-            level = len(urn["reference"]) + 1
+        if urn.reference is not None and level <= len(urn.reference):
+            level = len(urn.reference) + 1
 
         if len(_text.citation) < level:
             reffs = []
         else:
             reffs = _text.getValidReff(level=level, reference=urn.reference)
-            if urn[6] is not None:
+            if urn.reference is not None:
                 reffs = [
-                    "{}:{}".format(urn["text"], reff)
+                    "{}:{}".format(urn.upTo(URN.VERSION), reff)
                     for reff in reffs
-                    if reff.startswith("{}.".format(urn[6]))
+                    if reff.startswith("{}.".format(urn.reference))
                 ]
             else:
-                reffs = ["{}:{}".format(urn["text"], reff) for reff in reffs]
+                reffs = ["{}:{}".format(urn.upTo(URN.VERSION), reff) for reff in reffs]
 
         return getvalidreff(reffs, level=level, request_urn=original_urn, output=output)
 
@@ -197,11 +197,11 @@ class NautilusEndpoint(CTS):
         urn = original_urn
         if len(urn) == 4:
             matches, page, counter = self.resolver.getCapabilities(
-                inventory=inventory, urn=urn["work"], category="edition"
+                inventory=inventory, urn=urn.upTo(URN.WORK), category="edition"
             )
             if counter > 0:
-                if urn["reference"]:
-                    urn = URN("{0}:{1}".format(matches[0].urn, urn["reference"]))
+                if urn.reference:
+                    urn = URN("{0}:{1}".format(matches[0].urn, urn.reference))
                 else:
                     urn = matches[0].urn
             else:
@@ -209,6 +209,6 @@ class NautilusEndpoint(CTS):
         elif len(urn) < 4:
             raise InvalidURN()
 
-        _text, metadata = self.resolver.getText(urn["text"])
+        _text, metadata = self.resolver.getText(urn.upTo(URN.VERSION))
 
         return original_urn, urn, _text, metadata
