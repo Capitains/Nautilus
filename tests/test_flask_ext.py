@@ -52,6 +52,26 @@ class TestRestAPI(TestCase):
 
         self.parent.call = lambda x: call(self.parent, x)
 
+    def test_cors(self):
+        self.assertEqual(self.app.get("/?request=GetCapabilities").headers["Access-Control-Allow-Origin"], "*")
+        self.assertEqual(self.app.get("/?request=GetCapabilities").headers["Access-Control-Allow-Methods"], "OPTION, GET")
+
+    def test_cors(self):
+
+        nautilus_cache = RedisCache()
+        app = Flask("Nautilus")
+        nautilus = FlaskNautilus(
+            app=app,
+            resources=["./tests/test_data/latinLit"],
+            parser_cache=nautilus_cache,
+            http_cache=Cache(config={'CACHE_TYPE': 'redis'}),
+            access_Control_Allow_Methods={"r_dispatcher": "OPTION"},
+            access_Control_Allow_Origin={"r_dispatcher": "foo.bar"}
+        )
+        _app = app.test_client()
+        self.assertEqual(_app.get("/?request=GetCapabilities").headers["Access-Control-Allow-Origin"], "foo.bar")
+        self.assertEqual(_app.get("/?request=GetCapabilities").headers["Access-Control-Allow-Methods"], "OPTION")
+
     def test_get_capabilities(self):
         response = self.app.get("/?request=GetCapabilities")
         a = TextInventory(resource=BytesIO(response.data))
