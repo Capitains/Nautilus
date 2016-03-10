@@ -141,7 +141,7 @@ class FlaskNautilus(object):
         """
         _request = request.args.get("request", None)
         if not _request:
-            return "This request does not exist", 404, ""  # Should maybe return documentation on top of 404 ?
+            return "This request does not exist", 404, dict()  # Should maybe return documentation on top of 404 ?
         elif _request.lower() == "getcapabilities":
             return self._r_GetCapabilities(
                 urn=request.args.get("urn", None),
