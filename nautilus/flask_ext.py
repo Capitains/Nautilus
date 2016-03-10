@@ -10,26 +10,34 @@ from nautilus.mycapytain import Text, NautilusEndpoint
 
 
 class FlaskNautilus(object):
+    """ Initiate the class
+
+    :param prefix: Prefix on which to install the extension
+    :param app: Application on which to register
+    :param name: Name to use for the blueprint
+    :param resources: List of directory to feed the inventory
+    :type resource: list(str)
+    :param parser_cache:
+    :param http_cache: HTTP Cache should be a FlaskCache object
+    :cvar ROUTES: List of triple length tuples
+    :cvar Access_Control_Allow_Methods: Dictionary with route name and allowed methods over CORS
+    :cvar Access_Control_Allow_Origin: Dictionary with route name and allowed host over CORS or "*"
+    """
     ROUTES = [
         ('/', "r_dispatcher", ["GET"])
     ]
+    Access_Control_Allow_Methods = {
+        "r_dispatcher": "OPTIONS, GET"
+    }
+    Access_Control_Allow_Origin = "*"
 
     def __init__(self,
         prefix="", app=None, name=None,
         resources=[], parser_cache=None,
         compresser=True,
-        http_cache=None, pagination=False
+        http_cache=None, pagination=False,
+        access_Control_Allow_Origin=None, access_Control_Allow_Methods=None,
     ):
-        """ Initiate the class
-
-        :param prefix: Prefix on which to install the extension
-        :param app: Application on which to register
-        :param name: Name to use for the blueprint
-        :param resources: List of directory to feed the inventory
-        :type resource: list(str)
-        :param parser_cache:
-        :param http_cache: HTTP Cache should be a FlaskCache object
-        """
 
         # Set up endpoints with cache system
         if parser_cache:
@@ -43,6 +51,14 @@ class FlaskNautilus(object):
         self.name = name
         self.prefix = prefix
         self.blueprint = None
+
+        self.Access_Control_Allow_Methods = access_Control_Allow_Methods
+        if not self.Access_Control_Allow_Methods:
+            self.Access_Control_Allow_Methods = FlaskNautilus.Access_Control_Allow_Methods
+        self.Access_Control_Allow_Origin = access_Control_Allow_Origin
+        if not self.Access_Control_Allow_Origin:
+            self.Access_Control_Allow_Origin = FlaskNautilus.Access_Control_Allow_Origin
+
         self.__http_cache = http_cache
 
         self.__compresser = False
@@ -88,12 +104,35 @@ class FlaskNautilus(object):
         for url, name, methods in FlaskNautilus.ROUTES:
             self.blueprint.add_url_rule(
                 url,
-                view_func=getattr(self, name),
+                view_func=self.view(name),
                 endpoint=name[2:],
                 methods=methods
             )
 
         self.app.register_blueprint(self.blueprint)
+
+    def view(self, function_name):
+        """ Builds response according to a function name
+
+        :param function_name: Route name / function name
+        :return: Function
+        """
+        if isinstance(self.Access_Control_Allow_Origin, dict):
+            d = {
+                "Access-Control-Allow-Origin": self.Access_Control_Allow_Origin[function_name],
+                "Access-Control-Allow-Methods": self.Access_Control_Allow_Methods[function_name]
+            }
+        else:
+            d = {
+                "Access-Control-Allow-Origin": self.Access_Control_Allow_Origin,
+                "Access-Control-Allow-Methods": self.Access_Control_Allow_Methods[function_name]
+            }
+
+        def r(*x, **y):
+            val = list(getattr(self, function_name)(*x, **y))
+            val[2].update(d)
+            return tuple(val)
+        return r
 
     def r_dispatcher(self):
         """ Actual main route of CTS APIs
@@ -102,7 +141,7 @@ class FlaskNautilus(object):
         """
         _request = request.args.get("request", None)
         if not _request:
-            return "This request does not exist", 404, ""  # Should maybe return documentation on top of 404 ?
+            return "This request does not exist", 404, dict()  # Should maybe return documentation on top of 404 ?
         elif _request.lower() == "getcapabilities":
             return self._r_GetCapabilities(
                 urn=request.args.get("urn", None),
