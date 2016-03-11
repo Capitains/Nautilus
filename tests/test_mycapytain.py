@@ -22,7 +22,21 @@ class ResponseTest(TestCase):
         ti = TextInventory(resource=response)
         self.assertEqual(
             len(ti["urn:cts:farsiLit:hafez.divan"].texts), 2,
-            "Asserts that only two texts has been added to the TI"
+            "Asserts that only two texts have been added to the TI"
+        )
+        self.assertEqual(
+            ti["urn:cts:farsiLit:hafez.divan.perseus-eng1"].lang, "eng",
+            "Asserts that text have lang"
+        )
+        response = self.endpoint.getCapabilities(category="edition", output=MY_CAPYTAIN)
+        ti = TextInventory(resource=response)
+        self.assertEqual(
+            len(ti["urn:cts:farsiLit:hafez.divan"].texts), 1,
+            "Asserts that only one text has been added to the TI"
+        )
+        self.assertEqual(
+            ti["urn:cts:farsiLit:hafez.divan.perseus-far1"].lang, "fa",
+            "Asserts that text have lang"
         )
 
     def test_with_get_capabilities_cts_response(self):
