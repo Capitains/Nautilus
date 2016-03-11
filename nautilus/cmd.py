@@ -5,10 +5,12 @@ from werkzeug.contrib.cache import FileSystemCache, RedisCache, NullCache
 from flask import Flask
 from flask_cache import Cache
 import argparse
+import logging
 
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
+
 
 def _commandline(repositories,
                  port=8000, host="127.0.0.1", debug=False,
@@ -37,11 +39,14 @@ def _commandline(repositories,
         cache_type = "simple"
 
     app = Flask("Nautilus")
+    if debug:
+        app.logger.setLevel(logging.INFO)
     nautilus = FlaskNautilus(
         app=app,
         resources=repositories,
         parser_cache=nautilus_cache,
-        http_cache=Cache(config={'CACHE_TYPE': cache_type})
+        http_cache=Cache(config={'CACHE_TYPE': cache_type}),
+        logger=None
     )
     if debug:
         app.run(debug=debug, port=port, host=host)

@@ -14,6 +14,7 @@ import os.path
 from nautilus.inventory.proto import InventoryResolver
 from werkzeug.contrib.cache import NullCache, BaseCache
 from nautilus import _cache_key
+import logging
 
 
 class XMLFolderResolver(InventoryResolver):
@@ -27,6 +28,8 @@ class XMLFolderResolver(InventoryResolver):
     :type inventories:
     :param cache: Cache object to be used for the inventory
     :type cache: BaseCache
+    :param logger: Logging object
+    :type logger: logging
     :cvar TEXT_CLASS: Text Class [not instantiated] to be used to parse Texts. Can be changed to support Cache for example
     :type TEXT_CLASS: Text
 
@@ -34,7 +37,7 @@ class XMLFolderResolver(InventoryResolver):
     """
     TEXT_CLASS = Text
 
-    def __init__(self, resource, inventories=None, cache=None, name=None):
+    def __init__(self, resource, inventories=None, cache=None, name=None, logger=None):
         """ Initiate the XMLResolver
 
         """
@@ -44,6 +47,11 @@ class XMLFolderResolver(InventoryResolver):
 
         self.cache = cache
         self.name = name
+
+        self.logger = logger
+        if not logger:
+            self.logger = logging.getLogger(name)
+
         if not name:
             self.name = "repository"
         self.TEXT_CLASS = XMLFolderResolver.TEXT_CLASS
@@ -112,10 +120,10 @@ class XMLFolderResolver(InventoryResolver):
                                                 ))
                                     __text__.citation = cites[-1]
                                 except Exception:
-                                    print(__text__.path + " does not accept parsing at some level (most probably citation) ")
+                                    self.logger.error("%s does not accept parsing at some level (most probably citation) ", __text__.path)
                             self.__texts__.append(__text__)
                 except Exception:
-                    print("Error parsing " + __cts__)
+                    self.logger.error("Error parsing %s ", __cts__)
 
         return self.resource, self.__texts__
 
