@@ -59,7 +59,7 @@ class NautilusEndpoint(CTS):
     def __init__(self, folders=[], cache=None, pagination=True, logger=None):
         self.logger = logger
         if not logger:
-            self.logger = logging.getLogger(name)
+            self.logger = logging.getLogger(__name__)
         self.__pagination = False
         self.resolver = XMLFolderResolver(resource=folders, cache=cache, logger=self.logger)
         self.resolver.TEXT_CLASS = Text
