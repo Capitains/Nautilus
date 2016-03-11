@@ -22,6 +22,13 @@ class XMLFolderResolver(InventoryResolver):
     :param resource: Resource should be a list of folders retaining data as Capitains Guidelines Repositories
     :type resource: [str]
     :param name: Key used to differentiate Repository and thus enabling different repo to be used
+    :type name: str
+    :param inventories:
+    :type inventories:
+    :param cache: Cache object to be used for the inventory
+    :type cache: BaseCache
+    :cvar TEXT_CLASS: Text Class [not instantiated] to be used to parse Texts. Can be changed to support Cache for example
+    :type TEXT_CLASS: Text
 
     .. warning :: This resolver does not support inventories
     """
@@ -151,7 +158,7 @@ class XMLFolderResolver(InventoryResolver):
         :return: ([Matches], Page, Count)
         :rtype: ([Text], int, int)
         """
-        urn_part = None
+        __PART = None
         if urn is not None:
             _urn = URN(urn)
             __PART = [None, None, URN.NAMESPACE, URN.TEXTGROUP, URN.WORK, URN.VERSION, URN.COMPLETE][len(_urn)]
