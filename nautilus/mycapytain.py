@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from six import text_type as str
+import logging
 
 from MyCapytain.endpoints.cts5 import CTS
 from MyCapytain.resources.texts.local import Text as _Text, ContextPassage as _ContextPassage
@@ -46,14 +47,21 @@ class NautilusEndpoint(CTS):
 
     :param folders: List of Capitains Guidelines structured folders
     :type folders: list(str)
+    :param logger: Logging handler
+    :type logger: logging
 
+    :ivar logger: Logging handler
+    :type logger: logging
     :ivar resolver: Resolver for repository and text path
     :type resolver: XMLFolderResolver
 
     """
-    def __init__(self, folders=[], cache=None, pagination=True):
+    def __init__(self, folders=[], cache=None, pagination=True, logger=None):
+        self.logger = logger
+        if not logger:
+            self.logger = logging.getLogger(__name__)
         self.__pagination = False
-        self.resolver = XMLFolderResolver(resource=folders, cache=cache)
+        self.resolver = XMLFolderResolver(resource=folders, cache=cache, logger=self.logger)
         self.resolver.TEXT_CLASS = Text
 
     def getCapabilities(self, inventory=None, output=XML, **kwargs):
