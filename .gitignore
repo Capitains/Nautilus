@@ -1,6 +1,7 @@
 # IDE
 .idea
 env
+*.rdb
 
 cache_dir
 benchmarking/node_modules
