@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from six import text_type as str
 from io import BytesIO
 
-from nautilus.flask_ext import FlaskNautilus
+from capitains_nautilus.flask_ext import FlaskNautilus
 from werkzeug.contrib.cache import RedisCache
 from flask import Flask
 from flask_cache import Cache

@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from six import text_type as str
 from builtins import range
 
-from nautilus.mycapytain import NautilusEndpoint, MY_CAPYTAIN, XML, Text
+from capitains_nautilus.mycapytain import NautilusEndpoint, MY_CAPYTAIN, XML, Text
 
 from MyCapytain.resources.inventory import TextInventory
 from MyCapytain.resources.texts.api import Passage

@@ -8,12 +8,12 @@ from MyCapytain.resources.inventory import TextInventory, TextGroup, Work, Citat
 from MyCapytain.resources.texts.local import Text
 from MyCapytain.common.reference import URN
 from MyCapytain.common.utils import xmlparser
-from nautilus.errors import *
+from capitains_nautilus.errors import *
 from glob import glob
 import os.path
-from nautilus.inventory.proto import InventoryResolver
+from capitains_nautilus.inventory.proto import InventoryResolver
 from werkzeug.contrib.cache import NullCache, BaseCache
-from nautilus import _cache_key
+from capitains_nautilus import _cache_key
 import logging
 
 

@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 from six import text_type as str
 
-from nautilus.inventory.local import XMLFolderResolver
+from capitains_nautilus.inventory.local import XMLFolderResolver
 from MyCapytain.common.reference import URN, Reference
 from unittest import TestCase
 from werkzeug.contrib.cache import RedisCache

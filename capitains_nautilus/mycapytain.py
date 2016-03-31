@@ -5,11 +5,11 @@ import logging
 
 from MyCapytain.endpoints.cts5 import CTS
 from MyCapytain.resources.texts.local import Text as _Text, ContextPassage as _ContextPassage
-from nautilus.inventory.local import XMLFolderResolver
-from nautilus.response import *
-from nautilus.errors import InvalidURN, UnknownResource
+from capitains_nautilus.inventory.local import XMLFolderResolver
+from capitains_nautilus.response import *
+from capitains_nautilus.errors import InvalidURN, UnknownResource
 from werkzeug.contrib.cache import NullCache, BaseCache
-from nautilus import _cache_key
+from capitains_nautilus import _cache_key
 
 
 class Text(_Text):
@@ -69,7 +69,7 @@ class NautilusEndpoint(CTS):
 
         :param inventory: Name of the inventory
         :type inventory: text
-        :param format: Format type of response. `nautilus.response`
+        :param format: Format type of response. `capitains_nautilus.response`
         :type format: str
         :return: Formatted output of the inventory
         :rtype: str
@@ -83,7 +83,7 @@ class NautilusEndpoint(CTS):
         :param urn: URN identifying the passage
         :param inventory: Name of the inventory
         :type inventory: text
-        :param format: Format type of response. `nautilus.response`
+        :param format: Format type of response. `capitains_nautilus.response`
         :type format: str
         :param context: Unused parameter for now
         :return: Passage asked for, in given format
@@ -101,7 +101,7 @@ class NautilusEndpoint(CTS):
         :param urn: URN identifying the passage
         :param inventory: Name of the inventory
         :type inventory: text
-        :param format: Format type of response. `nautilus.response`
+        :param format: Format type of response. `capitains_nautilus.response`
         :type format: str
         :param context: Unused parameter for now
         :return: Passage asked for, in given format

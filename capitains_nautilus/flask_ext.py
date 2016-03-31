@@ -7,7 +7,7 @@ from flask import Flask, Blueprint, request
 from flask_cache import Cache
 from flask_compress import Compress
 
-from nautilus.mycapytain import Text, NautilusEndpoint
+from capitains_nautilus.mycapytain import Text, NautilusEndpoint
 
 
 class FlaskNautilus(object):
@@ -88,9 +88,9 @@ class FlaskNautilus(object):
         """
         self.logger = logger
         if not logger:
-            self.logger = logging.getLogger("nautilus")
+            self.logger = logging.getLogger("capitains_nautilus")
         else:
-            self.logger = self.logger.getLogger("nautilus")
+            self.logger = self.logger.getLogger("capitains_nautilus")
         formatter = logging.Formatter("[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s")
         stream = FlaskNautilus.LoggingHandler()
         stream.setLevel(logging.INFO)

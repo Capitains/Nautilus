@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 from six import text_type as str
 
-from nautilus.inventory.proto import InventoryResolver
+from capitains_nautilus.inventory.proto import InventoryResolver
 from unittest import TestCase
 
 
