@@ -49,19 +49,23 @@ class NautilusEndpoint(CTS):
     :type folders: list(str)
     :param logger: Logging handler
     :type logger: logging
-
+    :param auto_parse: Parses on first execution the resources given to build inventory
+    :param resolver: Resolver to be used
     :ivar logger: Logging handler
     :type logger: logging
     :ivar resolver: Resolver for repository and text path
     :type resolver: XMLFolderResolver
 
     """
-    def __init__(self, folders=[], cache=None, pagination=True, logger=None):
+    def __init__(self,
+                 folders=[], cache=None, pagination=True,
+                 logger=None,
+                 auto_parse=True, resolver=XMLFolderResolver):
         self.logger = logger
         if not logger:
             self.logger = logging.getLogger(__name__)
         self.__pagination = False
-        self.resolver = XMLFolderResolver(resource=folders, cache=cache, logger=self.logger)
+        self.resolver = resolver(resource=folders, cache=cache, logger=self.logger, auto_parse=auto_parse)
         self.resolver.TEXT_CLASS = Text
 
     def getCapabilities(self, inventory=None, output=XML, **kwargs):

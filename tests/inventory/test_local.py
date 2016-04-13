@@ -14,19 +14,19 @@ class TestXMLFolderResolver(TestCase):
         """ Test that the initiation finds correctly the resources """
         Repository = XMLFolderResolver(["./tests/test_data/farsiLit"])
         self.assertEqual(
-            Repository.resource["urn:cts:farsiLit:hafez"].urn, URN("urn:cts:farsiLit:hafez"),
+            Repository.inventory["urn:cts:farsiLit:hafez"].urn, URN("urn:cts:farsiLit:hafez"),
             "Hafez is found"
         )
         self.assertEqual(
-            len(Repository.resource["urn:cts:farsiLit:hafez"].works), 1,
+            len(Repository.inventory["urn:cts:farsiLit:hafez"].works), 1,
             "Hafez has one child"
         )
         self.assertEqual(
-            Repository.resource["urn:cts:farsiLit:hafez.divan"].urn, URN("urn:cts:farsiLit:hafez.divan"),
+            Repository.inventory["urn:cts:farsiLit:hafez.divan"].urn, URN("urn:cts:farsiLit:hafez.divan"),
             "Divan is found"
         )
         self.assertEqual(
-            len(Repository.resource["urn:cts:farsiLit:hafez.divan"].texts), 3,
+            len(Repository.inventory["urn:cts:farsiLit:hafez.divan"].texts), 3,
             "Divan has 3 children"
         )
 
@@ -35,13 +35,13 @@ class TestXMLFolderResolver(TestCase):
             ["./tests/test_data/farsiLit"],
             cache=RedisCache(key_prefix="test_nautilus")
         )
-        self.assertEqual(len(Repository.resource), 3)
+        self.assertEqual(len(Repository.inventory), 3)
         Repository = XMLFolderResolver(
             ["./tests/test_data/farsiLit", "./tests/test_data/latinLit"],
             cache=RedisCache(key_prefix="test_nautilus"),
             name="secondrepo"
         )
-        self.assertEqual(len(Repository.resource), 174)
+        self.assertEqual(len(Repository.inventory), 174)
 
     def test_text_resource(self):
         """ Test to get the text resource to perform other queries """

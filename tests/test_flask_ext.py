@@ -4,10 +4,11 @@ from __future__ import unicode_literals
 from six import text_type as str
 from io import BytesIO
 
-from capitains_nautilus.flask_ext import FlaskNautilus
+from capitains_nautilus.flask_ext import FlaskNautilus, FlaskNautilusManager
 from werkzeug.contrib.cache import RedisCache
 from flask import Flask
 from flask_cache import Cache
+from flask.ext.script import Manager
 from unittest import TestCase
 from MyCapytain.resources.inventory import TextInventory
 from MyCapytain.resources.texts.api import Text, Passage
@@ -153,4 +154,124 @@ class TestRestAPI(TestCase):
         self.assertEqual(
             str(response.next.reference), "1.pr.12-1.pr.13",
             "Check Range works on GetPassagePlus and compute right next"
+        )
+
+class TestManager(TestCase):
+    def setUp(self):
+        """ Set up a dummy application with a manager
+
+        :return:
+        """
+        nautilus_cache = RedisCache()
+        nautilus_cache.clear()
+        app = Flask("Nautilus")
+        nautilus = FlaskNautilus(
+            app=app,
+            resources=["./tests/test_data/latinLit"],
+            parser_cache=nautilus_cache,
+            http_cache=Cache(config={'CACHE_TYPE': 'redis'}),
+            auto_parse=False
+        )
+        self.cache_manager = nautilus_cache
+        self.nautilus = nautilus
+        self.manager = Manager(app)
+        self.manager.add_command("nautilus", FlaskNautilusManager(nautilus, app=app))
+
+    def test_flush_cache(self):
+        """ Simulate python manager.py
+        """
+        # Preparation : parsing resources, checking resources are there
+        self.nautilus.endpoint.resolver.parse(["./tests/test_data/latinLit"])
+        self.assertEqual(len(self.nautilus.endpoint.resolver.texts) > 0, True,
+                         "Texts should have been parsed")
+        self.assertEqual(len(self.nautilus.endpoint.resolver.inventory) > 0, True,
+                         "Inventory should have been parsed")
+        self.assertEqual(
+            len(self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key)) > 0,
+            True,
+            "There should be inventory in cache"
+        )
+
+        # Running the tested command
+        self.manager.handle("", ["nautilus", "flush"])
+
+        # Checking after state
+        self.assertEqual(len(self.nautilus.endpoint.resolver.texts) == 0, True, "Texts should have been flushed")
+        self.assertEqual(len(self.nautilus.endpoint.resolver.inventory) == 0, True, "Inventory should have been flushed")
+        self.assertEqual(
+            self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key) is None,
+            True,
+            "There should not be inventory anymore in cache"
+        )
+
+    def test_process_cache(self):
+        """ Simulate python manager.py
+        """
+        # Preparation : checking resources are not there
+        self.assertEqual(len(self.nautilus.endpoint.resolver.texts) == 0, True, "Texts should have been flushed")
+        self.assertEqual(len(self.nautilus.endpoint.resolver.inventory) == 0, True, "Inventory should have been flushed")
+        self.assertEqual(
+            self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key) is None,
+            True,
+            "There should not be inventory in cache"
+        )
+        self.assertEqual(
+            self.cache_manager.get(self.nautilus.endpoint.resolver.texts_metadata_cache_key) is None,
+            True,
+            "There should not be texts metadata in cache"
+        )
+
+        # Running the tested command
+        self.manager.handle("", ["nautilus", "preprocess"])
+
+        # Checking after state
+        self.assertEqual(len(self.nautilus.endpoint.resolver.texts) > 0, True,
+                         "Texts should have been parsed")
+        self.assertEqual(len(self.nautilus.endpoint.resolver.inventory) > 0, True,
+                         "Inventory should have been parsed")
+        self.assertEqual(
+            len(self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key)) > 0,
+            True,
+            "There should be inventory in cache"
+        )
+        self.assertEqual(
+            len(self.cache_manager.get(self.nautilus.endpoint.resolver.texts_metadata_cache_key)) > 0,
+            True,
+            "There should be texts metadata in cache"
+        )
+
+    def test_rebuild_inventory_cache(self):
+        """ Simulate python manager.py
+        """
+        # Preparation : checking resources are not there
+        self.assertEqual(len(self.nautilus.endpoint.resolver.texts) == 0, True, "Texts should have been flushed")
+        self.assertEqual(len(self.nautilus.endpoint.resolver.inventory) == 0, True, "Inventory should have been flushed")
+        self.assertEqual(
+            self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key) is None,
+            True,
+            "There should not be inventory in cache"
+        )
+        self.assertEqual(
+            self.cache_manager.get(self.nautilus.endpoint.resolver.texts_metadata_cache_key) is None,
+            True,
+            "There should not be texts metadata in cache"
+        )
+
+        # Running the tested command
+        self.manager.handle("", ["nautilus", "inventory"])
+
+        # Checking after state
+        self.assertEqual(len(self.nautilus.endpoint.resolver.texts) > 0, True,
+                         "Texts should have been parsed")
+        self.assertEqual(len(self.nautilus.endpoint.resolver.inventory) > 0, True,
+                         "Inventory should have been parsed")
+        self.assertEqual(
+            len(self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key)) > 0,
+            True,
+            "There should be inventory in cache"
+        )
+        self.assertEqual(
+            len(self.cache_manager.get(self.nautilus.endpoint.resolver.texts_metadata_cache_key)) > 0,
+            True,
+            "There should be texts metadata in cache"
         )

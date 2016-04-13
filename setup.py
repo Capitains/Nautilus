@@ -16,7 +16,8 @@ setup(
     "Werkzeug>=0.11.3",
     "Flask-Compress>=1.3.0",
     "redis>=2.10.5",
-    "Flask-Cache>=0.13.1"
+    "Flask-Cache>=0.13.1",
+    "Flask-Script>=2.0.5"
   ],
   entry_points={
       'console_scripts': ['capitains-nautilus=capitains_nautilus.cmd:cmd'],

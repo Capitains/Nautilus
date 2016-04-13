@@ -14,6 +14,9 @@ The environment we propose contains a flask.ext.nemo instance, for control purpo
    :alt: Deployment Architecture
    :align: center
 
+Nginx, Supervisor, GUnicorn
+###########################
+
 Nginx
 *****
 
@@ -50,7 +53,12 @@ Explanation paragraph for Supervisor (tuning). Remember to explain the python 2 
 
 
 Flask Application Configuration
-*******************************
+###############################
+
+Nemo And FileSystemCache (Easy to maintain)
+*******************************************
+
+The following configuration is based on a FileSystemCache. This means that you do not need to install, run and maintain more advanced Cache system such as Redis. This also means this should be slower. The implementation contains a frontend, you should be able to run it without it.
 
 .. code-block:: python
 

@@ -4,25 +4,32 @@ from __future__ import unicode_literals, division
 from six import text_type as str
 from math import ceil
 from werkzeug.contrib.cache import NullCache
+from MyCapytain.resources.inventory import TextInventory
+
 
 class InventoryResolver(object):
     ALL_PAGE = None
     DEFAULT_PAGE = 1
     PER_PAGE = (1, 10, 100)  # Min, Default, Max,
 
-    def __init__(self, resource):
-        self.resource = resource
+    def __init__(self, resource, auto_parse=True):
+        self.__resource = resource
         self.__texts__ = []
-        self.cache = NullCache()
+        self.__cache = NullCache()
+        self.inventory = TextInventory()
+
+    @property
+    def source(self):
+        return self.__resource
 
     @property
     def texts(self):
         return self.__texts__
 
-    def cache(self, fn):
+    def cache(self, inventory, texts):
         raise NotImplemented
 
-    def resetCache(self):
+    def flush(self):
         raise NotImplemented
 
     def getCapabilities(self, urn=None, page=None, limit=None, inventory=None, lang=None, category=None):
