@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from six import text_type as str
 import logging
 
-from MyCapytain.endpoints.cts5 import CTS
+from MyCapytain.retrievers.cts5 import CTS
 from MyCapytain.resources.texts.local import Text as _Text, ContextPassage as _ContextPassage
 from capitains_nautilus.inventory.local import XMLFolderResolver
 from capitains_nautilus.response import *
@@ -42,7 +42,7 @@ class Text(_Text):
             return __cached
 
 
-class NautilusEndpoint(CTS):
+class NautilusRetriever(CTS):
     """ Nautilus Implementation of MyCapytain Endpoint
 
     :param folders: List of Capitains Guidelines structured folders

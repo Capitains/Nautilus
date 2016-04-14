@@ -3,12 +3,12 @@ from __future__ import unicode_literals
 from six import text_type as str
 import logging
 
-from flask import Flask, Blueprint, request
+from flask import Blueprint, request
 from flask_cache import Cache
 from flask_compress import Compress
 from flask.ext.script import Manager
 
-from capitains_nautilus.mycapytain import Text, NautilusEndpoint
+from capitains_nautilus.mycapytain import Text, NautilusRetriever
 
 
 class FlaskNautilus(object):
@@ -57,9 +57,9 @@ class FlaskNautilus(object):
         # Set up endpoints with cache system
         if parser_cache:
             Text.CACHE_CLASS = parser_cache
-            self.endpoint = NautilusEndpoint(resources, pagination=pagination, cache=parser_cache, logger=self.logger, auto_parse=auto_parse)
+            self.endpoint = NautilusRetriever(resources, pagination=pagination, cache=parser_cache, logger=self.logger, auto_parse=auto_parse)
         else:
-            self.endpoint = NautilusEndpoint(resources, pagination=pagination, auto_parse=auto_parse)
+            self.endpoint = NautilusRetriever(resources, pagination=pagination, auto_parse=auto_parse)
         self.endpoint.resolver.TEXT_CLASS = Text
 
         self.app = app

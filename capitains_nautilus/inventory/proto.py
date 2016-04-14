@@ -10,7 +10,7 @@ from MyCapytain.resources.inventory import TextInventory
 class InventoryResolver(object):
     ALL_PAGE = None
     DEFAULT_PAGE = 1
-    PER_PAGE = (1, 10, 100)  # Min, Default, Max,
+    PER_PAGE = (1, 10, 100)  # Min, Default, Mainvex,
 
     def __init__(self, resource, auto_parse=True):
         self.__resource = resource

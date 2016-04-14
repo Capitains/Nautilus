@@ -10,7 +10,7 @@ setup(
   license='MIT',
   packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
   install_requires=[
-    "MyCapytain>=0.1.1",
+    "MyCapytain>=1.0.0",
     "tornado>=4.3",
     "Flask>=0.10.1",
     "Werkzeug>=0.11.3",
