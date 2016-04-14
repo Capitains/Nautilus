@@ -12,7 +12,7 @@ from flask.ext.script import Manager
 from unittest import TestCase
 from MyCapytain.resources.inventory import TextInventory
 from MyCapytain.resources.texts.api import Text, Passage
-from MyCapytain.endpoints.cts5 import CTS
+from MyCapytain.retrievers.cts5 import CTS
 from MyCapytain.common.utils import xmlparser
 from MyCapytain.common.reference import Reference
 

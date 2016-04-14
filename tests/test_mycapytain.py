@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from six import text_type as str
 from builtins import range
 
-from capitains_nautilus.mycapytain import NautilusEndpoint, MY_CAPYTAIN, XML, Text
+from capitains_nautilus.mycapytain import NautilusRetriever, MY_CAPYTAIN, XML, Text
 
 from MyCapytain.resources.inventory import TextInventory
 from MyCapytain.resources.texts.api import Passage
@@ -15,7 +15,7 @@ from werkzeug.contrib.cache import SimpleCache
 
 class ResponseTest(TestCase):
     def setUp(self):
-        self.endpoint = NautilusEndpoint(["./tests/test_data/farsiLit"])
+        self.endpoint = NautilusRetriever(["./tests/test_data/farsiLit"])
 
     def test_with_get_capabilities(self):
         response = self.endpoint.getCapabilities(category="translation", output=MY_CAPYTAIN)
