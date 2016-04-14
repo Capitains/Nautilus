@@ -4,28 +4,64 @@ Capitains Nautilus API Documentation
 Library Structure
 #################
 
+.. image:: assets/api_architecture.png
+   :alt: Library Software Architecture
+   :align: center
 
-Utilities, metadata and references
-##################################
+Resolvers
+#########
 
-Module common contains tools such as a namespace dictionary as well as cross-implementation objects, like URN, Citations...
+Resolver provides a system to retrieve a text file and an inventory from local resources for example.
 
-URN, References and Citations
-*****************************
+CapiTainS formatted reposotory
+******************************
 
-.. autoclass:: capitains_nautilus.common.reference.URN
-.. autoclass:: capitains_nautilus.common.reference.Reference
+.. autoclass:: capitains_nautilus.inventory.local.XMLFolderResolver
 
-.. autoclass:: capitains_nautilus.common.reference.Citation
-    :members: fill, __iter__, __len__
+Prototype
+*********
 
-Metadata containters
-********************
+.. autoclass:: capitains_nautilus.inventory.proto.InventoryResolver
 
-.. automodule:: capitains_nautilus.common.metadata
+Retriever
+#########
+
+Extension of MyCapytains resources
+**********************************
+
+.. automodule:: capitains_nautilus.mycapytain
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Responses builders
+******************
+
+.. automodule:: capitains_nautilus.errors
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Errors
+######
+
+.. automodule:: capitains_nautilus.errors
     :members:
     :undoc-members:
     :show-inheritance:
 
 Utilities
 #########
+
+.. automodule:: capitains_nautilus.cmd
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Flask Extension
+#########
+
+.. automodule:: capitains_nautilus.flask_ext
+    :members:
+    :undoc-members:
+    :show-inheritance:

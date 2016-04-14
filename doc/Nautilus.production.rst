@@ -6,7 +6,7 @@ Environment
 
 We recommend highly to use Debian based configuration as they are the only one having been tested for now. The following configuration takes into account what we think might be the best configuration available with a good cache system.
 
-You can use a docker image we built and fork it for your own use. As of *April 11th, 2016*, the **docker image does not use Redis-based cache** but filesystem based cache.
+You can use a `docker image <https://github.com/Capitains/docker-debian-capitains>`_ we built and fork it for your own use. As of *April 11th, 2016*, the **docker image does not use Redis-based cache** but filesystem based cache.
 
 The environment we propose contains a flask.ext.nemo instance, for control purposes. Disabling it is documented.
 
