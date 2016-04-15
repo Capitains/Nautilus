@@ -13,15 +13,17 @@ Resolvers
 
 Resolver provides a system to retrieve a text file and an inventory from local resources for example.
 
-CapiTainS formatted reposotory
+CapiTainS formatted repository
 ******************************
 
 .. autoclass:: capitains_nautilus.inventory.local.XMLFolderResolver
+    :members:
 
 Prototype
 *********
 
 .. autoclass:: capitains_nautilus.inventory.proto.InventoryResolver
+    :members:
 
 Retriever
 #########

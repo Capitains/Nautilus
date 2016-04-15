@@ -31,6 +31,7 @@ class FlaskNautilus(object):
     :cvar LoggingHandler: Logging handler to be set for the blueprint
     :ivar logger: Logging handler
     :type logger: logging
+    :ivar retriever: CapiTainS Retriever
     """
     ROUTES = [
         ('/', "r_dispatcher", ["GET"])
@@ -51,16 +52,16 @@ class FlaskNautilus(object):
             auto_parse=True
         ):
         self.logger = None
-        self.endpoint = None
+        self.retriever = None
         self.setLogger(logger)
 
         # Set up endpoints with cache system
         if parser_cache:
             Text.CACHE_CLASS = parser_cache
-            self.endpoint = NautilusRetriever(resources, pagination=pagination, cache=parser_cache, logger=self.logger, auto_parse=auto_parse)
+            self.retriever = NautilusRetriever(resources, pagination=pagination, cache=parser_cache, logger=self.logger, auto_parse=auto_parse)
         else:
-            self.endpoint = NautilusRetriever(resources, pagination=pagination, auto_parse=auto_parse)
-        self.endpoint.resolver.TEXT_CLASS = Text
+            self.retriever = NautilusRetriever(resources, pagination=pagination, auto_parse=auto_parse)
+        self.retriever.resolver.TEXT_CLASS = Text
 
         self.app = app
         self.name = name
@@ -101,9 +102,9 @@ class FlaskNautilus(object):
         stream.setFormatter(formatter)
         self.logger.addHandler(stream)
 
-        if self.endpoint:
-            self.endpoint.logger = self.logger
-            self.endpoint.resolver.logger = self.logger
+        if self.retriever:
+            self.retriever.logger = self.logger
+            self.retriever.resolver.logger = self.logger
 
         return self.logger
 
@@ -228,7 +229,7 @@ class FlaskNautilus(object):
         :param inv: Inventory Identifier
         :return: GetCapabilities response
         """
-        return self.endpoint.getCapabilities(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getCapabilities(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetPassage(self, urn, inv):
         """ Provisional route for GetPassage request
@@ -237,7 +238,7 @@ class FlaskNautilus(object):
         :param inv: Inventory Identifier
         :return: GetPassage response
         """
-        return self.endpoint.getPassage(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getPassage(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetPassagePlus(self, urn, inv):
         """ Provisional route for GetPassagePlus request
@@ -246,7 +247,7 @@ class FlaskNautilus(object):
         :param inv: Inventory Identifier
         :return: GetPassagePlus response
         """
-        return self.endpoint.getPassagePlus(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getPassagePlus(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetValidReff(self, urn, inv, level):
         """ Provisional route for GetValidReff request
@@ -255,7 +256,7 @@ class FlaskNautilus(object):
         :param inv: Inventory Identifier
         :return: GetValidReff response
         """
-        return self.endpoint.getValidReff(inventory=inv, urn=urn, level=level).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getValidReff(inventory=inv, urn=urn, level=level).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetPrevNext(self, urn, inv):
         """ Provisional route for GetPrevNext request
@@ -264,7 +265,7 @@ class FlaskNautilus(object):
         :param inv: Inventory Identifier
         :return: GetPrevNext response
         """
-        return self.endpoint.getPrevNextUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getPrevNextUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetFirstUrn(self, urn, inv):
         """ Provisional route for GetFirstUrn request
@@ -273,7 +274,7 @@ class FlaskNautilus(object):
         :param inv: Inventory Identifier
         :return: GetFirstUrn response
         """
-        return self.endpoint.getFirstUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getFirstUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetLabel(self, urn, inv):
         """ Provisional route for GetLabel request
@@ -282,7 +283,7 @@ class FlaskNautilus(object):
         :param inv: Inventory Identifier
         :return: GetLabel response
         """
-        return self.endpoint.getLabel(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getLabel(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
 
 def FlaskNautilusManager(nautilus, app=None):
@@ -305,17 +306,17 @@ def FlaskNautilusManager(nautilus, app=None):
     @_manager.command
     def flush():
         """ Flush the cache system [Right now flushes only the inventory] """
-        nautilus.endpoint.resolver.flush()
+        nautilus.retriever.resolver.flush()
 
     @_manager.command
     def preprocess():
         """ Preprocess the inventory and cache it """
-        nautilus.endpoint.resolver.parse(resource=nautilus.endpoint.resolver.source, cache=True, verbose=True)
+        nautilus.retriever.resolver.parse(resource=nautilus.endpoint.resolver.source, cache=True, verbose=True)
 
     @_manager.command
     def inventory():
         """ Clean then preprocess the inventory """
-        nautilus.endpoint.resolver.flush()
-        nautilus.endpoint.resolver.parse(resource=nautilus.endpoint.resolver.source, cache=True, verbose=True)
+        nautilus.retriever.resolver.flush()
+        nautilus.retriever.resolver.parse(resource=nautilus.endpoint.resolver.source, cache=True, verbose=True)
 
     return _manager

@@ -181,13 +181,13 @@ class TestManager(TestCase):
         """ Simulate python manager.py
         """
         # Preparation : parsing resources, checking resources are there
-        self.nautilus.endpoint.resolver.parse(["./tests/test_data/latinLit"])
-        self.assertEqual(len(self.nautilus.endpoint.resolver.texts) > 0, True,
+        self.nautilus.retriever.resolver.parse(["./tests/test_data/latinLit"])
+        self.assertEqual(len(self.nautilus.retriever.resolver.texts) > 0, True,
                          "Texts should have been parsed")
-        self.assertEqual(len(self.nautilus.endpoint.resolver.inventory) > 0, True,
+        self.assertEqual(len(self.nautilus.retriever.resolver.inventory) > 0, True,
                          "Inventory should have been parsed")
         self.assertEqual(
-            len(self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key)) > 0,
+            len(self.cache_manager.get(self.nautilus.retriever.resolver.inventory_cache_key)) > 0,
             True,
             "There should be inventory in cache"
         )
@@ -196,8 +196,8 @@ class TestManager(TestCase):
         self.manager.handle("", ["nautilus", "flush"])
 
         # Checking after state
-        self.assertEqual(len(self.nautilus.endpoint.resolver.texts) == 0, True, "Texts should have been flushed")
-        self.assertEqual(len(self.nautilus.endpoint.resolver.inventory) == 0, True, "Inventory should have been flushed")
+        self.assertEqual(len(self.nautilus.retriever.resolver.texts) == 0, True, "Texts should have been flushed")
+        self.assertEqual(len(self.nautilus.retriever.resolver.inventory) == 0, True, "Inventory should have been flushed")
         self.assertEqual(
             self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key) is None,
             True,
@@ -208,15 +208,15 @@ class TestManager(TestCase):
         """ Simulate python manager.py
         """
         # Preparation : checking resources are not there
-        self.assertEqual(len(self.nautilus.endpoint.resolver.texts) == 0, True, "Texts should have been flushed")
-        self.assertEqual(len(self.nautilus.endpoint.resolver.inventory) == 0, True, "Inventory should have been flushed")
+        self.assertEqual(len(self.nautilus.retriever.resolver.texts) == 0, True, "Texts should have been flushed")
+        self.assertEqual(len(self.nautilus.retriever.resolver.inventory) == 0, True, "Inventory should have been flushed")
         self.assertEqual(
-            self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key) is None,
+            self.cache_manager.get(self.nautilus.retriever.resolver.inventory_cache_key) is None,
             True,
             "There should not be inventory in cache"
         )
         self.assertEqual(
-            self.cache_manager.get(self.nautilus.endpoint.resolver.texts_metadata_cache_key) is None,
+            self.cache_manager.get(self.nautilus.retriever.resolver.texts_metadata_cache_key) is None,
             True,
             "There should not be texts metadata in cache"
         )
@@ -225,17 +225,17 @@ class TestManager(TestCase):
         self.manager.handle("", ["nautilus", "preprocess"])
 
         # Checking after state
-        self.assertEqual(len(self.nautilus.endpoint.resolver.texts) > 0, True,
+        self.assertEqual(len(self.nautilus.retriever.resolver.texts) > 0, True,
                          "Texts should have been parsed")
-        self.assertEqual(len(self.nautilus.endpoint.resolver.inventory) > 0, True,
+        self.assertEqual(len(self.nautilus.retriever.resolver.inventory) > 0, True,
                          "Inventory should have been parsed")
         self.assertEqual(
-            len(self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key)) > 0,
+            len(self.cache_manager.get(self.nautilus.retriever.resolver.inventory_cache_key)) > 0,
             True,
             "There should be inventory in cache"
         )
         self.assertEqual(
-            len(self.cache_manager.get(self.nautilus.endpoint.resolver.texts_metadata_cache_key)) > 0,
+            len(self.cache_manager.get(self.nautilus.retriever.resolver.texts_metadata_cache_key)) > 0,
             True,
             "There should be texts metadata in cache"
         )
@@ -244,15 +244,15 @@ class TestManager(TestCase):
         """ Simulate python manager.py
         """
         # Preparation : checking resources are not there
-        self.assertEqual(len(self.nautilus.endpoint.resolver.texts) == 0, True, "Texts should have been flushed")
-        self.assertEqual(len(self.nautilus.endpoint.resolver.inventory) == 0, True, "Inventory should have been flushed")
+        self.assertEqual(len(self.nautilus.retriever.resolver.texts) == 0, True, "Texts should have been flushed")
+        self.assertEqual(len(self.nautilus.retriever.resolver.inventory) == 0, True, "Inventory should have been flushed")
         self.assertEqual(
-            self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key) is None,
+            self.cache_manager.get(self.nautilus.retriever.resolver.inventory_cache_key) is None,
             True,
             "There should not be inventory in cache"
         )
         self.assertEqual(
-            self.cache_manager.get(self.nautilus.endpoint.resolver.texts_metadata_cache_key) is None,
+            self.cache_manager.get(self.nautilus.retriever.resolver.texts_metadata_cache_key) is None,
             True,
             "There should not be texts metadata in cache"
         )
@@ -261,17 +261,17 @@ class TestManager(TestCase):
         self.manager.handle("", ["nautilus", "inventory"])
 
         # Checking after state
-        self.assertEqual(len(self.nautilus.endpoint.resolver.texts) > 0, True,
+        self.assertEqual(len(self.nautilus.retriever.resolver.texts) > 0, True,
                          "Texts should have been parsed")
-        self.assertEqual(len(self.nautilus.endpoint.resolver.inventory) > 0, True,
+        self.assertEqual(len(self.nautilus.retriever.resolver.inventory) > 0, True,
                          "Inventory should have been parsed")
         self.assertEqual(
-            len(self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key)) > 0,
+            len(self.cache_manager.get(self.nautilus.retriever.resolver.inventory_cache_key)) > 0,
             True,
             "There should be inventory in cache"
         )
         self.assertEqual(
-            len(self.cache_manager.get(self.nautilus.endpoint.resolver.texts_metadata_cache_key)) > 0,
+            len(self.cache_manager.get(self.nautilus.retriever.resolver.texts_metadata_cache_key)) > 0,
             True,
             "There should be texts metadata in cache"
         )
