@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
-from six import text_type as str
-from io import open
+import io
 
 from MyCapytain.resources.inventory import TextInventory, TextGroup, Work, Citation
 from MyCapytain.resources.texts.local import Text
@@ -106,19 +105,18 @@ class XMLFolderResolver(InventoryResolver):
             textgroups = glob("{base_folder}/data/*/__cts__.xml".format(base_folder=folder))
             for __cts__ in textgroups:
                 try:
-                    with open(__cts__) as __xml__:
+                    with io.open(__cts__) as __xml__:
                         textgroup = TextGroup(resource=__xml__)
                         textgroup.urn = URN(textgroup.xml.get("urn"))
                     self.inventory.textgroups[str(textgroup.urn)] = textgroup
 
                     for __subcts__ in glob("{parent}/*/__cts__.xml".format(parent=os.path.dirname(__cts__))):
-                        with open(__subcts__) as __xml__:
+                        with io.open(__subcts__) as __xml__:
                             work = Work(
                                 resource=__xml__,
                                 parents=[self.inventory.textgroups[str(textgroup.urn)]]
                             )
                             work.urn = URN(work.xml.get("urn"))
-                    
                             self.inventory.textgroups[str(textgroup.urn)].works[str(work.urn)] = work
 
                         for __text__ in self.inventory.textgroups[str(textgroup.urn)].works[str(work.urn)].texts.values():
@@ -130,7 +128,7 @@ class XMLFolderResolver(InventoryResolver):
                             )
                             if os.path.isfile(__text__.path):
                                 try:
-                                    with open(__text__.path) as f:
+                                    with io.open(__text__.path) as f:
                                         t = Text(resource=f)
                                         cites = list()
                                         for cite in [c for c in t.citation][::-1]:
@@ -174,7 +172,7 @@ class XMLFolderResolver(InventoryResolver):
             raise InvalidURN
 
         text = self.inventory[str(urn)]
-        with open(text.path) as __xml__:
+        with io.open(text.path) as __xml__:
             resource = self.TEXT_CLASS(urn=urn, resource=xmlparser(__xml__))
 
         return resource, text
