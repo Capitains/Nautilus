@@ -3,6 +3,7 @@
     Response generator for the queries
 """
 from __future__ import unicode_literals
+from six import text_type as str
 
 from collections import OrderedDict
 from copy import copy
