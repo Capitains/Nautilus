@@ -41,13 +41,15 @@ def _commandline(repositories,
     app = Flask("Nautilus")
     if debug:
         app.logger.setLevel(logging.INFO)
-    nautilus = FlaskNautilus(
+
+    FlaskNautilus(
         app=app,
         resources=repositories,
         parser_cache=nautilus_cache,
         http_cache=Cache(config={'CACHE_TYPE': cache_type}),
         logger=None
     )
+
     if debug:
         app.run(debug=debug, port=port, host=host)
     else:

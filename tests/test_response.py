@@ -17,8 +17,8 @@ class ResponseTest(TestCase):
     def test_xml_capabilities(self):
         """ Check consistancy of XML response for Capabilites Response Maker """
         response = getcapabilities([
-            self.inventory.resource["urn:cts:farsiLit:hafez.divan.perseus-eng1"],
-            self.inventory.resource["urn:cts:farsiLit:hafez.divan.perseus-ger1"]
+            self.inventory.inventory["urn:cts:farsiLit:hafez.divan.perseus-eng1"],
+            self.inventory.inventory["urn:cts:farsiLit:hafez.divan.perseus-ger1"]
         ])
         ti = TextInventory(resource=response)
         self.assertEqual(

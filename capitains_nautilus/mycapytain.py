@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from six import text_type as str
 import logging
+from six import text_type as str
 
-from MyCapytain.endpoints.cts5 import CTS
-from MyCapytain.resources.texts.local import Text as _Text, ContextPassage as _ContextPassage
+from MyCapytain.retrievers.cts5 import CTS
+from MyCapytain.resources.texts.local import Text as _Text
 from capitains_nautilus.inventory.local import XMLFolderResolver
 from capitains_nautilus.response import *
 from capitains_nautilus.errors import InvalidURN, UnknownResource
-from werkzeug.contrib.cache import NullCache, BaseCache
+from capitains_nautilus.cache import BaseCache
 from capitains_nautilus import _cache_key
 
 
@@ -16,7 +16,7 @@ class Text(_Text):
     TIMEOUT = {
         "getValidReff":  604800
     }
-    CACHE_CLASS = NullCache  # By default cache has no cache
+    CACHE_CLASS = BaseCache  # By default cache has no cache
 
     def __init__(self, *args, **kwargs):
         super(Text, self).__init__(*args, **kwargs)
@@ -42,26 +42,30 @@ class Text(_Text):
             return __cached
 
 
-class NautilusEndpoint(CTS):
+class NautilusRetriever(CTS):
     """ Nautilus Implementation of MyCapytain Endpoint
 
     :param folders: List of Capitains Guidelines structured folders
     :type folders: list(str)
     :param logger: Logging handler
     :type logger: logging
-
+    :param auto_parse: Parses on first execution the resources given to build inventory
+    :param resolver: Resolver to be used
     :ivar logger: Logging handler
     :type logger: logging
     :ivar resolver: Resolver for repository and text path
     :type resolver: XMLFolderResolver
 
     """
-    def __init__(self, folders=[], cache=None, pagination=True, logger=None):
+    def __init__(self,
+                 folders=[], cache=None, pagination=True,
+                 logger=None,
+                 auto_parse=True, resolver=XMLFolderResolver):
         self.logger = logger
         if not logger:
             self.logger = logging.getLogger(__name__)
         self.__pagination = False
-        self.resolver = XMLFolderResolver(resource=folders, cache=cache, logger=self.logger)
+        self.resolver = resolver(resource=folders, cache=cache, logger=self.logger, auto_parse=auto_parse)
         self.resolver.TEXT_CLASS = Text
 
     def getCapabilities(self, inventory=None, output=XML, **kwargs):

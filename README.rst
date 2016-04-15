@@ -5,7 +5,8 @@ Capitains Nautilus
     :target: https://coveralls.io/github/Capitains/Nautilus?branch=master
 .. image:: https://travis-ci.org/Capitains/Nautilus.svg?branch=master
     :target: https://travis-ci.org/Capitains/Nautilus
-
+.. image:: https://api.codacy.com/project/badge/grade/c76dc6ce6b324246927a49adf7e7fa46
+    :target: https://www.codacy.com/app/leponteineptique/Nautilus
 Documentation
 #############
 

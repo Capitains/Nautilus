@@ -10,4 +10,4 @@ def _cache_key(*args):
     :param args:
     :return:
     """
-    return "_".join(map(lambda x: str(x), args))
+    return "_".join(map(str, args))

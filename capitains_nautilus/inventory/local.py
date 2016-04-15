@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
+import io
 from six import text_type as str
-from io import open
 
 from MyCapytain.resources.inventory import TextInventory, TextGroup, Work, Citation
 from MyCapytain.resources.texts.local import Text
@@ -12,8 +12,8 @@ from capitains_nautilus.errors import *
 from glob import glob
 import os.path
 from capitains_nautilus.inventory.proto import InventoryResolver
-from werkzeug.contrib.cache import NullCache, BaseCache
 from capitains_nautilus import _cache_key
+from capitains_nautilus.cache import BaseCache
 import logging
 
 
@@ -30,22 +30,29 @@ class XMLFolderResolver(InventoryResolver):
     :type cache: BaseCache
     :param logger: Logging object
     :type logger: logging
+
     :cvar TEXT_CLASS: Text Class [not instantiated] to be used to parse Texts. Can be changed to support Cache for example
     :type TEXT_CLASS: Text
+    :ivar inventory_cache_key: Werkzeug Cache key to get or set cache for the TextInventory
+    :ivar texts_cache_key:  Werkzeug Cache key to get or set cache for lists of metadata texts objects
+    :ivar texts_parsed:  Werkzeug Cache key to get or set cache for lists of parsed texts objects
+    :ivar texts: List of Text Metadata objects
+    :ivar source: Original resource parameter
 
     .. warning :: This resolver does not support inventories
     """
     TEXT_CLASS = Text
 
-    def __init__(self, resource, inventories=None, cache=None, name=None, logger=None):
+    def __init__(self, resource, inventories=None, cache=None, name=None, logger=None, auto_parse=True):
         """ Initiate the XMLResolver
 
         """
-        super(XMLFolderResolver, self).__init__(resource=TextInventory())
-        if not isinstance(cache, BaseCache):
-            cache = NullCache()
+        super(XMLFolderResolver, self).__init__(resource=resource)
 
-        self.cache = cache
+        if not isinstance(cache, BaseCache):
+            cache = BaseCache()
+
+        self.__cache = cache
         self.name = name
 
         self.logger = logger
@@ -57,42 +64,63 @@ class XMLFolderResolver(InventoryResolver):
         self.TEXT_CLASS = XMLFolderResolver.TEXT_CLASS
         self.works = []
 
-        __inventory__ = self.cache.get(_cache_key("Nautilus", "Inventory", "Resources", self.name))
-        __texts__ = self.cache.get(_cache_key("Nautilus", "Inventory", "Texts", self.name))
+        self.inventory_cache_key = _cache_key("Nautilus", "Inventory", "Resources", self.name)
+        self.texts_metadata_cache_key = _cache_key("Nautilus", "Inventory", "TextsMetadata", self.name)
+        self.texts_parsed_cache_key = _cache_key("Nautilus", "Inventory", "TextsParsed", self.name)
+        __inventory__ = self.__cache.get(self.inventory_cache_key)
+        __texts__ = self.__cache.get(self.texts_metadata_cache_key)
 
         if __inventory__ and __texts__:
-            self.resource, self.__texts__ = __inventory__, __texts__
-        else:
-            __inventory__, __texts__ = self.__parseDirectories(resource)
-            self.cache.set(_cache_key("Nautilus", "Inventory", "Resources", self.name), __inventory__)
-            self.cache.set(_cache_key("Nautilus", "Inventory", "Texts", self.name), __texts__)
+            self.inventory, self.__texts__ = __inventory__, __texts__
+        elif auto_parse:
+            self.parse(resource)
 
-    def __parseDirectories(self, resource):
+    def cache(self, inventory, texts):
+        """ Cache main objects of the resolver : TextInventory and Texts Metadata objects
+
+        :param inventory: Inventory resource
+        :type inventory: TextInventory
+        :param texts: List of Text Metadata Objects
+        :type texts: [MyCapytain.resources.inventory.Text]
         """
+        self.inventory, self.__texts__ = inventory, texts
+        self.__cache.set(self.inventory_cache_key, inventory)
+        self.__cache.set(self.texts_metadata_cache_key, texts)
 
-        :param resource:
-        :return:
+    def flush(self):
+        """ Flush current resolver objects and cache
+        """
+        self.inventory = TextInventory()
+        self.__texts__ = []
+        self.__cache.delete(self.inventory_cache_key)
+        self.__cache.delete(self.texts_metadata_cache_key)
+
+    def parse(self, resource, cache=True, verbose=True):
+        """ Parse a list of directories ans
+
+        :param resource: List of folders
+        :param cache: Auto cache the results
+        :return: An inventory resource and a list of Text metadata-objects
         """
         for folder in resource:
             textgroups = glob("{base_folder}/data/*/__cts__.xml".format(base_folder=folder))
             for __cts__ in textgroups:
                 try:
-                    with open(__cts__) as __xml__:
+                    with io.open(__cts__) as __xml__:
                         textgroup = TextGroup(resource=__xml__)
                         textgroup.urn = URN(textgroup.xml.get("urn"))
-                    self.resource.textgroups[str(textgroup.urn)] = textgroup
+                    self.inventory.textgroups[str(textgroup.urn)] = textgroup
 
                     for __subcts__ in glob("{parent}/*/__cts__.xml".format(parent=os.path.dirname(__cts__))):
-                        with open(__subcts__) as __xml__:
+                        with io.open(__subcts__) as __xml__:
                             work = Work(
                                 resource=__xml__,
-                                parents=[self.resource.textgroups[str(textgroup.urn)]]
+                                parents=[self.inventory.textgroups[str(textgroup.urn)]]
                             )
                             work.urn = URN(work.xml.get("urn"))
-                    
-                            self.resource.textgroups[str(textgroup.urn)].works[str(work.urn)] = work
+                            self.inventory.textgroups[str(textgroup.urn)].works[str(work.urn)] = work
 
-                        for __text__ in self.resource.textgroups[str(textgroup.urn)].works[str(work.urn)].texts.values():
+                        for __text__ in self.inventory.textgroups[str(textgroup.urn)].works[str(work.urn)].texts.values():
                             __text__.path = "{directory}/{textgroup}.{work}.{version}.xml".format(
                                 directory=os.path.dirname(__subcts__),
                                 textgroup=__text__.urn.textgroup,
@@ -101,7 +129,7 @@ class XMLFolderResolver(InventoryResolver):
                             )
                             if os.path.isfile(__text__.path):
                                 try:
-                                    with open(__text__.path) as f:
+                                    with io.open(__text__.path) as f:
                                         t = Text(resource=f)
                                         cites = list()
                                         for cite in [c for c in t.citation][::-1]:
@@ -119,13 +147,17 @@ class XMLFolderResolver(InventoryResolver):
                                                     name=cite.name
                                                 ))
                                     __text__.citation = cites[-1]
+                                    self.logger.info("%s has been parsed ", __text__.path)
                                 except Exception:
                                     self.logger.error("%s does not accept parsing at some level (most probably citation) ", __text__.path)
                             self.__texts__.append(__text__)
                 except Exception:
                     self.logger.error("Error parsing %s ", __cts__)
 
-        return self.resource, self.__texts__
+        if cache:
+            self.cache(self.inventory, self.__texts__)
+
+        return self.inventory, self.__texts__
 
     def getText(self, urn):
         """ Returns a Text object
@@ -140,8 +172,8 @@ class XMLFolderResolver(InventoryResolver):
         if len(urn) != 5:
             raise InvalidURN
 
-        text = self.resource[str(urn)]
-        with open(text.path) as __xml__:
+        text = self.inventory[str(urn)]
+        with io.open(text.path) as __xml__:
             resource = self.TEXT_CLASS(urn=urn, resource=xmlparser(__xml__))
 
         return resource, text

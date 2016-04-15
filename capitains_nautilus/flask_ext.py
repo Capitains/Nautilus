@@ -1,13 +1,43 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from six import text_type as str
 import logging
 
-from flask import Flask, Blueprint, request
+from flask import Blueprint, request
 from flask_cache import Cache
 from flask_compress import Compress
+from flask.ext.script import Manager
 
-from capitains_nautilus.mycapytain import Text, NautilusEndpoint
+from capitains_nautilus.cache import BaseCache
+from capitains_nautilus.mycapytain import Text, NautilusRetriever
+
+
+class WerkzeugCacheWrapper(BaseCache):
+    """ Werkzeug Cache Wrapper for Nautilus Base Cache object
+
+    :param instance: Werkzeug Cache instance
+
+    """
+    def __init__(self, instance=None, *args, **kwargs):
+        super(WerkzeugCacheWrapper, self).__init__(*args, **kwargs)
+
+        if not instance:
+            instance = BaseCache()
+        self.__instance__ = instance
+
+    def get(self, key):
+        return self.__instance__.get(key)
+
+    def set(self, key, value, timeout=None):
+        return self.__instance__.set(key, value, timeout)
+
+    def add(self, key, value, timeout=None):
+        return self.__instance__.add(key, value, timeout)
+
+    def clear(self):
+        return self.__instance__.clear()
+
+    def delete(self, key):
+        return self.__instance__.delete(key)
 
 
 class FlaskNautilus(object):
@@ -20,14 +50,18 @@ class FlaskNautilus(object):
     :type resource: list(str)
     :param logger: Logging handler.
     :type logger: logging
-    :param parser_cache:
+    :param parser_cache: Cache object
+    :type parser_cache: BaseCache
     :param http_cache: HTTP Cache should be a FlaskCache object
+    :param auto_parse: Parses on first execution the resources given to build inventory. Not recommended for production
+
     :cvar ROUTES: List of triple length tuples
     :cvar Access_Control_Allow_Methods: Dictionary with route name and allowed methods over CORS
     :cvar Access_Control_Allow_Origin: Dictionary with route name and allowed host over CORS or "*"
     :cvar LoggingHandler: Logging handler to be set for the blueprint
     :ivar logger: Logging handler
     :type logger: logging
+    :ivar retriever: CapiTainS Retriever
     """
     ROUTES = [
         ('/', "r_dispatcher", ["GET"])
@@ -44,19 +78,20 @@ class FlaskNautilus(object):
             compresser=True,
             http_cache=None, pagination=False,
             access_Control_Allow_Origin=None, access_Control_Allow_Methods=None,
-            logger=None
+            logger=None,
+            auto_parse=True
         ):
         self.logger = None
-        self.endpoint = None
+        self.retriever = None
         self.setLogger(logger)
 
         # Set up endpoints with cache system
         if parser_cache:
             Text.CACHE_CLASS = parser_cache
-            self.endpoint = NautilusEndpoint(resources, pagination=pagination, cache=parser_cache, logger=self.logger)
+            self.retriever = NautilusRetriever(resources, pagination=pagination, cache=parser_cache, logger=self.logger, auto_parse=auto_parse)
         else:
-            self.endpoint = NautilusEndpoint(resources, pagination=pagination)
-        self.endpoint.resolver.TEXT_CLASS = Text
+            self.retriever = NautilusRetriever(resources, pagination=pagination, auto_parse=auto_parse)
+        self.retriever.resolver.TEXT_CLASS = Text
 
         self.app = app
         self.name = name
@@ -83,8 +118,8 @@ class FlaskNautilus(object):
     def setLogger(self, logger):
         """ Set up the Logger for the application
 
-        :param logger:
-        :return:
+        :param logger: logging.Logger object
+        :return: Logger instance
         """
         self.logger = logger
         if not logger:
@@ -97,15 +132,17 @@ class FlaskNautilus(object):
         stream.setFormatter(formatter)
         self.logger.addHandler(stream)
 
-        if self.endpoint:
-            self.endpoint.logger = self.logger
-            self.endpoint.resolver.logger = self.logger
+        if self.retriever:
+            self.retriever.logger = self.logger
+            self.retriever.resolver.logger = self.logger
+
+        return self.logger
 
     def init_app(self, app, compresser=False):
         """ Initiate the extension on the application
 
         :param app: Flask Application
-        :return: Blueprint for HookUI registered in app
+        :return: Blueprint for Flask Nautilus registered in app
         :rtype: Blueprint
         """
 
@@ -125,6 +162,8 @@ class FlaskNautilus(object):
     def init_blueprint(self):
         """ Properly generates the blueprint, registering routes and filters and connecting the app and the blueprint
 
+        :return: Blueprint of the extension
+        :rtype: Blueprint
         """
         self.blueprint = Blueprint(
             self.name,
@@ -142,6 +181,7 @@ class FlaskNautilus(object):
             )
 
         self.app.register_blueprint(self.blueprint)
+        return self.blueprint
 
     def view(self, function_name):
         """ Builds response according to a function name
@@ -167,7 +207,7 @@ class FlaskNautilus(object):
         return r
 
     def r_dispatcher(self):
-        """ Actual main route of CTS APIs
+        """ Actual main route of CTS APIs. Transfer typical requests through the ?request=REQUESTNAME route
 
         :return: Response
         """
@@ -212,58 +252,104 @@ class FlaskNautilus(object):
             )
         return "This request does not exist", 404, ""  # Should maybe return documentation on top of 404 ?
 
-    def _r_GetCapabilities(self, urn, inv):
-        """
+    def _r_GetCapabilities(self, urn=None, inv=None):
+        """ Provisional route for GetCapabilities request
 
-        :param urn:
-        :return:
+        :param urn: URN to filter the resource
+        :param inv: Inventory Identifier
+        :return: GetCapabilities response
         """
-        return self.endpoint.getCapabilities(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getCapabilities(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetPassage(self, urn, inv):
-        """
+        """ Provisional route for GetPassage request
 
-        :param urn:
-        :return:
+        :param urn: URN to filter the resource
+        :param inv: Inventory Identifier
+        :return: GetPassage response
         """
-        return self.endpoint.getPassage(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getPassage(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetPassagePlus(self, urn, inv):
-        """
+        """ Provisional route for GetPassagePlus request
 
-        :param urn:
-        :return:
+        :param urn: URN to filter the resource
+        :param inv: Inventory Identifier
+        :return: GetPassagePlus response
         """
-        return self.endpoint.getPassagePlus(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getPassagePlus(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetValidReff(self, urn, inv, level):
-        """
+        """ Provisional route for GetValidReff request
 
-        :param urn:
-        :return:
+        :param urn: URN to filter the resource
+        :param inv: Inventory Identifier
+        :return: GetValidReff response
         """
-        return self.endpoint.getValidReff(inventory=inv, urn=urn, level=level).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getValidReff(inventory=inv, urn=urn, level=level).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetPrevNext(self, urn, inv):
-        """
+        """ Provisional route for GetPrevNext request
 
-        :param urn:
-        :return:
+        :param urn: URN to filter the resource
+        :param inv: Inventory Identifier
+        :return: GetPrevNext response
         """
-        return self.endpoint.getPrevNextUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getPrevNextUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetFirstUrn(self, urn, inv):
-        """
+        """ Provisional route for GetFirstUrn request
 
-        :param urn:
-        :return:
+        :param urn: URN to filter the resource
+        :param inv: Inventory Identifier
+        :return: GetFirstUrn response
         """
-        return self.endpoint.getFirstUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getFirstUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
 
     def _r_GetLabel(self, urn, inv):
-        """
+        """ Provisional route for GetLabel request
 
-        :param urn:
-        :return:
+        :param urn: URN to filter the resource
+        :param inv: Inventory Identifier
+        :return: GetLabel response
         """
-        return self.endpoint.getLabel(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        return self.retriever.getLabel(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+
+
+def FlaskNautilusManager(nautilus, app=None):
+    """ Provides a manager for flask scripts to perform specific maintenance operations
+
+    :param nautilus: Nautilus Extension Instance
+    :param app: Flask Application
+    :return: Sub-Manager
+    :rtype: Manager
+
+    Import with
+
+    .. code-block:: python
+        :lineno:
+
+        manager = Manager(app)  # Where app is the name of your app
+        from capitains_nautilus.flask_ext import manager as nautilus_manager
+        manager.add_command("nautilus", FlaskNautilusManager(nautilus, app))  # Where nautilus is an instance of FlaskNautilus
+
+    """
+    _manager = Manager(usage="Perform maintenance operations")
+
+    @_manager.command
+    def flush():
+        """ Flush the cache system [Right now flushes only the inventory] """
+        nautilus.retriever.resolver.flush()
+
+    @_manager.command
+    def preprocess():
+        """ Preprocess the inventory and cache it """
+        nautilus.retriever.resolver.parse(resource=nautilus.retriever.resolver.source, cache=True, verbose=True)
+
+    @_manager.command
+    def inventory():
+        """ Clean then preprocess the inventory """
+        nautilus.retriever.resolver.flush()
+        nautilus.retriever.resolver.parse(resource=nautilus.retriever.resolver.source, cache=True, verbose=True)
+
+    return _manager
