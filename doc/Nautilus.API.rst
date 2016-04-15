@@ -52,18 +52,25 @@ Errors
     :undoc-members:
     :show-inheritance:
 
-Utilities
-#########
+Cache
+#####
 
-.. automodule:: capitains_nautilus.cmd
+.. automodule:: capitains_nautilus.cache
     :members:
     :undoc-members:
     :show-inheritance:
 
 Flask Extension
-#########
+###############
 
 .. automodule:: capitains_nautilus.flask_ext
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Commandline
+***********
+.. automodule:: capitains_nautilus.cmd
     :members:
     :undoc-members:
     :show-inheritance:
