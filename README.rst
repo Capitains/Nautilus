@@ -7,6 +7,12 @@ Capitains Nautilus
     :target: https://travis-ci.org/Capitains/Nautilus
 .. image:: https://api.codacy.com/project/badge/grade/c76dc6ce6b324246927a49adf7e7fa46
     :target: https://www.codacy.com/app/leponteineptique/Nautilus
+.. image:: https://badge.fury.io/py/capitains_nautilus.svg
+    :target: https://badge.fury.io/py/capitains_nautilus
+.. image:: https://readthedocs.org/projects/capitains-nautilus/badge/?version=latest
+    :alt: Documentation
+    :target: http://capitains-nautilus.readthedocs.org
+
 Documentation
 #############
 
