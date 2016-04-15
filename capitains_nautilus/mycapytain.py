@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import logging
+from six import text_type as str
 
 from MyCapytain.retrievers.cts5 import CTS
 from MyCapytain.resources.texts.local import Text as _Text

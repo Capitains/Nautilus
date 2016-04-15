@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 import io
+from six import text_type as str
 
 from MyCapytain.resources.inventory import TextInventory, TextGroup, Work, Citation
 from MyCapytain.resources.texts.local import Text
