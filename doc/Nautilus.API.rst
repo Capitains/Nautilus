@@ -39,7 +39,7 @@ Extension of MyCapytains resources
 Responses builders
 ******************
 
-.. automodule:: capitains_nautilus.errors
+.. automodule:: capitains_nautilus.response
     :members:
     :undoc-members:
     :show-inheritance:
