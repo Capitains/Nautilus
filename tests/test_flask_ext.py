@@ -199,7 +199,7 @@ class TestManager(TestCase):
         self.assertEqual(len(self.nautilus.retriever.resolver.texts) == 0, True, "Texts should have been flushed")
         self.assertEqual(len(self.nautilus.retriever.resolver.inventory) == 0, True, "Inventory should have been flushed")
         self.assertEqual(
-            self.cache_manager.get(self.nautilus.endpoint.resolver.inventory_cache_key) is None,
+            self.cache_manager.get(self.nautilus.retriever.resolver.inventory_cache_key) is None,
             True,
             "There should not be inventory anymore in cache"
         )
