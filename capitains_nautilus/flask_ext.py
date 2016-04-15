@@ -325,11 +325,14 @@ def FlaskNautilusManager(nautilus, app=None):
     :rtype: Manager
 
     Import with
-    .. code-block :: python
+
+    .. code-block:: python
+        :lineno:
 
         manager = Manager(app)  # Where app is the name of your app
         from capitains_nautilus.flask_ext import manager as nautilus_manager
         manager.add_command("nautilus", FlaskNautilusManager(nautilus, app))  # Where nautilus is an instance of FlaskNautilus
+
     """
     _manager = Manager(usage="Perform maintenance operations")
 
