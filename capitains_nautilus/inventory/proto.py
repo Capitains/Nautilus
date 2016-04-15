@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals, division
-from six import text_type as str
 from math import ceil
-from werkzeug.contrib.cache import NullCache
+from capitains_nautilus.cache import BaseCache
 from MyCapytain.resources.inventory import TextInventory
 
 
@@ -15,7 +14,7 @@ class InventoryResolver(object):
     def __init__(self, resource, auto_parse=True):
         self.__resource = resource
         self.__texts__ = []
-        self.__cache = NullCache()
+        self.__cache = BaseCache()
         self.inventory = TextInventory()
 
     @property

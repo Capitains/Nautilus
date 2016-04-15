@@ -12,8 +12,8 @@ from capitains_nautilus.errors import *
 from glob import glob
 import os.path
 from capitains_nautilus.inventory.proto import InventoryResolver
-from werkzeug.contrib.cache import NullCache, BaseCache
 from capitains_nautilus import _cache_key
+from capitains_nautilus.cache import BaseCache
 import logging
 
 
@@ -50,7 +50,7 @@ class XMLFolderResolver(InventoryResolver):
         super(XMLFolderResolver, self).__init__(resource=resource)
 
         if not isinstance(cache, BaseCache):
-            cache = NullCache()
+            cache = BaseCache()
 
         self.__cache = cache
         self.name = name

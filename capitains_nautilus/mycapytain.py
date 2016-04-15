@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from six import text_type as str
 import logging
 
 from MyCapytain.retrievers.cts5 import CTS
-from MyCapytain.resources.texts.local import Text as _Text, ContextPassage as _ContextPassage
+from MyCapytain.resources.texts.local import Text as _Text
 from capitains_nautilus.inventory.local import XMLFolderResolver
 from capitains_nautilus.response import *
 from capitains_nautilus.errors import InvalidURN, UnknownResource
-from werkzeug.contrib.cache import NullCache, BaseCache
+from capitains_nautilus.cache import BaseCache
 from capitains_nautilus import _cache_key
 
 
@@ -16,7 +15,7 @@ class Text(_Text):
     TIMEOUT = {
         "getValidReff":  604800
     }
-    CACHE_CLASS = NullCache  # By default cache has no cache
+    CACHE_CLASS = BaseCache  # By default cache has no cache
 
     def __init__(self, *args, **kwargs):
         super(Text, self).__init__(*args, **kwargs)

@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 from six import text_type as str
 from io import BytesIO
 
-from capitains_nautilus.flask_ext import FlaskNautilus, FlaskNautilusManager
-from werkzeug.contrib.cache import RedisCache
+from capitains_nautilus.flask_ext import FlaskNautilus, FlaskNautilusManager, WerkzeugCacheWrapper
+from werkzeug.contrib.cache import RedisCache, FileSystemCache
 from flask import Flask
 from flask_cache import Cache
 from flask.ext.script import Manager
@@ -19,7 +19,7 @@ from MyCapytain.common.reference import Reference
 
 class TestRestAPI(TestCase):
     def setUp(self):
-        nautilus_cache = RedisCache()
+        nautilus_cache = WerkzeugCacheWrapper(RedisCache())
         app = Flask("Nautilus")
         nautilus = FlaskNautilus(
             app=app,
@@ -54,12 +54,13 @@ class TestRestAPI(TestCase):
         self.parent.call = lambda x: call(self.parent, x)
 
     def test_cors(self):
+        """ Check that CORS enabling works """
         self.assertEqual(self.app.get("/?request=GetCapabilities").headers["Access-Control-Allow-Origin"], "*")
         self.assertEqual(self.app.get("/?request=GetCapabilities").headers["Access-Control-Allow-Methods"], "OPTIONS, GET")
 
-    def test_cors(self):
-
-        nautilus_cache = RedisCache()
+    def test_restricted_cors(self):
+        """ Check that area-restricted cors works """
+        nautilus_cache = WerkzeugCacheWrapper(RedisCache())
         app = Flask("Nautilus")
         nautilus = FlaskNautilus(
             app=app,
@@ -74,6 +75,7 @@ class TestRestAPI(TestCase):
         self.assertEqual(_app.get("/?request=GetCapabilities").headers["Access-Control-Allow-Methods"], "OPTIONS")
 
     def test_get_capabilities(self):
+        """ Check the GetCapabilities request """
         response = self.app.get("/?request=GetCapabilities")
         a = TextInventory(resource=BytesIO(response.data))
         self.assertEqual(
@@ -81,6 +83,7 @@ class TestRestAPI(TestCase):
         )
 
     def test_get_passage(self):
+        """ Check the GetPassage request """
         response = self.app.get("/?request=GetPassage&urn=urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr.1")
         a = Passage(resource=xmlparser(BytesIO(response.data)), urn="urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr.1")
         self.assertEqual(
@@ -88,6 +91,7 @@ class TestRestAPI(TestCase):
         )
 
     def test_get_passage_plus(self):
+        """ Check the GetPassagePlus request """
         text = Text(urn="urn:cts:latinLit:phi1294.phi002.perseus-lat2", resource=self.parent)
         response = text.getPassagePlus(Reference("1.pr.1"))
         self.assertEqual(
@@ -128,6 +132,7 @@ class TestRestAPI(TestCase):
         )
 
     def test_get_prevnext_urn(self):
+        """ Check the GetPrevNext request """
         text = Text(urn="urn:cts:latinLit:phi1294.phi002.perseus-lat2", resource=self.parent)
         prev, next = text.getPrevNextUrn(Reference("1.pr.1"))
         self.assertEqual(
@@ -156,13 +161,11 @@ class TestRestAPI(TestCase):
             "Check Range works on GetPassagePlus and compute right next"
         )
 
+
 class TestManager(TestCase):
     def setUp(self):
-        """ Set up a dummy application with a manager
-
-        :return:
-        """
-        nautilus_cache = RedisCache()
+        """ Set up a dummy application with a manager """
+        nautilus_cache = WerkzeugCacheWrapper(instance=FileSystemCache("cache_dir"))
         nautilus_cache.clear()
         app = Flask("Nautilus")
         nautilus = FlaskNautilus(

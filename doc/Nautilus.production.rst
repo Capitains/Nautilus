@@ -148,41 +148,41 @@ The following configuration is based on a FileSystemCache. This means that you d
 .. code-block:: python
    :linenos:
 
-	# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 
-	from flask import Flask, request
-	from flask.ext.nemo import Nemo
-	from capitains_nautilus.flask_ext import FlaskNautilus
-	from werkzeug.contrib.cache import FileSystemCache
-	from flask_cache import Cache
+    from flask import Flask, request
+    from flask.ext.nemo import Nemo
+    from capitains_nautilus.flask_ext import FlaskNautilus
+    from werkzeug.contrib.cache import FileSystemCache
+    from flask_cache import Cache
 
-	app = Flask("Nautilus")
-	nautilus_cache = FileSystemCache("/var/capitains-cache")
-	nautilus = FlaskNautilus(
-	    app=app,
-	    prefix="/api/cts",
-	    name="nautilus",
-	    # Add here paths to all CapiTainS repository you have locally
-	    resources=["/var/capitains-data/canonical-latinLit-master"],
-	    parser_cache=nautilus_cache,
-	    http_cache=Cache(config={'CACHE_TYPE': "simple"})
-	)
-	# We set up Nemo
-	# This part can be removed 
-	nemo = Nemo(
-	    app=app,
-	    name="nemo",
-		base_url="",
-		api_url="/api/cts",
-	    endpoint=nautilus.retriever
-	)
-	# We register its routes
-	nemo.register_routes()
-	# We register its filters
-	nemo.register_filters()
+    app = Flask("Nautilus")
+    nautilus_cache = FileSystemCache("/var/capitains-cache")
+    nautilus = FlaskNautilus(
+        app=app,
+        prefix="/api/cts",
+        name="nautilus",
+        # Add here paths to all CapiTainS repository you have locally
+        resources=["/var/capitains-data/canonical-latinLit-master"],
+        parser_cache=nautilus_cache,
+        http_cache=Cache(config={'CACHE_TYPE': "simple"})
+    )
+    # We set up Nemo
+    # This part can be removed
+    nemo = Nemo(
+        app=app,
+        name="nemo",
+        base_url="",
+        api_url="/api/cts",
+        endpoint=nautilus.retriever
+    )
+    # We register its routes
+    nemo.register_routes()
+    # We register its filters
+    nemo.register_filters()
 
-	# Removes this line for production
-	app.debug = True
-	
-	if __name__ == "__main__":
-	    app.run(debug=True, host='0.0.0.0')
+    # Removes this line for production
+    app.debug = True
+
+    if __name__ == "__main__":
+        app.run(debug=True, host='0.0.0.0')

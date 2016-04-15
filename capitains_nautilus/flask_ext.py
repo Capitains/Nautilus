@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from six import text_type as str
 import logging
 
 from flask import Blueprint, request
@@ -8,7 +7,37 @@ from flask_cache import Cache
 from flask_compress import Compress
 from flask.ext.script import Manager
 
+from capitains_nautilus.cache import BaseCache
 from capitains_nautilus.mycapytain import Text, NautilusRetriever
+
+
+class WerkzeugCacheWrapper(BaseCache):
+    """ Werkzeug Cache Wrapper for Nautilus Base Cache object
+
+    :param instance: Werkzeug Cache instance
+
+    """
+    def __init__(self, instance=None, *args, **kwargs):
+        super(WerkzeugCacheWrapper, self).__init__(*args, **kwargs)
+
+        if not instance:
+            instance = BaseCache()
+        self.__instance__ = instance
+
+    def get(self, key):
+        return self.__instance__.get(key)
+
+    def set(self, key, value, timeout=None):
+        return self.__instance__.set(key, value, timeout)
+
+    def add(self, key, value, timeout=None):
+        return self.__instance__.add(key, value, timeout)
+
+    def clear(self):
+        return self.__instance__.clear()
+
+    def delete(self, key):
+        return self.__instance__.delete(key)
 
 
 class FlaskNautilus(object):
@@ -21,7 +50,8 @@ class FlaskNautilus(object):
     :type resource: list(str)
     :param logger: Logging handler.
     :type logger: logging
-    :param parser_cache:
+    :param parser_cache: Cache object
+    :type parser_cache: BaseCache
     :param http_cache: HTTP Cache should be a FlaskCache object
     :param auto_parse: Parses on first execution the resources given to build inventory. Not recommended for production
 
