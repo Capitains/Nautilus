@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from capitains_nautilus.flask_ext import FlaskNautilus
+from capitains_nautilus.flask_ext import FlaskNautilus, WerkzeugCacheWrapper
 from werkzeug.contrib.cache import FileSystemCache, RedisCache, NullCache
 from flask import Flask
 from flask_cache import Cache
@@ -45,7 +45,7 @@ def _commandline(repositories,
     FlaskNautilus(
         app=app,
         resources=repositories,
-        parser_cache=nautilus_cache,
+        parser_cache=WerkzeugCacheWrapper(nautilus_cache),
         http_cache=Cache(config={'CACHE_TYPE': cache_type}),
         logger=None
     )
