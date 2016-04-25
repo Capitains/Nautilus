@@ -150,7 +150,8 @@ class XMLFolderResolver(InventoryResolver):
                                     self.logger.info("%s has been parsed ", __text__.path)
                                 except Exception:
                                     self.logger.error("%s does not accept parsing at some level (most probably citation) ", __text__.path)
-                            self.__texts__.append(__text__)
+                            if (__text__.citation):
+                              self.__texts__.append(__text__)
                 except Exception:
                     self.logger.error("Error parsing %s ", __cts__)
 
