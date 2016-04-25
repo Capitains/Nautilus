@@ -120,7 +120,8 @@ class XMLFolderResolver(InventoryResolver):
                             work.urn = URN(work.xml.get("urn"))
                             self.inventory.textgroups[str(textgroup.urn)].works[str(work.urn)] = work
 
-                        for __text__ in self.inventory.textgroups[str(textgroup.urn)].works[str(work.urn)].texts.values():
+                        for __textkey__ in self.inventory.textgroups[str(textgroup.urn)].works[str(work.urn)].texts:
+                            __text__ = self.inventory.textgroups[str(textgroup.urn)].works[str(work.urn)].texts[__textkey__]
                             __text__.path = "{directory}/{textgroup}.{work}.{version}.xml".format(
                                 directory=os.path.dirname(__subcts__),
                                 textgroup=__text__.urn.textgroup,
@@ -148,10 +149,14 @@ class XMLFolderResolver(InventoryResolver):
                                                 ))
                                     __text__.citation = cites[-1]
                                     self.logger.info("%s has been parsed ", __text__.path)
+                                    if (__text__.citation):
+                                      self.__texts__.append(__text__)
+                                    else: 
+                                      self.logger.error("%s has no passages", __text__.path)
                                 except Exception:
                                     self.logger.error("%s does not accept parsing at some level (most probably citation) ", __text__.path)
-                            if (__text__.citation):
-                              self.__texts__.append(__text__)
+                            else:
+                              self.logger.error("%s has no passages", __text__.path)
                 except Exception:
                     self.logger.error("Error parsing %s ", __cts__)
 
@@ -209,6 +214,7 @@ class XMLFolderResolver(InventoryResolver):
             for text in self.__texts__
             if (lang is None or (lang is not None and lang == text.lang)) and
             (urn is None or (urn is not None and text.urn.upTo(__PART) == urn)) and
+            (text.citation is not None) and
             (category not in ["edition", "translation"] or (category in ["edition", "translation"] and category.lower() == text.subtype.lower()))
         ]
         if pagination:
