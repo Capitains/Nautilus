@@ -98,3 +98,12 @@ class TestXMLFolderResolver(TestCase):
             len(Repository.getCapabilities(urn="urn:cts:farsiLit:hafez.divan.perseus-eng1")[0]), 1,
             "Complete URN filtering works"
         )
+    def test_get_capabilities_nocites(self):
+        """ Check Get Capabilities latinLit data"""
+        Repository = XMLFolderResolver(
+            ["./tests/test_data/latinLit"]
+        )
+        self.assertEqual(
+            len(Repository.getCapabilities(urn="urn:cts:latinLit:stoa0045.stoa008.perseus-lat2")[0]), 0,
+            "Texts without citations were ignored"
+        )
