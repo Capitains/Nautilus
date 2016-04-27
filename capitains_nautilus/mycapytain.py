@@ -32,14 +32,14 @@ class Text(_Text):
         :param reference: Reference object
         :return: References
         """
-        __cache_key = _cache_key("Text_GetValidReff", level, str(self.urn), str(reference))
-        __cached = self.cache.get(__cache_key)
-        if __cached:
-            return __cached
+        __cachekey__ = _cache_key("Text_GetValidReff", level, str(self.urn), str(reference))
+        __cached__ = self.cache.get(__cachekey__)
+        if __cached__:
+            return __cached__
         else:
-            __cached = super(Text, self).getValidReff(level, reference)
-            self.cache.set(__cache_key, __cached, timeout=Text.TIMEOUT["getValidReff"])
-            return __cached
+            __cached__ = super(Text, self).getValidReff(level, reference)
+            self.cache.set(__cachekey__, __cached__, timeout=Text.TIMEOUT["getValidReff"])
+            return __cached__
 
 
 class NautilusRetriever(CTS):
@@ -58,9 +58,13 @@ class NautilusRetriever(CTS):
 
     """
     def __init__(self,
-                 folders=[], cache=None, pagination=True,
+                 folders=None, cache=None, pagination=True,
                  logger=None,
                  auto_parse=True, resolver=XMLFolderResolver):
+
+        if not folders:
+            folders = list()
+
         self.logger = logger
         if not logger:
             self.logger = logging.getLogger(__name__)
@@ -79,7 +83,12 @@ class NautilusRetriever(CTS):
         :rtype: str
         """
         return getcapabilities(
-            *self.resolver.getCapabilities(inventory=inventory, pagination=self.__pagination, **kwargs), output=output, **kwargs)
+            *self.resolver.getCapabilities(
+                inventory=inventory, pagination=self.__pagination, **kwargs
+            ),
+            output=output,
+            **kwargs
+        )
 
     def getPassage(self, urn, inventory=None, context=None, output=XML):
         """ Get a Passage from the repository

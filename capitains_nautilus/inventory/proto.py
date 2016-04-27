@@ -4,10 +4,25 @@ from __future__ import unicode_literals, division
 from math import ceil
 from capitains_nautilus.cache import BaseCache
 from MyCapytain.resources.inventory import TextInventory
+import abc
+import six
 
 
-class InventoryResolver(object):
-    ALL_PAGE = None
+@six.add_metaclass(abc.ABCMeta)
+class InventoryResolver:
+    """ Inventory Resolver Prototype. It is used to serve local xml files and an inventory.
+
+    :param resource: Resource used to retrieve texts
+    :param auto_parse: Automatically parse the resource on initialization
+
+    :cvar DEFAULT_PAGE: Default Page to show
+    :cvar PER_PAGE: Tuple representing the minimal number of texts returned, the default number and the maximum number of texts returned
+
+    :ivar source: Reading access to original resource
+    :ivar texts: List of MyCapytain.resources.inventory.Text
+
+
+    """
     DEFAULT_PAGE = 1
     PER_PAGE = (1, 10, 100)  # Min, Default, Mainvex,
 
@@ -25,14 +40,20 @@ class InventoryResolver(object):
     def texts(self):
         return self.__texts__
 
+    @abc.abstractmethod
     def cache(self, inventory, texts):
-        raise NotImplemented
+        raise NotImplementedError
 
+    @abc.abstractmethod
     def flush(self):
-        raise NotImplemented
+        raise NotImplementedError
 
-    def getCapabilities(self, urn=None, page=None, limit=None, inventory=None, lang=None, category=None):
-        raise NotImplemented
+    @abc.abstractmethod
+    def getCapabilities(self,
+            urn=None, page=None, limit=None,
+            inventory=None, lang=None, category=None, pagination=True
+        ):
+        raise NotImplementedError
 
     @staticmethod
     def pagination(page, limit, length):

@@ -46,7 +46,7 @@ def getcapabilities(texts, page=None, count=None, output=XML, **kwargs):
             inventory.textgroups[tg_urn].works[wk_urn]
         ])
     if output == JSON:
-        inventory_str = ""
+        return None
     elif output == CTS_XML:
         return str(inventory)
     else:
@@ -186,7 +186,7 @@ def getfirst(passage, request_urn, output=XML):
 
     if output == XML:
         return """
-            <GetPrevNext xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
+            <GetFirstPassage xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
                 <request>
                     <requestName>GetPrevNext</requestName>
                     <requestUrn>{request_urn}</requestUrn>
@@ -197,9 +197,9 @@ def getfirst(passage, request_urn, output=XML):
                         <urn>{first}</urn>
                     </first>
                 </reply>
-            </GetPrevNext>""".format(
+            </GetFirstPassage>""".format(
             request_urn=request_urn,
-            urn=passage.urn,
+            full_urn=passage.urn,
             first=_first
         )
 

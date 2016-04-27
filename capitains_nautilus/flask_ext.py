@@ -47,7 +47,7 @@ class FlaskNautilus(object):
     :param app: Application on which to register
     :param name: Name to use for the blueprint
     :param resources: List of directory to feed the inventory
-    :type resource: list(str)
+    :type resources: list(str)
     :param logger: Logging handler.
     :type logger: logging
     :param parser_cache: Cache object
@@ -74,7 +74,7 @@ class FlaskNautilus(object):
 
     def __init__(self,
             prefix="", app=None, name=None,
-            resources=[], parser_cache=None,
+            resources=None, parser_cache=None,
             compresser=True,
             http_cache=None, pagination=False,
             access_Control_Allow_Origin=None, access_Control_Allow_Methods=None,
@@ -84,6 +84,9 @@ class FlaskNautilus(object):
         self.logger = None
         self.retriever = None
         self.setLogger(logger)
+
+        if not resources:
+            resources = list()
 
         # Set up endpoints with cache system
         if parser_cache:
@@ -344,12 +347,14 @@ def FlaskNautilusManager(nautilus, app=None):
     @_manager.command
     def preprocess():
         """ Preprocess the inventory and cache it """
-        nautilus.retriever.resolver.parse(resource=nautilus.retriever.resolver.source, cache=True, verbose=True)
+        nautilus.retriever.resolver.logger.setLevel(logging.INFO)
+        nautilus.retriever.resolver.parse(resource=nautilus.retriever.resolver.source, cache=True)
 
     @_manager.command
     def inventory():
         """ Clean then preprocess the inventory """
+        nautilus.retriever.resolver.logger.setLevel(logging.INFO)
         nautilus.retriever.resolver.flush()
-        nautilus.retriever.resolver.parse(resource=nautilus.retriever.resolver.source, cache=True, verbose=True)
+        nautilus.retriever.resolver.parse(resource=nautilus.retriever.resolver.source, cache=True)
 
     return _manager

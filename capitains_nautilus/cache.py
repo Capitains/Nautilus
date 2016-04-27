@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 
+# pylint: disable=R0201
 class BaseCache(object):
     """ Based on the `werkzeug.contrib.cache.BaseCache <https://github.com/pallets/werkzeug/blob/master/werkzeug/contrib/cache.py>`_ object. Provides a wrapper for other cache system in the future.
 
