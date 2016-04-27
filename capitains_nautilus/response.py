@@ -46,7 +46,7 @@ def getcapabilities(texts, page=None, count=None, output=XML, **kwargs):
             inventory.textgroups[tg_urn].works[wk_urn]
         ])
     if output == JSON:
-        inventory_str = ""
+        return None
     elif output == CTS_XML:
         return str(inventory)
     else:

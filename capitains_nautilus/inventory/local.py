@@ -52,6 +52,7 @@ class XMLFolderResolver(InventoryResolver):
         if not isinstance(cache, BaseCache):
             cache = BaseCache()
 
+        self.__inventories__ = inventories
         self.__cache = cache
         self.name = name
 
@@ -95,7 +96,7 @@ class XMLFolderResolver(InventoryResolver):
         self.__cache.delete(self.inventory_cache_key)
         self.__cache.delete(self.texts_metadata_cache_key)
 
-    def parse(self, resource, cache=True, verbose=True):
+    def parse(self, resource, cache=True):
         """ Parse a list of directories ans
 
         :param resource: List of folders
@@ -149,14 +150,17 @@ class XMLFolderResolver(InventoryResolver):
                                                 ))
                                     __text__.citation = cites[-1]
                                     self.logger.info("%s has been parsed ", __text__.path)
-                                    if (__text__.citation):
-                                      self.__texts__.append(__text__)
-                                    else: 
-                                      self.logger.error("%s has no passages", __text__.path)
+                                    if __text__.citation:
+                                        self.__texts__.append(__text__)
+                                    else:
+                                        self.logger.error("%s has no passages", __text__.path)
                                 except Exception:
-                                    self.logger.error("%s does not accept parsing at some level (most probably citation) ", __text__.path)
+                                    self.logger.error(
+                                        "%s does not accept parsing at some level (most probably citation) ",
+                                        __text__.path
+                                    )
                             else:
-                              self.logger.error("%s is not present", __text__.path)
+                                self.logger.error("%s is not present", __text__.path)
                 except Exception:
                     self.logger.error("Error parsing %s ", __cts__)
 
