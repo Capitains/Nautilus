@@ -49,7 +49,10 @@ class InventoryResolver:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def getCapabilities(self, urn=None, page=None, limit=None, inventory=None, lang=None, category=None):
+    def getCapabilities(self,
+            urn=None, page=None, limit=None,
+            inventory=None, lang=None, category=None, pagination=True
+        ):
         raise NotImplementedError
 
     @staticmethod

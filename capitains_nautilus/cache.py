@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import abc
-import six
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseCache:
+# pylint: disable=R0201
+class BaseCache(object):
     """ Based on the `werkzeug.contrib.cache.BaseCache <https://github.com/pallets/werkzeug/blob/master/werkzeug/contrib/cache.py>`_ object. Provides a wrapper for other cache system in the future.
 
     :param default_timeout: the default timeout (in seconds) that is used if no timeout is specified on :meth:`set`. A timeout of 0 indicates that the cache never expires.
@@ -13,7 +11,6 @@ class BaseCache:
     def __init__(self, default_timeout=300):
         self.default_timeout = default_timeout
 
-    @abc.abstractmethod
     def get(self, key):
         """Look up key in the cache and return the value for it.
         :param key: the key to be looked up.
@@ -21,7 +18,6 @@ class BaseCache:
         """
         return None
 
-    @abc.abstractmethod
     def delete(self, key):
         """Delete `key` from the cache.
         :param key: the key to delete.
@@ -50,7 +46,6 @@ class BaseCache:
         """
         return dict(zip(keys, self.get_many(*keys)))
 
-    @abc.abstractmethod
     def set(self, key, value, timeout=None):
         """Add a new key/value to the cache (overwrites value, if key already
         exists in the cache).
@@ -66,7 +61,6 @@ class BaseCache:
         """
         return True
 
-    @abc.abstractmethod
     def add(self, key, value, timeout=None):
         """Works like :meth:`set` but does not overwrite the values of already
         existing keys.
@@ -105,7 +99,6 @@ class BaseCache:
         """
         return all(self.delete(key) for key in keys)
 
-    @abc.abstractmethod
     def has(self, key):
         """Checks if a key exists in the cache without returning it. This is a
         cheap operation that bypasses loading the actual data on the backend.
@@ -119,7 +112,6 @@ class BaseCache:
             'explicitly if you don\'t care about performance.'
         )
 
-    @abc.abstractmethod
     def clear(self):
         """Clears the cache.  Keep in mind that not all caches support
         completely clearing the cache.

@@ -83,7 +83,12 @@ class NautilusRetriever(CTS):
         :rtype: str
         """
         return getcapabilities(
-            *self.resolver.getCapabilities(inventory=inventory, pagination=self.__pagination, **kwargs), output=output, **kwargs)
+            *self.resolver.getCapabilities(
+                inventory=inventory, pagination=self.__pagination, **kwargs
+            ),
+            output=output,
+            **kwargs
+        )
 
     def getPassage(self, urn, inventory=None, context=None, output=XML):
         """ Get a Passage from the repository

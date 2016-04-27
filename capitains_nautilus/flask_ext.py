@@ -347,12 +347,14 @@ def FlaskNautilusManager(nautilus, app=None):
     @_manager.command
     def preprocess():
         """ Preprocess the inventory and cache it """
-        nautilus.retriever.resolver.parse(resource=nautilus.retriever.resolver.source, cache=True, verbose=True)
+        nautilus.retriever.resolver.logger.setLevel(logging.INFO)
+        nautilus.retriever.resolver.parse(resource=nautilus.retriever.resolver.source, cache=True)
 
     @_manager.command
     def inventory():
         """ Clean then preprocess the inventory """
+        nautilus.retriever.resolver.logger.setLevel(logging.INFO)
         nautilus.retriever.resolver.flush()
-        nautilus.retriever.resolver.parse(resource=nautilus.retriever.resolver.source, cache=True, verbose=True)
+        nautilus.retriever.resolver.parse(resource=nautilus.retriever.resolver.source, cache=True)
 
     return _manager
