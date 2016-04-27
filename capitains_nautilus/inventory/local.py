@@ -184,7 +184,10 @@ class XMLFolderResolver(InventoryResolver):
 
         return resource, text
 
-    def getCapabilities(self, urn=None, page=None, limit=None, inventory=None, lang=None, category=None, pagination=True):
+    def getCapabilities(self,
+            urn=None, page=None, limit=None,
+            inventory=None, lang=None, category=None, pagination=True
+        ):
         """ Retrieve a slice of the inventory filtered by given arguments
 
         :param urn: Partial URN to use to filter out resources
