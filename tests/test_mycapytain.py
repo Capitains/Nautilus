@@ -130,6 +130,24 @@ class ResponseTest(TestCase):
             "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1</urn>", response,
             "First URN should be found"
         )
+
+        response = self.endpoint.getValidReff(
+            "urn:cts:farsiLit:hafez.divan.perseus-far1:1.1.1.1-1.1.2.1",
+            level=4,
+            output=XML
+        )
+        self.assertIn(
+            "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1.1.1</urn>", response,
+            "First URN should be found"
+        )
+        self.assertIn(
+            "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1.1.2</urn>", response,
+            "First URN should be found"
+        )
+        self.assertIn(
+            "<urn>urn:cts:farsiLit:hafez.divan.perseus-far1:1.1.2.1</urn>", response,
+            "First URN should be found"
+        )
     """
     This sometimes fails for obvious redis issue on multiple build
     def test_cache_speed(self):
