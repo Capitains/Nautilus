@@ -138,23 +138,23 @@ class NautilusRetriever(CTS):
         :rtype: str
         """
         original_urn, urn, _text, metadata = self.getText(urn, inventory)
-
         if urn.reference is not None and level <= len(urn.reference):
-            level = len(urn.reference) + 1
+            if urn.reference.start and urn.reference.end:
+                level = len(urn.reference)
+            else:
+                level = len(urn.reference) + 1
 
-        if len(_text.citation) < level:
-            reffs = []
-        else:
+        if len(_text.citation) >= level:
             reffs = _text.getValidReff(level=level, reference=urn.reference)
             if urn.reference is not None:
                 reffs = [
                     "{}:{}".format(urn.upTo(URN.VERSION), reff)
                     for reff in reffs
-                    if reff.startswith("{}.".format(urn.reference))
                 ]
             else:
                 reffs = ["{}:{}".format(urn.upTo(URN.VERSION), reff) for reff in reffs]
-
+        else:
+            return []
         return getvalidreff(reffs, level=level, request_urn=original_urn, output=output)
 
     def getPrevNextUrn(self, urn, inventory=None, output=XML):
