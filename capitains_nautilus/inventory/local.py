@@ -141,21 +141,29 @@ class XMLFolderResolver(InventoryResolver):
             for __cts__ in textgroups:
                 try:
                     with io.open(__cts__) as __xml__:
-                        textgroup = TextGroup(resource=__xml__)
-                        textgroup.urn = URN(textgroup.xml.get("urn"))
-                    self.inventory.textgroups[str(textgroup.urn)] = textgroup
+                        textgroup = TextGroup(
+                            resource=__xml__
+                        )
+                        str_urn = str(textgroup.urn)
+                    if str_urn in self.inventory.textgroups:
+                        self.inventory.textgroups[str_urn].update(textgroup)
+                    else:
+                        self.inventory.textgroups[str_urn] = textgroup
 
                     for __subcts__ in glob("{parent}/*/__cts__.xml".format(parent=os.path.dirname(__cts__))):
                         with io.open(__subcts__) as __xml__:
                             work = Work(
                                 resource=__xml__,
-                                parents=[self.inventory.textgroups[str(textgroup.urn)]]
+                                parents=[self.inventory.textgroups[str_urn]]
                             )
-                            work.urn = URN(work.xml.get("urn"))
-                            self.inventory.textgroups[str(textgroup.urn)].works[str(work.urn)] = work
+                            work_urn = str(work.urn)
+                            if work_urn in self.inventory.textgroups[str_urn].works:
+                                self.inventory.textgroups[str_urn].works[work_urn].update(work)
+                            else:
+                                self.inventory.textgroups[str_urn].works[work_urn] = work
 
-                        for __textkey__ in self.inventory.textgroups[str(textgroup.urn)].works[str(work.urn)].texts:
-                            __text__ = self.inventory.textgroups[str(textgroup.urn)].works[str(work.urn)].texts[__textkey__]
+                        for __textkey__ in work.texts:
+                            __text__ = self.inventory.textgroups[str_urn].works[work_urn].texts[__textkey__]
                             __text__.path = "{directory}/{textgroup}.{work}.{version}.xml".format(
                                 directory=os.path.dirname(__subcts__),
                                 textgroup=__text__.urn.textgroup,
@@ -194,7 +202,7 @@ class XMLFolderResolver(InventoryResolver):
                                     )
                             else:
                                 self.logger.error("%s is not present", __text__.path)
-                except Exception:
+                except Exception as E:
                     self.logger.error("Error parsing %s ", __cts__)
 
         if cache:

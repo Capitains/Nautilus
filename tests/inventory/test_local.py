@@ -35,13 +35,13 @@ class TestXMLFolderResolver(TestCase):
             ["./tests/test_data/farsiLit"],
             cache=RedisCache(key_prefix="test_nautilus")
         )
-        self.assertEqual(len(Repository.inventory), 3)
+        self.assertEqual(len(Repository.inventory), 4)
         Repository = XMLFolderResolver(
             ["./tests/test_data/farsiLit", "./tests/test_data/latinLit"],
             cache=RedisCache(key_prefix="test_nautilus"),
             name="secondrepo"
         )
-        self.assertEqual(len(Repository.inventory), 174)
+        self.assertEqual(len(Repository.inventory), 175)
 
     def test_text_resource(self):
         """ Test to get the text resource to perform other queries """
@@ -63,11 +63,11 @@ class TestXMLFolderResolver(TestCase):
             ["./tests/test_data/farsiLit"]
         )
         self.assertEqual(
-            len(Repository.getCapabilities()[0]), 3,
+            len(Repository.getCapabilities()[0]), 4,
             "General no filter works"
         )
         self.assertEqual(
-            len(Repository.getCapabilities(category="edition")[0]), 1,
+            len(Repository.getCapabilities(category="edition")[0]), 2,
             "Type filter works"
         )
         self.assertEqual(
@@ -87,7 +87,7 @@ class TestXMLFolderResolver(TestCase):
             "Pagination works without other filters"
         )
         self.assertEqual(
-            len(Repository.getCapabilities(page=2, limit=2)[0]), 1,
+            len(Repository.getCapabilities(page=2, limit=2)[0]), 2,
             "Pagination works without other filters at list end"
         )
         self.assertEqual(
@@ -95,9 +95,31 @@ class TestXMLFolderResolver(TestCase):
             "URN Filtering works"
         )
         self.assertEqual(
+            len(Repository.getCapabilities(urn="urn:cts:latinLit")[0]), 1,
+            "URN Filtering works"
+        )
+        self.assertEqual(
             len(Repository.getCapabilities(urn="urn:cts:farsiLit:hafez.divan.perseus-eng1")[0]), 1,
             "Complete URN filtering works"
         )
+
+    def test_get_shared_textgroup_cross_repo(self):
+        """ Check Get Capabilities """
+        Repository = XMLFolderResolver(
+            [
+                "./tests/test_data/farsiLit",
+                "./tests/test_data/latinLit2"
+            ]
+        )
+        self.assertIsNotNone(
+            Repository.getText("urn:cts:latinLit:phi1294.phi002.perseus-lat2"),
+            "We should find perseus-lat2"
+        )
+        self.assertIsNotNone(
+            Repository.getText("urn:cts:latinLit:phi1294.phi002.opp-lat2"),
+            "We should find perseus-lat2"
+        )
+
     def test_get_capabilities_nocites(self):
         """ Check Get Capabilities latinLit data"""
         Repository = XMLFolderResolver(
