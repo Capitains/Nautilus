@@ -7,7 +7,7 @@ from six import text_type as str
 from MyCapytain.resources.inventory import TextInventory, TextGroup, Work, Citation
 from MyCapytain.resources.texts.local import Text
 from MyCapytain.common.reference import URN
-from MyCapytain.common.utils import xmlparser
+from lxml.objectify import makeparser, parse as objectify
 from capitains_nautilus.errors import *
 from glob import glob
 import os.path
@@ -15,6 +15,7 @@ from capitains_nautilus.inventory.proto import InventoryResolver
 from capitains_nautilus import _cache_key
 from capitains_nautilus.cache import BaseCache
 import logging
+import pickle
 
 
 class XMLFolderResolver(InventoryResolver):
@@ -32,7 +33,7 @@ class XMLFolderResolver(InventoryResolver):
     :type logger: logging
 
     :cvar TEXT_CLASS: Text Class [not instantiated] to be used to parse Texts. Can be changed to support Cache for example
-    :type TEXT_CLASS: Text
+    :type TEXT_CLASS: class
     :ivar inventory_cache_key: Werkzeug Cache key to get or set cache for the TextInventory
     :ivar texts_cache_key:  Werkzeug Cache key to get or set cache for lists of metadata texts objects
     :ivar texts_parsed:  Werkzeug Cache key to get or set cache for lists of parsed texts objects
@@ -53,6 +54,7 @@ class XMLFolderResolver(InventoryResolver):
             cache = BaseCache()
 
         self.__inventories__ = inventories
+        self.__parser__ = makeparser()
         self.__cache = cache
         self.name = name
 
@@ -76,6 +78,14 @@ class XMLFolderResolver(InventoryResolver):
         elif auto_parse:
             self.parse(resource)
 
+    def xmlparse(self, file):
+        """ Parse a XML file
+
+        :param file: Opened File
+        :return: Tree
+        """
+        return objectify(file, parser=self.__parser__)
+
     def cache(self, inventory, texts):
         """ Cache main objects of the resolver : TextInventory and Texts Metadata objects
 
@@ -88,10 +98,33 @@ class XMLFolderResolver(InventoryResolver):
         self.__cache.set(self.inventory_cache_key, inventory)
         self.__cache.set(self.texts_metadata_cache_key, texts)
 
+    def text_to_cache(self, text):
+        """ Cache a text
+
+        :param text: Text to be cached
+        """
+        self.__cache.set(
+            _cache_key(self.texts_parsed_cache_key, str(text.urn)),
+            text
+        )
+
+    def cache_to_text(self, urn):
+        """ Get a text from Cache
+
+        :param text: Text to be cached
+        :return: Text object
+        :rtype: Text
+        """
+        return self.__cache.get(
+            _cache_key(self.texts_parsed_cache_key, str(urn)),
+        )
+
     def flush(self):
         """ Flush current resolver objects and cache
         """
         self.inventory = TextInventory()
+        for text in self.__texts__:
+            self.__cache.delete(_cache_key(self.texts_parsed_cache_key, str(text.urn)))
         self.__texts__ = []
         self.__cache.delete(self.inventory_cache_key)
         self.__cache.delete(self.texts_metadata_cache_key)
@@ -132,7 +165,7 @@ class XMLFolderResolver(InventoryResolver):
                             if os.path.isfile(__text__.path):
                                 try:
                                     with io.open(__text__.path) as f:
-                                        t = Text(resource=f)
+                                        t = Text(resource=self.xmlparse(f))
                                         cites = list()
                                         for cite in [c for c in t.citation][::-1]:
                                             if len(cites) >= 1:
@@ -184,7 +217,7 @@ class XMLFolderResolver(InventoryResolver):
 
         text = self.inventory[str(urn)]
         with io.open(text.path) as __xml__:
-            resource = self.TEXT_CLASS(urn=urn, resource=xmlparser(__xml__))
+            resource = self.TEXT_CLASS(urn=urn, resource=self.xmlparse(__xml__))
 
         return resource, text
 
