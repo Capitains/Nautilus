@@ -7,7 +7,7 @@ from six import text_type as str
 
 from collections import OrderedDict
 from copy import copy
-from MyCapytain.resources.inventory import TextInventory
+from MyCapytain.resources.inventory import TextInventory, Text
 from MyCapytain.common.reference import URN
 
 JSON = "application/text"
@@ -205,6 +205,15 @@ def getfirst(passage, request_urn, output=XML):
 
 
 def getlabel(metadata, full_urn, request_urn, output=XML):
+    """
+
+    :param metadata:
+    :type metadata: Text
+    :param full_urn:
+    :param request_urn:
+    :param output:
+    :return:
+    """
     if output == XML:
         return """
             <GetLabel xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns="http://chs.harvard.edu/xmlns/cts">
@@ -214,10 +223,14 @@ def getlabel(metadata, full_urn, request_urn, output=XML):
             </request>
             <reply>
                 <urn>{full_urn}</urn>
-                <label>{metadata}</label>
+                <label>{groupname}{title}{desc}{label}{citation}</label>
             </reply>
             </GetLabel>""".format(
             request_urn=request_urn,
             full_urn=full_urn,
-            metadata=metadata
+            groupname="".join(["<groupname xml:lang=\"{}\">{}</groupname>".format(x, y) for x, y in metadata.parents[-1].metadata["groupname"]]),
+            title="".join(["<title xml:lang=\"{}\">{}</title>".format(x, y) for x, y in metadata.parents[0].metadata["title"]]),
+            desc="".join(["<description xml:lang=\"{}\">{}</description>".format(x, y) for x, y in metadata.metadata["description"]]),
+            label="".join(["<version xml:lang=\"{}\">{}</version>".format(x, y) for x, y in metadata.metadata["label"]]),
+            citation=str(metadata.citation).replace("ti:", "")
         )

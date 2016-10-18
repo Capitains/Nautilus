@@ -199,11 +199,10 @@ class NautilusRetriever(CTS):
         :return: Formatted response with metadata
         :rtype: str
         """
-        passage, metadata = self.getPassage(
-            urn, inventory,
-            output=MY_CAPYTAIN
+        original_urn, urn, _text, metadata = self.getText(
+            urn, inventory
         )
-        return getlabel(metadata, passage.urn, urn, output=output)
+        return getlabel(metadata, urn, original_urn, output=output)
 
     def getText(self, urn, inventory=None):
         """ Retrieves a text in the inventory in case of partial URN or throw error when text is not accessible

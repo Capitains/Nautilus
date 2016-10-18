@@ -13,8 +13,10 @@ from unittest import TestCase
 from MyCapytain.resources.inventory import TextInventory
 from MyCapytain.resources.texts.api import Text, Passage
 from MyCapytain.retrievers.cts5 import CTS
-from MyCapytain.common.utils import xmlparser
+from MyCapytain.common.utils import xmlparser, NS
 from MyCapytain.common.reference import Reference
+from lxml.etree import tostring
+import re
 
 
 class TestRestAPI(TestCase):
@@ -159,6 +161,20 @@ class TestRestAPI(TestCase):
         self.assertEqual(
             str(response.next.reference), "1.pr.12-1.pr.13",
             "Check Range works on GetPassagePlus and compute right next"
+        )
+
+    def test_get_label(self):
+        """Check get Label"""
+        data = self.app.get("/?request=GetLabel&urn=urn:cts:latinLit:phi1294.phi002.perseus-lat2")\
+            .data.decode("utf-8").replace("\n", "")
+        parsed = xmlparser(data)
+        label = parsed.xpath(".//ti:label", namespaces=NS)
+
+        self.maxDiff = 5000
+        self.assertEqual(
+            """<label xmlns="http://chs.harvard.edu/xmlns/cts" xmlns:tei="http://www.tei-c.org/ns/1.0"><groupname xml:lang="eng">Martial</groupname><title xml:lang="eng">Epigrammata</title><description xml:lang="eng"> M. Valerii Martialis Epigrammaton libri / recognovit W. Heraeus </description><version xml:lang="eng">Epigrammata</version><citation label="book" xpath="/tei:div[@n='?']" scope="/tei:TEI/tei:text/tei:body/tei:div"><citation label="poem" xpath="/tei:div[@n='?']" scope="/tei:TEI/tei:text/tei:body/tei:div/tei:div[@n='?']"><citation label="line" xpath="/tei:l[@n='?']" scope="/tei:TEI/tei:text/tei:body/tei:div/tei:div[@n='?']/tei:div[@n='?']"/></citation></citation></label> """,
+            re.sub("\s+", " ", tostring(label[0], encoding=str)).replace("\n", ""),
+            "Label response should contain label of text"
         )
 
 
