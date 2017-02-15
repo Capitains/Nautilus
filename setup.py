@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
   name='capitains_nautilus',
-  version="0.0.6",
+  version="1.0.0",
   description='Resolver for Capitains Guidelines Repository',
   url='http://github.com/Capitains/nautilus',
   author='Thibault Clerice',
@@ -10,7 +10,7 @@ setup(
   license='MIT',
   packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
   install_requires=[
-    "MyCapytain>=1.0.3",
+    "MyCapytain>=2.0.0b6",
     "tornado>=4.3",
     "Flask>=0.10.1",
     "Werkzeug>=0.11.3",
@@ -22,5 +22,6 @@ setup(
   entry_points={
       'console_scripts': ['capitains-nautilus=capitains_nautilus.cmd:cmd'],
   },
+  include_package_data=True,
   test_suite="tests"
 )

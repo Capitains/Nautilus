@@ -1,0 +1,13 @@
+<GetPrevNext xmlns="http://chs.harvard.edu/xmlns/cts">
+    <request>
+        <requestName>GetPrevNext</requestName>
+        <requestUrn>{{request_urn}}</requestUrn>
+    </request>
+    <reply>
+        <urn>{{full_urn}}</urn>
+        <prevnext>
+            {% if prev_urn %}<prev><urn>{{prev_urn}}</urn></prev>{% endif %}
+            {% if next_urn %}<next><urn>{{next_urn}}</urn></next>{% endif %}
+        </prevnext>
+    </reply>
+</GetPrevNext>

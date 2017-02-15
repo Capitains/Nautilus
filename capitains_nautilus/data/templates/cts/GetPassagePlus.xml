@@ -1,0 +1,21 @@
+<GetPassagePlus xmlns="http://chs.harvard.edu/xmlns/cts">
+    <request>
+        <requestName>GetPassagePlus</requestName>
+        <requestUrn>{{request_urn}}</requestUrn>
+    </request>
+    <reply>
+        <urn>{{full_urn}}</urn>
+        <passage>{{passage}}</passage>
+        <prevnext>
+            {% if prev_urn %}<prev><urn>{{prev_urn}}</urn></prev>{% endif %}
+            {% if next_urn %}<next><urn>{{next_urn}}</urn></next>{% endif %}
+        </prevnext>
+        <label>
+            {% for lang, value in metadata.groupname %}<groupname xml:lang="{{lang}}">{{value}}</groupname>{% endfor %}
+            {% for lang, value in metadata.title %}<title xml:lang="{{lang}}">{{value}}</title>{% endfor %}
+            {% for lang, value in metadata.label %}<label xml:lang="{{lang}}">{{value}}</label>{% endfor %}
+            {% for lang, value in metadata.description %}<description xml:lang="{{lang}}">{{value}}</description>{% endfor %}
+            {{citation}}
+        </label>
+    </reply>
+</GetPassagePlus>

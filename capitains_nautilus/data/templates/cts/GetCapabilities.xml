@@ -1,0 +1,9 @@
+<GetCapabilities xmlns="http://chs.harvard.edu/xmlns/cts">
+    <request>
+        <requestName>GetInventory</requestName>
+        <requestFilters>{{filters}}</requestFilters>
+    </request>
+    <reply>
+        {{inventory}}
+    </reply>
+</GetCapabilities>

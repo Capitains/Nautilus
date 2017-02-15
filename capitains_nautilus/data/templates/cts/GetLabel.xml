@@ -1,0 +1,10 @@
+<GetLabel xmlns="http://chs.harvard.edu/xmlns/cts">
+    <request>
+        <requestName>GetLabel</requestName>
+        <requestUrn>{request_urn}</requestUrn>
+    </request>
+    <reply>
+        <urn>{full_urn}</urn>
+        <label>{groupname}{title}{desc}{label}{citation}</label>
+    </reply>
+</GetLabel>

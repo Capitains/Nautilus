@@ -9,11 +9,13 @@ from collections import OrderedDict
 from copy import copy
 from MyCapytain.resources.inventory import TextInventory, Text
 from MyCapytain.common.reference import URN
+from MyCapytain.common.utils import Mimetypes
 
-JSON = "application/text"
-XML = "text/xml"
-CTS_XML = "text/xml:CTS"
-MY_CAPYTAIN = "MyCapytain"
+
+JSON = Mimetypes.JSON
+XML = Mimetypes.XML
+CTS_XML = Mimetypes.CTS_XML
+MY_CAPYTAIN = Mimetypes.MY_CAPYTAIN
 
 
 def getcapabilities(texts, page=None, count=None, output=XML, **kwargs):
@@ -49,6 +51,8 @@ def getcapabilities(texts, page=None, count=None, output=XML, **kwargs):
         return None
     elif output == CTS_XML:
         return str(inventory)
+    elif output == MY_CAPYTAIN:
+        return inventory
     else:
         return """
             <GetCapabilities xmlns="http://chs.harvard.edu/xmlns/cts">
@@ -87,6 +91,8 @@ def getpassage(passage, metadata, request_urn, output=XML):
             lang=metadata.lang,
             passage=passage.tostring(encoding=str)
         )
+    elif output == MY_CAPYTAIN:
+        return passage, metadata
 
 
 def getpassageplus(passage, metadata, request_urn, output=XML):
@@ -126,6 +132,8 @@ def getpassageplus(passage, metadata, request_urn, output=XML):
             next=_next or "",
             metadata=metadata
         )
+    elif output == MY_CAPYTAIN:
+        return passage, metadata, _prev, _next
 
 
 def getvalidreff(reffs, level, request_urn, output=XML):
@@ -145,6 +153,8 @@ def getvalidreff(reffs, level, request_urn, output=XML):
             reffs="".join(["<urn>{}</urn>".format(reff) for reff in reffs]),
             level=level
         )
+    elif output == MY_CAPYTAIN:
+        return reffs
 
 
 def getprevnext(passage, request_urn, output=XML):
@@ -176,6 +186,8 @@ def getprevnext(passage, request_urn, output=XML):
             prev=str(_prev),
             next=str(_next)
         )
+    elif output == MY_CAPYTAIN:
+        return _prev, _next
 
 
 def getfirst(passage, request_urn, output=XML):
