@@ -1,8 +1,9 @@
 from unittest import TestCase
-from werkzeug.contrib.cache import RedisCache
 from flask import Flask
 from flask_caching import Cache
-from capitains_nautilus.flask_ext import FlaskNautilus, WerkzeugCacheWrapper
+from werkzeug.contrib.cache import RedisCache
+
+from capitains_nautilus.flask_ext import FlaskNautilus
 from capitains_nautilus.cts.resolver import NautilusCTSResolver
 
 from MyCapytain.resources.collections.cts import TextInventory, Citation
@@ -22,12 +23,10 @@ logging.basicConfig(level=logging.CRITICAL)
 
 class TestRestAPI(TestCase):
     def setUp(self):
-        nautilus_cache = WerkzeugCacheWrapper(RedisCache())
         app = Flask("Nautilus")
-        nautilus = FlaskNautilus(
+        FlaskNautilus(
             app=app,
-            resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
-            ##http_cache=Cache(config={'CACHE_TYPE': 'redis'})
+            resolver=NautilusCTSResolver(["./tests/test_data/latinLit"])
         )
         app.debug = True
         self.cache = None
@@ -67,13 +66,12 @@ class TestRestAPI(TestCase):
 
     def test_restricted_cors(self):
         """ Check that area-restricted cors works """
-        nautilus_cache = WerkzeugCacheWrapper(RedisCache())
         app = Flask("Nautilus")
-        nautilus = FlaskNautilus(
+        FlaskNautilus(
             app=app,
             resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
-            access_Control_Allow_Methods={"r_cts": "OPTIONS"},
-            access_Control_Allow_Origin={"r_cts": "foo.bar"}
+            access_Control_Allow_Methods={"r_cts": "OPTIONS", "r_dts_collection": "OPTIONS", "r_dts_collections": "OPTIONS"},
+            access_Control_Allow_Origin={"r_cts": "foo.bar", "r_dts_collection":"*", "r_dts_collections":"*"}
         )
         _app = app.test_client()
         self.assertEqual(_app.get("/cts?request=GetCapabilities").headers["Access-Control-Allow-Origin"], "foo.bar")
@@ -360,7 +358,7 @@ class TestRestAPI(TestCase):
 
 class TestRestAPICache(TestRestAPI):
     def setUp(self):
-        nautilus_cache = WerkzeugCacheWrapper(RedisCache())
+        nautilus_cache = RedisCache()
         app = Flask("Nautilus")
         self.cache = Cache(config={'CACHE_TYPE': 'simple'})
         nautilus = FlaskNautilus(

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from capitains_nautilus.flask_ext import FlaskNautilus, WerkzeugCacheWrapper
+from capitains_nautilus.flask_ext import FlaskNautilus
 from capitains_nautilus.cts.resolver import NautilusCTSResolver
 from werkzeug.contrib.cache import FileSystemCache, RedisCache, NullCache
 from flask import Flask

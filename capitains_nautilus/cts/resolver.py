@@ -1,17 +1,18 @@
-# -*- coding: utf-8 -*-
-from MyCapytain.resolvers.cts.local import CTSCapitainsLocalResolver
-from capitains_nautilus.errors import *
 from glob import glob
 import os.path
-from capitains_nautilus import _cache_key
-from capitains_nautilus.cache import BaseCache
 import logging
+from werkzeug.contrib.cache import NullCache
+
 import MyCapytain.errors
+from MyCapytain.common.reference import URN, Reference
+from MyCapytain.resolvers.cts.local import CTSCapitainsLocalResolver
+from MyCapytain.resolvers.utils import CollectionDispatcher
 from MyCapytain.resources.collections.cts import TextInventory, TextGroup, Work, Citation, Edition
 from MyCapytain.resources.prototypes.cts.inventory import TextInventoryCollection
 from MyCapytain.resources.texts.locals.tei import Text
-from MyCapytain.resolvers.utils import CollectionDispatcher
-from MyCapytain.common.reference import URN, Reference
+
+from capitains_nautilus import _cache_key
+from capitains_nautilus.errors import *
 
 
 class NautilusCTSResolver(CTSCapitainsLocalResolver):
@@ -34,6 +35,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
     .. warning :: This resolver does not support inventories
     """
     TIMEOUT = None
+    NautilusCTSResolver = False
 
     def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None):
         """ Initiate the XMLResolver
@@ -59,8 +61,9 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         if not name:
             self.name = "repository"
 
-        if not isinstance(cache, BaseCache):
-            cache = BaseCache()
+        if cache is None:
+            cache = NullCache()
+
         self.__cache__ = cache
         self.__resources__ = resource
         self.__parsed__ = False
@@ -70,7 +73,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         self.texts_parsed_cache_key = _cache_key("Nautilus", self.name, "Inventory", "TextsParsed")
 
         # Parse if no Cache
-        self.get_or(self.inventory_cache_key, self.parse)
+        # self.get_or(self.inventory_cache_key, self.parse)
 
     @property
     def cache(self):

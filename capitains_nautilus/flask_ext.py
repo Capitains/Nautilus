@@ -1,28 +1,28 @@
 from pkg_resources import resource_filename
 import logging
 
-from flask import Blueprint, request, render_template, Markup
-from flask.ext.script import Manager
+from flask import Blueprint, request, render_template, Markup, jsonify, Response
 
-from capitains_nautilus.cache import BaseCache, WerkzeugCacheWrapper
-from capitains_nautilus.errors import NautilusError, MissingParameter, InvalidURN
 from MyCapytain.common.constants import Mimetypes, NAMESPACES
 from MyCapytain.common.reference import URN
 
+from capitains_nautilus.errors import NautilusError, MissingParameter, InvalidURN
+
 
 class FlaskNautilus(object):
-    """ Initiate the class
+    """ HTTP API Interfaces for MyCapytains resolvers
 
     :param prefix: Prefix on which to install the extension
     :param app: Application on which to register
     :param name: Name to use for the blueprint
-    :param resources: List of directory to feed the inventory
-    :type resources: list(str)
+    :param resolver: Resolver
+    :type resolver: Resolver
+    :param flask_caching: HTTP Cache should be a FlaskCaching Cache object
+    :type flask_caching: Cache
+    :cvar access_Control_Allow_Methods: Dictionary with route name and allowed methods over CORS
+    :cvar access_Control_Allow_Origin: Dictionary with route name and allowed host over CORS or "*"
     :param logger: Logging handler.
     :type logger: logging
-    :param parser_cache: Cache object for resource
-    :type parser_cache: BaseCache
-    :param http_cache: HTTP Cache should be a FlaskCaching Cache object
 
     :cvar ROUTES: List of triple length tuples
     :cvar Access_Control_Allow_Methods: Dictionary with route name and allowed methods over CORS
@@ -35,10 +35,14 @@ class FlaskNautilus(object):
     """
     ROUTES = [
         ('/cts', "r_cts", ["GET"]),
+        ('/dts/collections', "r_dts_collection", ["GET", "OPTIONS"]),
+        ('/dts/collections/<objectId>', "r_dts_collections", ["GET", "OPTIONS"])
         #('/sparql', "r_sparql", ["GET"])
     ]
     Access_Control_Allow_Methods = {
-        "r_cts": "OPTIONS, GET"
+        "r_cts": "OPTIONS, GET",
+        "r_dts_collection": "OPTIONS, GET",
+        "r_dts_collections": "OPTIONS, GET"
     }
     Access_Control_Allow_Origin = "*"
     LoggingHandler = logging.StreamHandler
@@ -94,15 +98,13 @@ class FlaskNautilus(object):
         :return: Logger instance
         """
         self.logger = logger
-        if not logger:
+        if logger is None:
             self.logger = logging.getLogger("capitains_nautilus")
-        else:
-            self.logger = self.logger.getLogger("capitains_nautilus")
-        formatter = logging.Formatter("[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s")
-        stream = FlaskNautilus.LoggingHandler()
-        stream.setLevel(logging.INFO)
-        stream.setFormatter(formatter)
-        self.logger.addHandler(stream)
+            formatter = logging.Formatter("[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s")
+            stream = FlaskNautilus.LoggingHandler()
+            stream.setLevel(logging.INFO)
+            stream.setFormatter(formatter)
+            self.logger.addHandler(stream)
 
         if self.resolver:
             self.resolver.logger = self.logger
@@ -171,8 +173,8 @@ class FlaskNautilus(object):
 
         def r(*x, **y):
             val = getattr(self, function_name)(*x, **y)
-            if isinstance(val, str):
-                val.headers.update(d)
+            if isinstance(val, Response):
+                val.headers.extend(d)
                 return val
             else:
                 val = list(val)
@@ -227,6 +229,32 @@ class FlaskNautilus(object):
             errorType=error_name,
             message=message
         ), 404, {"content-type": "application/xml"}
+
+    def dts_error(self, error_name, message=None):
+        j = jsonify({
+                "error": error_name,
+                "message": message
+            })
+        j.status_code = 404
+        return j
+
+    def r_dts_collection(self):
+        try:
+            j = self.resolver.getMetadata().export(Mimetypes.JSON.DTS.Std)
+            j = jsonify(j)
+            j.status_code = 200
+        except NautilusError as E:
+            return self.dts_error(error_name=E.__class__.__name__, message=E.__doc__)
+        return j
+
+    def r_dts_collections(self, objectId):
+        try:
+            j = self.resolver.getMetadata(objectId).export(Mimetypes.JSON.DTS.Std)
+            j = jsonify(j)
+            j.status_code = 200
+        except NautilusError as E:
+            return self.dts_error(error_name=E.__class__.__name__, message=E.__doc__)
+        return j
 
     def _r_GetCapabilities(self, urn=None):
         """ Provisional route for GetCapabilities request
@@ -387,44 +415,3 @@ class FlaskNautilus(object):
             citation=Markup(node.citation.export(Mimetypes.XML.CTS))
         )
         return r, 200, {"content-type": "application/xml"}
-
-
-def FlaskNautilusManager(nautilus, app=None):
-    """ Provides a manager for flask scripts to perform specific maintenance operations
-
-    :param nautilus: Nautilus Extension Instance
-    :param app: Flask Application
-    :return: Sub-Manager
-    :rtype: Manager
-
-    Import with
-
-    .. code-block:: python
-        :lineno:
-
-        manager = Manager(app)  # Where app is the name of your app
-        from capitains_nautilus.flask_ext import manager as nautilus_manager
-        manager.add_command("nautilus", FlaskNautilusManager(nautilus, app))  # Where nautilus is an instance of FlaskNautilus
-
-    """
-    _manager = Manager(usage="Perform maintenance operations")
-
-    @_manager.command
-    def flush():
-        """ Flush the cache system [Right now flushes only the inventory] """
-        nautilus.retriever.resolver.flush()
-
-    @_manager.command
-    def preprocess():
-        """ Preprocess the inventory and cache it """
-        nautilus.retriever.resolver.logger.setLevel(logging.INFO)
-        nautilus.retriever.resolver.parse(resource=nautilus.retriever.resolver.source, cache=True)
-
-    @_manager.command
-    def inventory():
-        """ Clean then preprocess the inventory """
-        nautilus.retriever.resolver.logger.setLevel(logging.INFO)
-        nautilus.retriever.resolver.flush()
-        nautilus.retriever.resolver.parse(resource=nautilus.retriever.resolver.source, cache=True)
-
-    return _manager
