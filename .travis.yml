@@ -1,17 +1,10 @@
 language: python
 python:
-  - "2.7"
-  - "3.4"
+  - "3.4.5"
   - "3.5"
-  - "pypy"
-  - "pypy3"
 
 services:
   - "redis"
-matrix:
-  allow_failures:
-    - python: pypy
-    - python: pypy3
 
 # command to install dependencies
 install:
@@ -23,7 +16,7 @@ script:
     - coverage run --source=capitains_nautilus setup.py test
 
 after_success:
-    - if [[ $TRAVIS_PYTHON_VERSION == 3* ]]; then coveralls; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then coveralls; fi
 
 branches:
   only:

@@ -1,0 +1,42 @@
+<CTSError xmlns="http://chs.harvard.edu/xmlns/cts">
+    <type>{{errorType}}</type>
+    {%- if message %}<message>{{message}}</message>{% endif -%}
+    <documentation>https://capitains.github.io/pages/vocabulary#cts-concepts-equivalency-table</documentation>
+    <possibleRequests>
+        <request>
+            <param name="request">GetCapabilities</param>
+            <legend>Retrieve a list of available resources in the API</legend>
+        </request>
+        <request>
+            <param name="request">GetPassage</param>
+            <param name="urn"/>
+            <legend>Retrieve a passage of a text identified by given urn</legend>
+        </request>
+        <request>
+            <param name="request">GetPassagePlus</param>
+            <param name="urn"/>
+            <legend>Retrieve a passage of a text identified by given urn with its metadata (Previous, next URNs, Label)</legend>
+        </request>
+        <request>
+            <param name="request">GetPrevNextUrn</param>
+            <param name="urn"/>
+            <legend>Retrieve previous and following passage of a given urn</legend>
+        </request>
+        <request>
+            <param name="request">GetValidReff</param>
+            <param name="urn"/>
+            <param name="level"/>
+            <legend>Retrieve children reference of given URN at given level. For range, level=0 will retrieve same level passage inside the range</legend>
+        </request>
+        <request>
+            <param name="request">GetFirstUrn</param>
+            <param name="urn"/>
+            <legend>Retrieve the first child of given URN</legend>
+        </request>
+        <request>
+            <param name="request">GetLabel</param>
+            <param name="urn"/>
+            <legend>Retrieve metadata about given edition or translation identified by its URN</legend>
+        </request>
+    </possibleRequests>
+</CTSError>

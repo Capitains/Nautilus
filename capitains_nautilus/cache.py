@@ -141,3 +141,32 @@ class BaseCache(object):
         """
         value = (self.get(key) or 0) - delta
         return value if self.set(key, value) else None
+
+
+class WerkzeugCacheWrapper(BaseCache):
+    """ Werkzeug Cache Wrapper for Nautilus Base Cache object
+
+    :param instance: Werkzeug Cache instance
+
+    """
+    def __init__(self, instance=None, *args, **kwargs):
+        super(WerkzeugCacheWrapper, self).__init__(*args, **kwargs)
+
+        if not instance:
+            instance = BaseCache()
+        self.__instance__ = instance
+
+    def get(self, key):
+        return self.__instance__.get(key)
+
+    def set(self, key, value, timeout=None):
+        return self.__instance__.set(key, value, timeout)
+
+    def add(self, key, value, timeout=None):
+        return self.__instance__.add(key, value, timeout)
+
+    def clear(self):
+        return self.__instance__.clear()
+
+    def delete(self, key):
+        return self.__instance__.delete(key)

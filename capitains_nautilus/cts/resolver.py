@@ -6,6 +6,7 @@ import os.path
 from capitains_nautilus import _cache_key
 from capitains_nautilus.cache import BaseCache
 import logging
+import MyCapytain.errors
 from MyCapytain.resources.collections.cts import TextInventory, TextGroup, Work, Citation, Edition
 from MyCapytain.resources.prototypes.cts.inventory import TextInventoryCollection
 from MyCapytain.resources.texts.locals.tei import Text
@@ -47,7 +48,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         else:
             self.dispatcher = dispatcher
 
-        self.__inventory__ = self.dispatcher.collection
+        self.__inventory__ = None
         self.__texts__ = []
         self.name = name
 
@@ -62,12 +63,14 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
             cache = BaseCache()
         self.__cache__ = cache
         self.__resources__ = resource
+        self.__parsed__ = False
 
         self.inventory_cache_key = _cache_key("Nautilus", self.name, "Inventory", "Resources")
         self.texts_metadata_cache_key = _cache_key("Nautilus", self.name, "Inventory", "TextsMetadata")
         self.texts_parsed_cache_key = _cache_key("Nautilus", self.name, "Inventory", "TextsParsed")
 
-        self.inventory
+        # Parse if no Cache
+        self.get_or(self.inventory_cache_key, self.parse)
 
     @property
     def cache(self):
@@ -75,7 +78,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
 
     @property
     def inventory(self):
-        if self.__inventory__ is None:
+        if self.__parsed__ is False:
             self.__inventory__ = self.get_or(self.inventory_cache_key, self.parse, self.__resources__, ret="inventory")
         return self.__inventory__
 
@@ -122,8 +125,13 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         if cached is not None:
             return cached
         else:
-            output = callback(*args, **kwargs)
-            self.cache.set(cached, output, self.TIMEOUT)
+            try:
+                output = callback(*args, **kwargs)
+            except MyCapytain.errors.UnknownCollection as E:
+                raise UnknownCollection(str(E))
+            except Exception as E:
+                raise E
+            self.cache.set(cache_key, output, self.TIMEOUT)
             return output
 
     def read(self, identifier, path=None):
@@ -166,8 +174,8 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
                             resource=__xml__
                         )
                         tg_urn = str(textgroup.urn)
-                    if tg_urn in self.__inventory__:
-                        self.__inventory__[tg_urn].update(textgroup)
+                    if tg_urn in self.dispatcher.collection:
+                        self.dispatcher.collection[tg_urn].update(textgroup)
                     else:
                         self.dispatcher.dispatch(textgroup, path=__cts__)
 
@@ -175,14 +183,14 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
                         with open(__subcts__) as __xml__:
                             work = Work.parse(
                                 resource=__xml__,
-                                parent=self.__inventory__[tg_urn]
+                                parent=self.dispatcher.collection[tg_urn]
                             )
                             work_urn = str(work.urn)
-                            if work_urn in self.__inventory__[tg_urn].works:
-                                self.__inventory__[work_urn].update(work)
+                            if work_urn in self.dispatcher.collection[tg_urn].works:
+                                self.dispatcher.collection[work_urn].update(work)
 
                         for __textkey__ in work.texts:
-                            __text__ = self.__inventory__[__textkey__]
+                            __text__ = self.dispatcher.collection[__textkey__]
                             __text__.path = "{directory}/{textgroup}.{work}.{version}.xml".format(
                                 directory=os.path.dirname(__subcts__),
                                 textgroup=__text__.urn.textgroup,
@@ -221,10 +229,14 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
                                     )
                             else:
                                 self.logger.error("%s is not present", __text__.path)
+                except UndispatchedTextError as E:
+                    self.logger.error("Error dispatching %s ", __cts__)
+                    if self.RAISE_ON_UNDISPATCHED is True:
+                        raise E
                 except Exception as E:
                     self.logger.error("Error parsing %s ", __cts__)
 
-        self.inventory = self.__inventory__
+        self.inventory = self.dispatcher.collection
         self.texts = self.__texts__
         if ret == "texts":
             return self.__texts__
@@ -251,11 +263,16 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
                 if len(urn) > 0:
                     urn = URN(urn[0])
                 else:
-                    raise UnknownResource
+                    raise UnknownCollection
             else:
                 raise InvalidURN
 
-        text = self.inventory[str(urn)]
+        try:
+            text = self.inventory[str(urn)]
+        except MyCapytain.errors.UnknownCollection as E:
+            raise UnknownCollection(str(E))
+        except Exception as E:
+            raise E
 
         resource = self.read(identifier=urn, path=text.path)
 

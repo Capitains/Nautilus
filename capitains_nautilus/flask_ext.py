@@ -4,39 +4,10 @@ import logging
 from flask import Blueprint, request, render_template, Markup
 from flask.ext.script import Manager
 
-from capitains_nautilus.cache import BaseCache
-from capitains_nautilus.cts.resolver import NautilusCTSResolver
+from capitains_nautilus.cache import BaseCache, WerkzeugCacheWrapper
+from capitains_nautilus.errors import NautilusError, MissingParameter, InvalidURN
 from MyCapytain.common.constants import Mimetypes, NAMESPACES
 from MyCapytain.common.reference import URN
-
-
-class WerkzeugCacheWrapper(BaseCache):
-    """ Werkzeug Cache Wrapper for Nautilus Base Cache object
-
-    :param instance: Werkzeug Cache instance
-
-    """
-    def __init__(self, instance=None, *args, **kwargs):
-        super(WerkzeugCacheWrapper, self).__init__(*args, **kwargs)
-
-        if not instance:
-            instance = BaseCache()
-        self.__instance__ = instance
-
-    def get(self, key):
-        return self.__instance__.get(key)
-
-    def set(self, key, value, timeout=None):
-        return self.__instance__.set(key, value, timeout)
-
-    def add(self, key, value, timeout=None):
-        return self.__instance__.add(key, value, timeout)
-
-    def clear(self):
-        return self.__instance__.clear()
-
-    def delete(self, key):
-        return self.__instance__.delete(key)
 
 
 class FlaskNautilus(object):
@@ -74,11 +45,12 @@ class FlaskNautilus(object):
     CACHED = [
         #  CTS
         "_r_GetCapabilities", "_r_GetPassage", "_r_GetPassagePlus",
-        "_r_GetValidReff", "_r_GetPrevNext", "_r_GetFirstUrn", "_r_GetLabel"
+        "_r_GetValidReff", "_r_GetPrevNext", "_r_GetFirstUrn", "_r_GetLabel",
+        "cts_error"
     ]
 
     def __init__(self, prefix="", app=None, name=None,
-                 resources=None, parser_cache=None,
+                 resolver=None,
                  flask_caching=None,
                  access_Control_Allow_Origin=None,
                  access_Control_Allow_Methods=None,
@@ -87,16 +59,9 @@ class FlaskNautilus(object):
         self.logger = None
         self.retriever = None
 
-        # Set up endpoints with cache system
-        if parser_cache:
-            self.resolver = NautilusCTSResolver(resources, cache=parser_cache, logger=self.logger)
-        else:
-            self.resolver = NautilusCTSResolver(resources)
+        self.resolver = resolver
 
         self.setLogger(logger)
-
-        if not resources:
-            resources = list()
 
         self.app = app
         self.name = name
@@ -112,8 +77,6 @@ class FlaskNautilus(object):
 
         self.__flask_caching__ = flask_caching
 
-        self.__compresser__ = False
-
         if self.name is None:
             self.name = __name__
 
@@ -123,10 +86,6 @@ class FlaskNautilus(object):
     @property
     def flaskcache(self):
         return self.__flask_caching__
-
-    @property
-    def flaskcompresser(self):
-        return self.__compresser__
 
     def setLogger(self, logger):
         """ Set up the Logger for the application
@@ -158,13 +117,13 @@ class FlaskNautilus(object):
         :rtype: Blueprint
         """
 
-        if not self.app:
-            self.app = app
+        self.app = app
 
         self.init_blueprint()
 
         if self.flaskcache is not None:
             for func in self.CACHED:
+                func = getattr(self, func)
                 setattr(self, func.__name__, self.flaskcache.memoize()(func))
         return self.blueprint
 
@@ -216,7 +175,6 @@ class FlaskNautilus(object):
                 val.headers.update(d)
                 return val
             else:
-                print(val)
                 val = list(val)
                 val[2].update(d)
                 return tuple(val)
@@ -228,39 +186,47 @@ class FlaskNautilus(object):
         :return: Response
         """
         _request = request.args.get("request", None)
-        if not _request:
-            return "This request does not exist", 404, dict()  # Should maybe return documentation on top of 404 ?
-        elif _request.lower() == "getcapabilities":
-            return self._r_GetCapabilities(
-                urn=request.args.get("urn", None)
-            )
-        elif _request.lower() == "getpassage":
-            return self._r_GetPassage(
-                urn=request.args.get("urn", None)
-            )
-        elif _request.lower() == "getpassageplus":
-            return self._r_GetPassagePlus(
-                urn=request.args.get("urn", None)
-            )
-        elif _request.lower() == "getlabel":
-            return self._r_GetLabel(
-                urn=request.args.get("urn", None)
-            )
-        elif _request.lower() == "getfirsturn":
-            return self._r_GetFirstUrn(
-                urn=request.args.get("urn", None),
-                inv=request.args.get("inv", None)
-            )
-        elif _request.lower() == "getprevnexturn":
-            return self._r_GetPrevNext(
-                urn=request.args.get("urn", None)
-            )
-        elif _request.lower() == "getvalidreff":
-            return self._r_GetValidReff(
-                urn=request.args.get("urn", None),
-                level=request.args.get("level", 1, type=int)
-            )
-        return "This request does not exist", 404, {}  # Should maybe return documentation on top of 404 ?
+        if _request is not None:
+            try:
+                if _request.lower() == "getcapabilities":
+                    return self._r_GetCapabilities(
+                        urn=request.args.get("urn", None)
+                    )
+                elif _request.lower() == "getpassage":
+                    return self._r_GetPassage(
+                        urn=request.args.get("urn", None)
+                    )
+                elif _request.lower() == "getpassageplus":
+                    return self._r_GetPassagePlus(
+                        urn=request.args.get("urn", None)
+                    )
+                elif _request.lower() == "getlabel":
+                    return self._r_GetLabel(
+                        urn=request.args.get("urn", None)
+                    )
+                elif _request.lower() == "getfirsturn":
+                    return self._r_GetFirstUrn(
+                        urn=request.args.get("urn", None)
+                    )
+                elif _request.lower() == "getprevnexturn":
+                    return self._r_GetPrevNext(
+                        urn=request.args.get("urn", None)
+                    )
+                elif _request.lower() == "getvalidreff":
+                    return self._r_GetValidReff(
+                        urn=request.args.get("urn", None),
+                        level=request.args.get("level", 1, type=int)
+                    )
+            except NautilusError as E:
+                return self.cts_error(error_name=E.__class__.__name__, message=E.__doc__)
+        return self.cts_error(MissingParameter.__name__, message=MissingParameter.__doc__)
+
+    def cts_error(self, error_name, message=None):
+        return render_template(
+            "cts/Error.xml",
+            errorType=error_name,
+            message=message
+        ), 404, {"content-type": "application/xml"}
 
     def _r_GetCapabilities(self, urn=None):
         """ Provisional route for GetCapabilities request
@@ -288,6 +254,8 @@ class FlaskNautilus(object):
         """
         urn = URN(urn)
         subreference = None
+        if len(urn) < 4:
+            raise InvalidURN
         if urn.reference is not None:
             subreference = str(urn.reference)
         node = self.resolver.getTextualNode(textId=urn.upTo(URN.NO_PASSAGE), subreference=subreference)
@@ -310,6 +278,8 @@ class FlaskNautilus(object):
         """
         urn = URN(urn)
         subreference = None
+        if len(urn) < 4:
+            raise InvalidURN
         if urn.reference is not None:
             subreference = str(urn.reference)
         node = self.resolver.getTextualNode(textId=urn.upTo(URN.NO_PASSAGE), subreference=subreference)
@@ -375,23 +345,48 @@ class FlaskNautilus(object):
         )
         return r, 200, {"content-type": "application/xml"}
 
-    def _r_GetFirstUrn(self, urn, inv):
+    def _r_GetFirstUrn(self, urn):
         """ Provisional route for GetFirstUrn request
 
         :param urn: URN to filter the resource
         :param inv: Inventory Identifier
         :return: GetFirstUrn response
         """
-        return self.retriever.getFirstUrn(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        urn = URN(urn)
+        subreference = None
+        textId = urn.upTo(URN.NO_PASSAGE)
+        if urn.reference is not None:
+            subreference = str(urn.reference)
+        firstId = self.resolver.getTextualNode(textId=textId, subreference=subreference).firstId
+        r = render_template(
+            "cts/GetFirstUrn.xml",
+            firstId=firstId,
+            full_urn=textId,
+            request_urn=str(urn)
+        )
+        return r, 200, {"content-type": "application/xml"}
 
-    def _r_GetLabel(self, urn, inv):
+    def _r_GetLabel(self, urn):
         """ Provisional route for GetLabel request
 
         :param urn: URN to filter the resource
         :param inv: Inventory Identifier
         :return: GetLabel response
         """
-        return self.retriever.getLabel(inventory=inv, urn=urn).strip(), 200, {"content-type": "application/xml"}
+        node = self.resolver.getTextualNode(textId=urn)
+        r = render_template(
+            "cts/GetLabel.xml",
+            request_urn=str(urn),
+            full_urn=node.urn,
+            metadata={
+                "groupname": [(literal.language, str(literal)) for literal in node.metadata.get_all(NAMESPACES.CTS.groupname)],
+                "title": [(literal.language, str(literal)) for literal in node.metadata.get_all(NAMESPACES.CTS.title)],
+                "description": [(literal.language, str(literal)) for literal in node.metadata.get_all(NAMESPACES.CTS.description)],
+                "label": [(literal.language, str(literal)) for literal in node.metadata.get_all(NAMESPACES.CTS.label)]
+            },
+            citation=Markup(node.citation.export(Mimetypes.XML.CTS))
+        )
+        return r, 200, {"content-type": "application/xml"}
 
 
 def FlaskNautilusManager(nautilus, app=None):
