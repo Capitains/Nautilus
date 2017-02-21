@@ -36,6 +36,7 @@ class TestRestAPI(TestCase):
         self.parent = CTS("/cts")
         self.resolver = HttpCTSResolver(endpoint=self.parent)
         logassert.setup(self, nauti.logger.name)
+        nauti.logger.disabled
 
         def call(this, parameters={}):
             """ Call an endpoint given the parameters
@@ -432,6 +433,7 @@ class TestRestAPICache(TestRestAPI):
         self.parent = CTS("/cts")
         self.resolver = HttpCTSResolver(endpoint=self.parent)
         logassert.setup(self, nautilus.logger.name)
+        nautilus.logger.disabled
 
         def call(this, parameters={}):
             """ Call an endpoint given the parameters
