@@ -2,6 +2,7 @@ from unittest import TestCase
 from flask import Flask
 from flask_caching import Cache
 from werkzeug.contrib.cache import RedisCache
+import json
 
 from capitains_nautilus.flask_ext import FlaskNautilus
 from capitains_nautilus.cts.resolver import NautilusCTSResolver
@@ -353,6 +354,59 @@ class TestRestAPI(TestCase):
         )
         self.assertEqual(
             (data.startswith("<GetFirstUrn"), data.endswith("</GetFirstUrn>")), (True, True), "Nodes are Correct"
+        )
+
+    def test_dts_collection_route(self):
+        """ Check that DTS Main collection works """
+        response = self.app.get("/dts/collections")
+        data = json.loads(response.data.decode())
+        compared_to = self.resolver.getMetadata().export(Mimetypes.JSON.DTS.Std)
+        self.maxDiff = None
+        self.assertCountEqual(
+            data, compared_to, "Main Collection should export as JSON DTS STD"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Answer code should be correct"
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"], "*"
+        )
+
+    def test_dts_collection_target_route(self):
+        """ Check that DTS Main collection works """
+        response = self.app.get("/dts/collections/urn:cts:latinLit:phi1294")
+        data = json.loads(response.data.decode())
+        compared_to = self.resolver.getMetadata(objectId="urn:cts:latinLit:phi1294").export(Mimetypes.JSON.DTS.Std)
+        self.maxDiff = None
+        self.assertCountEqual(
+            data, compared_to, "Main Collection should export as JSON DTS STD"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Answer code should be correct"
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"], "*"
+        )
+        self.assertEqual(
+            "urn:cts:latinLit:phi1294", data["@graph"]["@id"], "Label should be there"
+        )
+
+    def test_dts_UnknownCollection_request(self):
+        """Check get Label"""
+        # Need to parse with Citation and parse individually or simply check for some equality
+        data = json.loads(self.app.get("/dts/collections/urn:cts:latinLit:phi1295").data.decode())
+        self.assertIn(
+            "Resource requested is not found", data["message"], "Error message should be displayed"
+        )
+        self.assertIn(
+            "UnknownCollection", data["error"], "Error name should be displayed"
+        )
+        data = json.loads(self.app.get("/dts/collections/urn:cts:latinLit:phi1294.phi003").data.decode())
+        self.assertIn(
+            "Resource requested is not found", data["message"], "Error message should be displayed"
+        )
+        self.assertIn(
+            "UnknownCollection", data["error"], "Error name should be displayed"
         )
 
 
