@@ -17,6 +17,7 @@ from MyCapytain.common.constants import Mimetypes
 from lxml.etree import tostring
 import re
 import logging
+from logassert import logassert
 
 # Clean up noise...
 logging.basicConfig(level=logging.CRITICAL)
@@ -25,7 +26,7 @@ logging.basicConfig(level=logging.CRITICAL)
 class TestRestAPI(TestCase):
     def setUp(self):
         app = Flask("Nautilus")
-        FlaskNautilus(
+        nauti = FlaskNautilus(
             app=app,
             resolver=NautilusCTSResolver(["./tests/test_data/latinLit"])
         )
@@ -34,6 +35,7 @@ class TestRestAPI(TestCase):
         self.app = app.test_client()
         self.parent = CTS("/cts")
         self.resolver = HttpCTSResolver(endpoint=self.parent)
+        logassert.setup(self, nauti.logger.getLogger())
 
         def call(this, parameters={}):
             """ Call an endpoint given the parameters
@@ -326,6 +328,8 @@ class TestRestAPI(TestCase):
         self.assertIn(
             "UnknownCollection", data, "Error name should be displayed"
         )
+        self.assertLogged("CTS error thrown UnknownCollection for request=GetCapabilities&urn=urn:cts:latinLit:phi1295 "
+                          "( Resource requested is not found )")
 
     def test_InvalidUrn_request(self):
         """Check get Label"""
@@ -408,6 +412,8 @@ class TestRestAPI(TestCase):
         self.assertIn(
             "UnknownCollection", data["error"], "Error name should be displayed"
         )
+        self.assertLogged("DTS error thrown UnknownCollection for /dts/collections/urn:cts:latinLit:phi1295 "
+                          "( Resource requested is not found )")
 
 
 class TestRestAPICache(TestRestAPI):
@@ -425,6 +431,7 @@ class TestRestAPICache(TestRestAPI):
         self.app = app.test_client()
         self.parent = CTS("/cts")
         self.resolver = HttpCTSResolver(endpoint=self.parent)
+        logassert.setup(self, nautilus.logger.name)
 
         def call(this, parameters={}):
             """ Call an endpoint given the parameters

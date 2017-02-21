@@ -29,7 +29,7 @@ class FlaskNautilus(object):
     :cvar Access_Control_Allow_Origin: Dictionary with route name and allowed host over CORS or "*"
     :cvar LoggingHandler: Logging handler to be set for the blueprint
     :ivar logger: Logging handler
-    :type logger: logging
+    :type logger: logging.Logger
 
     :ivar resolver: CapiTainS resolver
     """
@@ -224,6 +224,13 @@ class FlaskNautilus(object):
         return self.cts_error(MissingParameter.__name__, message=MissingParameter.__doc__)
 
     def cts_error(self, error_name, message=None):
+        """ Create a CTS Error reply
+
+        :param error_name: Name of the error
+        :param message: Message of the Error
+        :return: CTS Error Response with information (XML)
+        """
+        self.logger.info("CTS error thrown {} for {} ({})".format(error_name, request.query_string.decode(), message))
         return render_template(
             "cts/Error.xml",
             errorType=error_name,
@@ -231,6 +238,13 @@ class FlaskNautilus(object):
         ), 404, {"content-type": "application/xml"}
 
     def dts_error(self, error_name, message=None):
+        """ Create a DTS Error reply
+
+        :param error_name: Name of the error
+        :param message: Message of the Error
+        :return: DTS Error Response with information (JSON)
+        """
+        self.logger.info("DTS error thrown {} for {} ({})".format(error_name, request.path, message))
         j = jsonify({
                 "error": error_name,
                 "message": message
@@ -238,9 +252,14 @@ class FlaskNautilus(object):
         j.status_code = 404
         return j
 
-    def r_dts_collection(self):
+    def r_dts_collection(self, objectId=None):
+        """ DTS Collection Metadata reply for given objectId
+
+        :param objectId: Collection Identifier
+        :return: JSON Format of DTS Collection
+        """
         try:
-            j = self.resolver.getMetadata().export(Mimetypes.JSON.DTS.Std)
+            j = self.resolver.getMetadata(objectId=objectId).export(Mimetypes.JSON.DTS.Std)
             j = jsonify(j)
             j.status_code = 200
         except NautilusError as E:
@@ -248,13 +267,12 @@ class FlaskNautilus(object):
         return j
 
     def r_dts_collections(self, objectId):
-        try:
-            j = self.resolver.getMetadata(objectId).export(Mimetypes.JSON.DTS.Std)
-            j = jsonify(j)
-            j.status_code = 200
-        except NautilusError as E:
-            return self.dts_error(error_name=E.__class__.__name__, message=E.__doc__)
-        return j
+        """ DTS Collection Metadata reply for given objectId
+
+        :param objectId: Collection Identifier
+        :return: JSON Format of DTS Collection
+        """
+        return self.r_dts_collection(objectId)
 
     def _r_GetCapabilities(self, urn=None):
         """ Provisional route for GetCapabilities request

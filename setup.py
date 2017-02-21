@@ -18,6 +18,9 @@ setup(
     "Flask-Caching>=1.2.0",
     "Flask-Script>=2.0.5"
   ],
+  test_requires=[
+    "logassert"
+  ],
   entry_points={
       'console_scripts': ['capitains-nautilus=capitains_nautilus.cmd:cmd'],
   },
