@@ -26,7 +26,7 @@ logging.basicConfig(level=logging.CRITICAL)
 class TestRestAPI(TestCase):
     def setUp(self):
         app = Flask("Nautilus")
-        nauti = FlaskNautilus(
+        self.nautilus = FlaskNautilus(
             app=app,
             resolver=NautilusCTSResolver(["./tests/test_data/latinLit"])
         )
@@ -35,8 +35,8 @@ class TestRestAPI(TestCase):
         self.app = app.test_client()
         self.parent = CTS("/cts")
         self.resolver = HttpCTSResolver(endpoint=self.parent)
-        logassert.setup(self, nauti.logger.name)
-        nauti.logger.disabled = True
+        logassert.setup(self, self.nautilus.logger.name)
+        self.nautilus.logger.disabled = True
 
         def call(this, parameters={}):
             """ Call an endpoint given the parameters
@@ -315,6 +315,7 @@ class TestRestAPI(TestCase):
     def test_UnknownCollection_request(self):
         """Check get Label"""
         # Need to parse with Citation and parse individually or simply check for some equality
+        self.nautilus.logger.disabled = False
         data = self.app.get("/cts?request=GetCapabilities&urn=urn:cts:latinLit:phi1295").data.decode()
         self.assertIn(
             "Resource requested is not found", data, "Error message should be displayed"
@@ -399,6 +400,7 @@ class TestRestAPI(TestCase):
     def test_dts_UnknownCollection_request(self):
         """Check get Label"""
         # Need to parse with Citation and parse individually or simply check for some equality
+        self.nautilus.logger.disabled = False
         data = json.loads(self.app.get("/dts/collections/urn:cts:latinLit:phi1295").data.decode())
         self.assertIn(
             "Resource requested is not found", data["message"], "Error message should be displayed"
@@ -422,7 +424,7 @@ class TestRestAPICache(TestRestAPI):
         nautilus_cache = RedisCache()
         app = Flask("Nautilus")
         self.cache = Cache(config={'CACHE_TYPE': 'simple'})
-        nautilus = FlaskNautilus(
+        self.nautilus = FlaskNautilus(
             app=app,
             resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
             flask_caching=self.cache
@@ -432,8 +434,8 @@ class TestRestAPICache(TestRestAPI):
         self.app = app.test_client()
         self.parent = CTS("/cts")
         self.resolver = HttpCTSResolver(endpoint=self.parent)
-        logassert.setup(self, nautilus.logger.name)
-        nautilus.logger.disabled = True
+        logassert.setup(self, self.nautilus.logger.name)
+        self.nautilus.logger.disabled = True
 
         def call(this, parameters={}):
             """ Call an endpoint given the parameters
