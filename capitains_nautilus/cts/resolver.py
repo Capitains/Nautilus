@@ -232,11 +232,12 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
                                     )
                             else:
                                 self.logger.error("%s is not present", __text__.path)
-                except UndispatchedTextError as E:
+                except MyCapytain.errors.UndispatchedTextError as E:
                     self.logger.error("Error dispatching %s ", __cts__)
                     if self.RAISE_ON_UNDISPATCHED is True:
-                        raise E
+                        raise UndispatchedTextError(E)
                 except Exception as E:
+                    print(E)
                     self.logger.error("Error parsing %s ", __cts__)
 
         self.inventory = self.dispatcher.collection
