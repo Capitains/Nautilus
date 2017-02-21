@@ -1,8 +1,12 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+import MyCapytain.errors
 
 
-class CTSError(BaseException):
+class NautilusError(BaseException):
+    """ An error has occurence"""
+    CODE = None
+
+
+class CTSError(NautilusError):
     CODE = None
 
 
@@ -16,7 +20,7 @@ class InvalidURNSyntax(CTSError):
     CODE = 2
 
 
-class InvalidURN(CTSError):
+class InvalidURN(CTSError, MyCapytain.errors.InvalidURN):
     """ Syntactically valid URN refers in invalid value  """
     CODE = 3
 
@@ -31,6 +35,11 @@ class InvalidContext(CTSError):
     CODE = 5
 
 
-class UnknownResource(CTSError):
+class UnknownCollection(MyCapytain.errors.UnknownCollection, CTSError):
     """ Resource requested is not found """
     CODE = 6
+
+
+class UndispatchedTextError(CTSError, MyCapytain.errors.UndispatchedTextError):
+    """ A Text has not been dispatched """
+    CODE = 7

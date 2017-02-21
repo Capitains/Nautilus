@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from capitains_nautilus.flask_ext import FlaskNautilus, WerkzeugCacheWrapper
+from capitains_nautilus.flask_ext import FlaskNautilus
+from capitains_nautilus.cts.resolver import NautilusCTSResolver
 from werkzeug.contrib.cache import FileSystemCache, RedisCache, NullCache
 from flask import Flask
-from flask_cache import Cache
 import argparse
 import logging
 
@@ -42,14 +42,14 @@ def _commandline(repositories,
     if debug:
         app.logger.setLevel(logging.INFO)
 
-    FlaskNautilus(
+    resolver = NautilusCTSResolver(resource=repositories)
+    nautilus = FlaskNautilus(
         app=app,
-        resources=repositories,
-        parser_cache=WerkzeugCacheWrapper(nautilus_cache),
-        http_cache=Cache(config={'CACHE_TYPE': cache_type}),
-        logger=None
+        resolver=resolver
+        #parser_cache=WerkzeugCacheWrapper(nautilus_cache),
+        #logger=None
     )
-
+    nautilus.resolver.parse()
     if debug:
         app.run(debug=debug, port=port, host=host)
     else:

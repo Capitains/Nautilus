@@ -1,0 +1,8 @@
+<GetValidReff xmlns="http://chs.harvard.edu/xmlns/cts">
+    <request>
+        <requestName>GetValidReff</requestName><requestUrn>{{request_urn}}</requestUrn><requestLevel>{{level}}</requestLevel>
+    </request>
+    <reply>
+        <reff>{% for reff in reffs %}<urn>{{urn}}:{{reff}}</urn>{%endfor%}</reff>
+    </reply>
+</GetValidReff>
