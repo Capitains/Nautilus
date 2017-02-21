@@ -12,11 +12,10 @@ setup(
   install_requires=[
     "MyCapytain>=2.0.0b8",
     "tornado>=4.3",
-    "Flask>=0.10.1",
+    "Flask>=0.12",
     "Werkzeug>=0.11.3",
     "redis>=2.10.5",
-    "Flask-Caching>=1.2.0",
-    "Flask-Script>=2.0.5"
+    "Flask-Caching>=1.2.0"
   ],
   test_requires=[
     "logassert"
