@@ -168,6 +168,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         """
         if resource is None:
             resource = self.__resources__
+        textlists = []
         for folder in resource:
             textgroups = glob("{base_folder}/data/*/__cts__.xml".format(base_folder=folder))
             for __cts__ in textgroups:
@@ -222,7 +223,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
                                     __text__.citation = cites[-1]
                                     self.logger.info("%s has been parsed ", __text__.path)
                                     if __text__.citation.isEmpty() is False:
-                                        self.texts.append(__text__)
+                                        textlists.append(__text__)
                                     else:
                                         self.logger.error("%s has no passages", __text__.path)
                                 except Exception as E:
@@ -241,11 +242,11 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
                     self.logger.error("Error parsing %s ", __cts__)
 
         self.inventory = self.dispatcher.collection
-        self.texts = self.__texts__
+        self.texts = textlists
         if ret == "texts":
-            return self.__texts__
+            return self.texts
         else:
-            return self.__inventory__
+            return self.inventory
 
     def __getText__(self, urn):
         """ Returns a PrototypeText object
@@ -261,7 +262,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
                 urn, reference = urn.upTo(URN.WORK), str(urn.reference)
                 urn = [
                     t.id
-                    for t in self.__texts__
+                    for t in self.texts
                     if t.id.startswith(str(urn)) and isinstance(t, Edition) and not print(t.id)
                 ]
                 if len(urn) > 0:
