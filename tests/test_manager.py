@@ -32,7 +32,7 @@ class TestManager(TestCase):
         self.cache_manager = nautilus_cache
         self.nautilus = flask_nautilus
         self.resolver = resolver
-        #self.resolver.logger.disable(level=logging.ERROR)
+        self.resolver.logger.disabled = True
         self.manager = FlaskNautilusManager(resolver, flask_nautilus)
 
     def cmd(self, *args):
