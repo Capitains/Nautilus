@@ -243,6 +243,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
 
         self.inventory = self.dispatcher.collection
         self.texts = textlists
+        self.__parsed__ = True
         if ret == "texts":
             return self.texts
         else:
