@@ -65,10 +65,6 @@ class TestManager(TestCase):
             self.cache_manager.get(self.resolver.inventory_cache_key), None,
             "There should not be inventory anymore in cache"
         )
-        self.assertIs(
-            self.cache_manager.get(self.resolver.texts_metadata_cache_key), None,
-            "There should not be inventory anymore in cache"
-        )
 
     def test_process_cache(self):
         """ Simulate python manager.py
@@ -80,11 +76,6 @@ class TestManager(TestCase):
             self.cache_manager.get(self.resolver.inventory_cache_key) is None,
             True,
             "There should not be inventory in cache"
-        )
-        self.assertEqual(
-            self.cache_manager.get(self.resolver.texts_metadata_cache_key) is None,
-            True,
-            "There should not be texts metadata in cache"
         )
 
         # Running the tested command
@@ -98,9 +89,4 @@ class TestManager(TestCase):
             len(self.cache_manager.get(self.resolver.inventory_cache_key)) > 0,
             True,
             "There should be inventory in cache"
-        )
-        self.assertEqual(
-            len(self.cache_manager.get(self.resolver.texts_metadata_cache_key)) > 0,
-            True,
-            "There should be texts metadata in cache"
         )

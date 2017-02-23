@@ -60,8 +60,8 @@ def FlaskNautilusManager(resolver, flask_nautilus):
     def parse():
         """ Preprocess the inventory and cache it """
         resolver.logger.setLevel(logging.INFO)
-        ret = resolver.parse(ret="texts")
-        click.echo("Preprocessed %s texts" % len(ret))
+        ret = resolver.parse()
+        click.echo("Preprocessed %s texts" % len(ret.readableDescendants))
 
     @CLI.command()
     def reset():
