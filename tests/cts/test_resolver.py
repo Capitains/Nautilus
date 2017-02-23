@@ -612,6 +612,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
             ["./tests/testing_data/latinLit2"],
             dispatcher=dispatcher
         )
+        resolver.REMOVE_EMPTY = False
         resolver.parse()
         latin_stuff = resolver.getMetadata("urn:perseus:latinLit")
         greek_stuff = resolver.getMetadata("urn:perseus:greekLit")
@@ -668,6 +669,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
                 ["./tests/testing_data/latinLit2"],
                 dispatcher=dispatcher
             )
+            resolver.REMOVE_EMPTY = False
             resolver.parse()
         except UndispatchedTextError as E:
             self.fail("UndispatchedTextError should not have been raised")
@@ -706,6 +708,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
             ["./tests/testing_data/latinLit2"],
             dispatcher=dispatcher
         )
+        resolver.REMOVE_EMPTY = False
         resolver.parse()
 
         all = resolver.getMetadata().export(Mimetypes.XML.CTS)

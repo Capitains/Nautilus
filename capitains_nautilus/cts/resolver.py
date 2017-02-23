@@ -36,6 +36,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
     """
     TIMEOUT = None
     NautilusCTSResolver = False
+    REMOVE_EMPTY = True
 
     def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None):
         """ Initiate the XMLResolver
@@ -66,14 +67,9 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
 
         self.__cache__ = cache
         self.__resources__ = resource
-        self.__parsed__ = False
 
         self.inventory_cache_key = _cache_key("Nautilus", self.name, "Inventory", "Resources")
-        self.texts_metadata_cache_key = _cache_key("Nautilus", self.name, "Inventory", "TextsMetadata")
         self.texts_parsed_cache_key = _cache_key("Nautilus", self.name, "Inventory", "TextsParsed")
-
-        # Parse if no Cache
-        # self.get_or(self.inventory_cache_key, self.parse)
 
     @property
     def cache(self):
@@ -81,8 +77,8 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
 
     @property
     def inventory(self):
-        if self.__parsed__ is False:
-            self.__inventory__ = self.get_or(self.inventory_cache_key, self.parse, self.__resources__, ret="inventory")
+        if self.__inventory__ is None or len(self.__inventory__.readableDescendants) == 0:
+            self.__inventory__ = self.get_or(self.inventory_cache_key, self.parse, self.__resources__)
         return self.__inventory__
 
     @inventory.setter
@@ -96,14 +92,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
 
         :rtype: list
         """
-        if self.__texts__ is None:
-            self.__texts__ = self.get_or(self.texts_metadata_cache_key, self.parse, self.__resources__, ret="texts")
-        return self.__texts__
-
-    @texts.setter
-    def texts(self, value):
-        self.__texts__ = value
-        self.cache.set(self.texts_metadata_cache_key, value)
+        return self.inventory.readableDescendants
 
     def xmlparse(self, file):
         """ Parse a XML file
@@ -159,16 +148,15 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         for text in self.texts:
             self.cache.delete(_cache_key(self.texts_parsed_cache_key, str(text.id)))
         self.cache.delete(self.inventory_cache_key)
-        self.cache.delete(self.texts_metadata_cache_key)
 
-    def parse(self, resource=None, ret="inventory"):
+    def parse(self, resource=None):
         """ Parse a list of directories ans
         :param resource: List of folders
         :param ret: Return a specific item ("inventory" or "texts")
         """
         if resource is None:
             resource = self.__resources__
-        textlists = []
+        removing = []
         for folder in resource:
             textgroups = glob("{base_folder}/data/*/__cts__.xml".format(base_folder=folder))
             for __cts__ in textgroups:
@@ -222,32 +210,43 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
                                     del t
                                     __text__.citation = cites[-1]
                                     self.logger.info("%s has been parsed ", __text__.path)
-                                    if __text__.citation.isEmpty() is False:
-                                        textlists.append(__text__)
-                                    else:
+                                    if __text__.citation.isEmpty() is True:
+                                        removing.append(__textkey__)
                                         self.logger.error("%s has no passages", __text__.path)
                                 except Exception as E:
+                                    removing.append(__textkey__)
                                     self.logger.error(
                                         "%s does not accept parsing at some level (most probably citation) ",
                                         __text__.path
                                     )
                             else:
+                                removing.append(__textkey__)
                                 self.logger.error("%s is not present", __text__.path)
                 except MyCapytain.errors.UndispatchedTextError as E:
                     self.logger.error("Error dispatching %s ", __cts__)
                     if self.RAISE_ON_UNDISPATCHED is True:
                         raise UndispatchedTextError(E)
                 except Exception as E:
-                    print(E)
                     self.logger.error("Error parsing %s ", __cts__)
 
+        for removable in removing:
+            del self.dispatcher.collection[removable]
+
+        removing = []
+
+        if self.REMOVE_EMPTY is True:
+            # Find resource with no readable descendants
+            for item in self.dispatcher.collection.descendants:
+                if item.readable != True and len(item.readableDescendants) == 0:
+                    removing.append(item.id)
+
+            # Remove them only if they have not been removed before
+            for removable in removing:
+                if removable in self.dispatcher.collection:
+                    del self.dispatcher.collection[removable]
+
         self.inventory = self.dispatcher.collection
-        self.texts = textlists
-        self.__parsed__ = True
-        if ret == "texts":
-            return self.texts
-        else:
-            return self.inventory
+        return self.inventory
 
     def __getText__(self, urn):
         """ Returns a PrototypeText object
