@@ -1,6 +1,7 @@
 # IDE
 .idea
 env
+venv
 *.rdb
 *.autosave
 
