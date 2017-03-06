@@ -10,6 +10,7 @@ from MyCapytain.resolvers.utils import CollectionDispatcher
 from MyCapytain.resources.collections.cts import TextInventory, TextGroup, Work, Citation, Edition
 from MyCapytain.resources.prototypes.cts.inventory import TextInventoryCollection
 from MyCapytain.resources.texts.locals.tei import Text
+from MyCapytain.common.constants import set_graph
 
 from capitains_nautilus import _cache_key
 from capitains_nautilus.errors import *
@@ -79,11 +80,13 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
     def inventory(self):
         if self.__inventory__ is None or len(self.__inventory__.readableDescendants) == 0:
             self.__inventory__ = self.get_or(self.inventory_cache_key, self.parse, self.__resources__)
+            set_graph(self.__inventory__.graph)
         return self.__inventory__
 
     @inventory.setter
     def inventory(self, value):
         self.__inventory__ = value
+
         self.cache.set(self.inventory_cache_key, value)
 
     @property
