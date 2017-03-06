@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-from MyCapytain.common.constants import NS, Mimetypes, NAMESPACES, GRAPH
+from MyCapytain.common.constants import NS, Mimetypes, NAMESPACES, get_graph
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resources.prototypes.metadata import Collection
 from MyCapytain.resources.collections.cts import TextInventory
@@ -152,7 +152,7 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
 class TextXMLFolderResolver(TestCase):
     """ Ensure working state of resolver """
     def setUp(self):
-        GRAPH.remove((None, None, None))
+        get_graph().remove((None, None, None))
         self.resolver = NautilusCTSResolver(["./tests/testing_data/latinLit2"])
 
     def test_getPassage_full(self):
@@ -576,7 +576,7 @@ class TextXMLFolderResolver(TestCase):
 class TextXMLFolderResolverDispatcher(TestCase):
     """ Ensure working state of resolver """
     def setUp(self):
-        GRAPH.remove((None, None, None))
+        get_graph().remove((None, None, None))
 
     def test_dispatching_latin_greek(self):
         tic = TextInventoryCollection()
@@ -612,6 +612,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
             ["./tests/testing_data/latinLit2"],
             dispatcher=dispatcher
         )
+        resolver.logger.disabled = True
         resolver.REMOVE_EMPTY = False
         resolver.parse()
         latin_stuff = resolver.getMetadata("urn:perseus:latinLit")
@@ -661,6 +662,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
                 ["./tests/testing_data/latinLit2"],
                 dispatcher=dispatcher
             )
+            resolver.logger.disabled = True
             resolver.parse()
 
         NautilusCTSResolver.RAISE_ON_UNDISPATCHED = False
@@ -669,6 +671,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
                 ["./tests/testing_data/latinLit2"],
                 dispatcher=dispatcher
             )
+            resolver.logger.disabled = True
             resolver.REMOVE_EMPTY = False
             resolver.parse()
         except UndispatchedTextError as E:
@@ -708,6 +711,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
             ["./tests/testing_data/latinLit2"],
             dispatcher=dispatcher
         )
+        resolver.logger.disabled = True
         resolver.REMOVE_EMPTY = False
         resolver.parse()
 
@@ -715,7 +719,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
         latin_stuff = resolver.getMetadata("urn:perseus:latinLit").export(Mimetypes.XML.CTS)
         greek_stuff = resolver.getMetadata("urn:perseus:greekLit").export(Mimetypes.XML.CTS)
         farsi_stuff = resolver.getMetadata("urn:perseus:farsiLit").export(Mimetypes.XML.CTS)
-        GRAPH.remove((None, None, None))
+        get_graph().remove((None, None, None))
         latin_stuff, greek_stuff, farsi_stuff = TextInventory.parse(latin_stuff), TextInventory.parse(greek_stuff),\
             TextInventory.parse(farsi_stuff)
         self.assertEqual(
@@ -737,7 +741,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
             greek_stuff.get_label("fre"), None,  # Text inventory have no label in CTS
             "Label should be correct"
         )
-        GRAPH.remove((None, None, None))
+        get_graph().remove((None, None, None))
         all = TextInventory.parse(all)
         self.assertEqual(
             len(all.readableDescendants), 25,

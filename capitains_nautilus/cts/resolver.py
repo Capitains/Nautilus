@@ -25,7 +25,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
     :param cache: Cache object to be used for the inventory
     :type cache: BaseCache
     :param logger: Logging object
-    :type logger: logging
+    :type logger: logging.logger
 
     :ivar inventory_cache_key: Werkzeug Cache key to get or set cache for the TextInventory
     :ivar texts_cache_key:  Werkzeug Cache key to get or set cache for lists of metadata texts objects

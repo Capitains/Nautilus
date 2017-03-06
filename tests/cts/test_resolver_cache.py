@@ -5,7 +5,7 @@ import os
 from capitains_nautilus.cts.resolver import NautilusCTSResolver
 from werkzeug.contrib.cache import FileSystemCache
 from MyCapytain.common.constants import Mimetypes
-from tests.cts import subprocess_repository, subprocess_cache_dir
+from tests.cts.config import subprocess_cache_dir, subprocess_repository
 
 cwd = os.getcwd()
 cwd = cwd.replace("tests/cts", "")
@@ -20,6 +20,7 @@ class TestCache(TestCase):
 
         self.cache = FileSystemCache(subprocess_cache_dir)
         self.resolver = NautilusCTSResolver(resource=subprocess_repository, cache=self.cache)
+        self.resolver.logger.disabled = True
 
         def x(*k, **kw):
             raise Exception("Parse should not be called")
