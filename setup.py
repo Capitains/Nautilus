@@ -10,7 +10,7 @@ setup(
   license='MIT',
   packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
   install_requires=[
-    "MyCapytain>=2.0.0b18",
+    "MyCapytain>=2.0.0b19",
     "tornado>=4.3",
     "Flask>=0.12",
     "Werkzeug>=0.11.3",
@@ -18,7 +18,8 @@ setup(
     "Flask-Caching>=1.2.0"
   ],
   test_requires=[
-    "logassert"
+    "logassert",
+    "mock"
   ],
   entry_points={
       'console_scripts': ['capitains-nautilus=capitains_nautilus.cmd:cmd'],

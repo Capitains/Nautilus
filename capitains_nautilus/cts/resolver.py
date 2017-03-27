@@ -35,9 +35,10 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
 
     .. warning :: This resolver does not support inventories
     """
-    TIMEOUT = None
+    TIMEOUT = 0
     NautilusCTSResolver = False
     REMOVE_EMPTY = True
+    CACHE_FULL_TEI = False
 
     def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None):
         """ Initiate the XMLResolver
@@ -86,8 +87,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
     @inventory.setter
     def inventory(self, value):
         self.__inventory__ = value
-
-        self.cache.set(self.inventory_cache_key, value)
+        self.cache.set(self.inventory_cache_key, value, self.TIMEOUT)
 
     @property
     def texts(self):
@@ -136,13 +136,17 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         :param path: Path of the text files
         :return: Text
         """
-        o = self.cache.get(_cache_key(self.texts_parsed_cache_key, identifier))
-        if o is not None:
-            return o
+        if self.CACHE_FULL_TEI:
+            o = self.cache.get(_cache_key(self.texts_parsed_cache_key, identifier))
+            if o is not None:
+                return o
+            else:
+                with open(path) as f:
+                    o = Text(urn=identifier, resource=self.xmlparse(f))
+                    self.cache.set(_cache_key(self.texts_parsed_cache_key, identifier), o)
         else:
             with open(path) as f:
                 o = Text(urn=identifier, resource=self.xmlparse(f))
-                self.cache.set(_cache_key(self.texts_parsed_cache_key, identifier), o)
         return o
 
     def flush(self):
@@ -266,7 +270,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
                 urn = [
                     t.id
                     for t in self.texts
-                    if t.id.startswith(str(urn)) and isinstance(t, Edition) and not print(t.id)
+                    if t.id.startswith(str(urn)) and isinstance(t, Edition)
                 ]
                 if len(urn) > 0:
                     urn = URN(urn[0])
@@ -313,9 +317,12 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         :rtype: [str]
         """
         return self.get_or(
-            _cache_key("Nautilus", self.name, "getReffs", textId, level, subreference),
+            self.__cache_key_reffs__(textId, level, subreference),
             CTSCapitainsLocalResolver.getReffs, self, textId, level, subreference
         )
+
+    def __cache_key_reffs__(self, textId, level, subreference):
+        return _cache_key("Nautilus", self.name, "getReffs", textId, level, subreference)
 
     def getTextualNode(self, textId, subreference=None, prevnext=False, metadata=False):
         """ Retrieve a text node from the API
