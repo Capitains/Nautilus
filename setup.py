@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
   name='capitains_nautilus',
-  version="1.0.0b6",
+  version="1.0.0b7",
   description='Resolver for Capitains Guidelines Repository',
   url='http://github.com/Capitains/nautilus',
   author='Thibault Clerice',
