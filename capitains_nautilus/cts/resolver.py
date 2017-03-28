@@ -149,13 +149,6 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
                 o = Text(urn=identifier, resource=self.xmlparse(f))
         return o
 
-    def flush(self):
-        """ Flush current resolver objects and cache
-        """
-        for text in self.texts:
-            self.cache.delete(_cache_key(self.texts_parsed_cache_key, str(text.id)))
-        self.cache.delete(self.inventory_cache_key)
-
     def parse(self, resource=None):
         """ Parse a list of directories ans
         :param resource: List of folders
