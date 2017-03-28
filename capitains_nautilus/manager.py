@@ -73,10 +73,14 @@ def FlaskNautilusManager(resolver, flask_nautilus):
         flask_nautilus.flaskcache.clear()
 
     @CLI.command()
-    def flush():
-        """ Flush all caches """
-        flush_http_cache()
-        flush_resolver()
+    def flush_both():
+        """ Flush all caches
+
+        """
+        if resolver.cache.clear() is True:
+            click.echo("Caching of Resolver Cleared")
+        if flask_nautilus.flaskcache.clear() is True:
+            click.echo("Caching of HTTP Cleared")
 
     @CLI.command()
     def parse():
@@ -96,11 +100,5 @@ def FlaskNautilusManager(resolver, flask_nautilus):
             for future in executor.imap_unordered(read_levels, [t.id for t in texts]):
                 del future
         click.echo("References parsed")
-
-    @CLI.command()
-    def reset():
-        """ Clean then parse the inventory """
-        flush()
-        parse()
 
     return CLI

@@ -50,7 +50,9 @@ class FlaskNautilus(object):
         #  CTS
         "_r_GetCapabilities", "_r_GetPassage", "_r_GetPassagePlus",
         "_r_GetValidReff", "_r_GetPrevNext", "_r_GetFirstUrn", "_r_GetLabel",
-        "cts_error"
+        "cts_error",
+        #  DTS
+        "r_dts_collections", "r_dts_collection", "dts_error"
     ]
 
     def __init__(self, prefix="", app=None, name=None,
