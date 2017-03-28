@@ -103,9 +103,11 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         :param file: Opened File
         :return: Tree
         """
-        return self.get_or(
-            _cache_key("Nautilus", self.name, "File", "Tree", file.name), CTSCapitainsLocalResolver.xmlparse, self, file
-        )
+        if self.CACHE_FULL_TEI is True:
+            return self.get_or(
+                _cache_key("Nautilus", self.name, "File", "Tree", file.name), CTSCapitainsLocalResolver.xmlparse, self, file
+            )
+        return CTSCapitainsLocalResolver.xmlparse(self, file)
 
     def get_or(self, cache_key, callback, *args, **kwargs):
         """ Get or set the cache using callback and arguments
@@ -136,7 +138,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         :param path: Path of the text files
         :return: Text
         """
-        if self.CACHE_FULL_TEI:
+        if self.CACHE_FULL_TEI is True:
             o = self.cache.get(_cache_key(self.texts_parsed_cache_key, identifier))
             if o is not None:
                 return o
