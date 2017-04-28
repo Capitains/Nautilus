@@ -12,6 +12,8 @@ Capitains Nautilus
 .. image:: https://readthedocs.org/projects/capitains-nautilus/badge/?version=latest
     :alt: Documentation
     :target: http://capitains-nautilus.readthedocs.org
+.. image:: https://zenodo.org/badge/45260156.svg
+   :target: https://zenodo.org/badge/latestdoi/45260156
 
 Documentation
 #############
@@ -24,7 +26,7 @@ using standards. Metadata are exposed as well.
 A second goal of Nautilus is to serve as a cache wrapper for resolver, in order to speed up serving texts for user interfaces
 such as `Nemo <https://github.com/capitains/flask-capitains-nemo>`_ .
 
-A known implementation can be found at `the University of Leipzig <http://cts.dh.uni-leipzig.de/api>`_ . You can find the
+A known implementation can be found at `the University of Leipzig <http://cts.dh.uni-leipzig.de/api/cts>`_ . You can find the
 set-up files on `Github <https://github.com/OpenGreekAndLatin/leipzig_cts>`_
 
 Trying Nautilus with a test dataset example
