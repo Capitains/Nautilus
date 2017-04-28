@@ -1,5 +1,5 @@
 Capitains Nautilus
-================
+==================
 
 .. image:: https://coveralls.io/repos/github/Capitains/Nautilus/badge.svg?branch=master
     :target: https://coveralls.io/github/Capitains/Nautilus?branch=master
@@ -16,7 +16,31 @@ Capitains Nautilus
 Documentation
 #############
 
-Documentation will be built in time.
+CapiTainS Nautilus provides a Flask extension to build upon MyCapytain resolver. The finale goal of the application, built
+upon `MyCapytain <https://github.com/capitains/MyCapytain>`_, is to serve either as a Web-API provider (Currently supporting
+CTS, partly DTS. OAI-PMH and a Sparql endpoint are scheduled.) These API can be used to access portion of or complete texts
+using standards. Metadata are exposed as well.
+
+A second goal of Nautilus is to serve as a cache wrapper for resolver, in order to speed up serving texts for user interfaces
+such as `Nemo <https://github.com/capitains/flask-capitains-nemo>`_ .
+
+A known implementation can be found at `the University of Leipzig <http://cts.dh.uni-leipzig.de/api>`_ . You can find the
+set-up files on `Github <https://github.com/OpenGreekAndLatin/leipzig_cts>`_
+
+Trying Nautilus with a test dataset example
+###########################################
+
+With Python 3 only !
+
+.. code-block:: shell
+
+    git clone https://github.com/Capitains/Nautilus.git
+    virtualenv -p /usr/bin/python3 venv
+    source venv/bin/activate
+    python app.py
+
+Now go to http://localhost:5000 and check out http://localhost:5000/api/cts , http://localhost:5000/api/dts/collections,
+http://localhost:5000/api/cts?request=GetValidReff
 
 Running Nautilus from the command line
 ######################################

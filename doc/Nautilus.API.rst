@@ -1,12 +1,6 @@
-Capitains Nautilus API Documentation
-============================
+CapiTainS Nautilus API Documentation
+====================================
 
-Library Structure
-#################
-
-.. image:: assets/api_architecture.png
-   :alt: Library Software Architecture
-   :align: center
 
 Resolvers
 #########
@@ -16,46 +10,12 @@ Resolver provides a system to retrieve a text file and an inventory from local r
 CapiTainS formatted repository
 ******************************
 
-.. autoclass:: capitains_nautilus.inventory.local.XMLFolderResolver
-    :members:
-
-Prototype
-*********
-
-.. autoclass:: capitains_nautilus.inventory.proto.InventoryResolver
-    :members:
-
-Retriever
-#########
-
-Extension of MyCapytains resources
-**********************************
-
-.. automodule:: capitains_nautilus.mycapytain
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-Responses builders
-******************
-
-.. automodule:: capitains_nautilus.response
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. autoclass:: capitains_nautilus.cts.resolver.NautilusCTSResolver
 
 Errors
 ######
 
 .. automodule:: capitains_nautilus.errors
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-Cache
-#####
-
-.. automodule:: capitains_nautilus.cache
     :members:
     :undoc-members:
     :show-inheritance:
@@ -68,9 +28,17 @@ Flask Extension
     :undoc-members:
     :show-inheritance:
 
-Commandline
-***********
+Command-line Interface
+**********************
 .. automodule:: capitains_nautilus.cmd
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Cache Manager
+#############
+
+.. automodule:: capitains_nautilus.manager
     :members:
     :undoc-members:
     :show-inheritance:
