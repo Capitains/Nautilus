@@ -2,12 +2,17 @@
 
 from __future__ import unicode_literals
 
-from MyCapytain.common.constants import NS, Mimetypes, NAMESPACES, get_graph
+from MyCapytain.common.constants import XPATH_NAMESPACES, Mimetypes, RDF_NAMESPACES, get_graph
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resources.prototypes.metadata import Collection
-from MyCapytain.resources.collections.cts import TextInventory
-from MyCapytain.resources.prototypes.cts.inventory import PrototypeTextGroup, PrototypeText as TextMetadata, \
-    PrototypeTranslation, PrototypeTextInventory, TextInventoryCollection
+from MyCapytain.resources.collections.cts import XmlCtsTextInventoryMetadata
+from MyCapytain.resources.prototypes.cts.inventory import (
+    CtsTextgroupMetadata,
+    CtsTextMetadata,
+    CtsTranslationMetadata,
+    CtsTextInventoryMetadata,
+    CtsTextInventoryCollection
+)
 from MyCapytain.resources.prototypes.text import Passage
 from MyCapytain.resolvers.utils import CollectionDispatcher
 from unittest import TestCase
@@ -180,7 +185,7 @@ class TextXMLFolderResolver(TestCase):
             passage.export(
                 output=Mimetypes.PYTHON.ETREE
             ).xpath(
-                ".//tei:div[@n='1']/tei:div[@n='1']/tei:l[@n='1']/text()", namespaces=NS, magic_string=False
+                ".//tei:div[@n='1']/tei:div[@n='1']/tei:l[@n='1']/text()", namespaces=XPATH_NAMESPACES, magic_string=False
             ),
             ["Hic est quem legis ille, quem requiris, "],
             "Export to Etree should give an Etree or Etree like object"
@@ -227,7 +232,7 @@ class TextXMLFolderResolver(TestCase):
         )
 
         self.assertEqual(
-            passage.export(output=Mimetypes.PYTHON.ETREE).xpath(".//tei:l[@n='1']/text()", namespaces=NS, magic_string=False),
+            passage.export(output=Mimetypes.PYTHON.ETREE).xpath(".//tei:l[@n='1']/text()", namespaces=XPATH_NAMESPACES, magic_string=False),
             ["Hic est quem legis ille, quem requiris, "],
             "Export to Etree should give an Etree or Etree like object"
         )
@@ -241,19 +246,19 @@ class TextXMLFolderResolver(TestCase):
             "GetPassage should always return passages objects"
         )
         self.assertEqual(
-            str(passage.metadata[NAMESPACES.CTS.term("title"), "eng"]), "Epigrammata",
+            str(passage.metadata[RDF_NAMESPACES.CTS.term("title"), "eng"]), "Epigrammata",
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
-            str(passage.metadata[NAMESPACES.CTS.term("groupname"),"eng"]), "Martial",
+            str(passage.metadata[RDF_NAMESPACES.CTS.term("groupname"),"eng"]), "Martial",
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
-            str(passage.metadata[NAMESPACES.CTS.term("label"), "eng"]), "Epigrams",
+            str(passage.metadata[RDF_NAMESPACES.CTS.term("label"), "eng"]), "Epigrams",
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
-            str(passage.metadata[NAMESPACES.CTS.term("description"), "eng"]),
+            str(passage.metadata[RDF_NAMESPACES.CTS.term("description"), "eng"]),
             "M. Valerii Martialis Epigrammaton libri / recognovit W. Heraeus",
             "Local Inventory Files should be parsed and aggregated correctly"
         )
@@ -282,7 +287,7 @@ class TextXMLFolderResolver(TestCase):
             passage.export(
                 output=Mimetypes.PYTHON.ETREE
             ).xpath(
-                ".//tei:div[@n='1']/tei:div[@n='1']/tei:l[@n='1']/text()", namespaces=NS, magic_string=False
+                ".//tei:div[@n='1']/tei:div[@n='1']/tei:l[@n='1']/text()", namespaces=XPATH_NAMESPACES, magic_string=False
             ),
             ["Hic est quem legis ille, quem requiris, "],
             "Export to Etree should give an Etree or Etree like object"
@@ -332,7 +337,7 @@ class TextXMLFolderResolver(TestCase):
         )
 
         self.assertEqual(
-            passage.export(output=Mimetypes.PYTHON.ETREE).xpath(".//tei:l[@n='1']/text()", namespaces=NS, magic_string=False),
+            passage.export(output=Mimetypes.PYTHON.ETREE).xpath(".//tei:l[@n='1']/text()", namespaces=XPATH_NAMESPACES, magic_string=False),
             ["Hic est quem legis ille, quem requiris, "],
             "Export to Etree should give an Etree or Etree like object"
         )
@@ -347,19 +352,19 @@ class TextXMLFolderResolver(TestCase):
             "GetPassage should always return passages objects"
         )
         self.assertEqual(
-            str(passage.metadata[NAMESPACES.CTS.term("title"), "eng"]), "Epigrammata",
+            str(passage.metadata[RDF_NAMESPACES.CTS.term("title"), "eng"]), "Epigrammata",
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
-            str(passage.metadata[NAMESPACES.CTS.term("groupname"), "eng"]), "Martial",
+            str(passage.metadata[RDF_NAMESPACES.CTS.term("groupname"), "eng"]), "Martial",
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
-            str(passage.metadata[NAMESPACES.CTS.term("label"), "eng"]), "Epigrams",
+            str(passage.metadata[RDF_NAMESPACES.CTS.term("label"), "eng"]), "Epigrams",
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
-            str(passage.metadata[NAMESPACES.CTS.term("description"), "eng"]),
+            str(passage.metadata[RDF_NAMESPACES.CTS.term("description"), "eng"]),
             "M. Valerii Martialis Epigrammaton libri / recognovit W. Heraeus",
             "Local Inventory Files should be parsed and aggregated correctly"
         )
@@ -404,7 +409,7 @@ class TextXMLFolderResolver(TestCase):
         )
 
         self.assertEqual(
-            passage.export(output=Mimetypes.PYTHON.ETREE).xpath(".//tei:l[@n='1']/text()", namespaces=NS, magic_string=False),
+            passage.export(output=Mimetypes.PYTHON.ETREE).xpath(".//tei:l[@n='1']/text()", namespaces=XPATH_NAMESPACES, magic_string=False),
             ["Hic est quem legis ille, quem requiris, "],
             "Export to Etree should give an Etree or Etree like object"
         )
@@ -430,12 +435,12 @@ class TextXMLFolderResolver(TestCase):
             "There should be as many readable descendants as there is edition, translation(25 ed+tr)"
         )
         self.assertEqual(
-            len([x for x in metadata.readableDescendants if isinstance(x, TextMetadata)]), 25,
+            len([x for x in metadata.readableDescendants if isinstance(x, CtsTextMetadata)]), 25,
             "There should be 24 editions + 1 translations in readableDescendants"
         )
         self.assertEqual(
             len(metadata.export(output=Mimetypes.PYTHON.ETREE).xpath(
-                "//ti:edition[@urn='urn:cts:latinLit:phi1294.phi002.perseus-lat2']", namespaces=NS)), 1,
+                "//ti:edition[@urn='urn:cts:latinLit:phi1294.phi002.perseus-lat2']", namespaces=XPATH_NAMESPACES)), 1,
             "There should be one node in exported format corresponding to lat2"
         )
         self.assertCountEqual(
@@ -453,7 +458,7 @@ class TextXMLFolderResolver(TestCase):
             "Resolver should return a collection object"
         )
         self.assertIsInstance(
-            metadata.members[0], TextMetadata,
+            metadata.members[0], CtsTextMetadata,
             "Members of PrototypeWork should be Texts"
         )
         self.assertEqual(
@@ -465,20 +470,20 @@ class TextXMLFolderResolver(TestCase):
             "There should be 1 edition in readableDescendants"
         )
         self.assertEqual(
-            len([x for x in metadata.readableDescendants if isinstance(x, TextMetadata)]), 1,
+            len([x for x in metadata.readableDescendants if isinstance(x, CtsTextMetadata)]), 1,
             "There should be 1 edition in readableDescendants"
         )
         self.assertIsInstance(
-            metadata.parent, PrototypeTextGroup,
+            metadata.parent, CtsTextgroupMetadata,
             "First parent should be PrototypeTextGroup"
         )
         self.assertIsInstance(
-            metadata.parents[0], PrototypeTextGroup,
+            metadata.parents[0], CtsTextgroupMetadata,
             "First parent should be PrototypeTextGroup"
         )
         self.assertEqual(
             len(metadata.export(output=Mimetypes.PYTHON.ETREE).xpath(
-                "//ti:edition[@urn='urn:cts:latinLit:phi1294.phi002.perseus-lat2']", namespaces=NS)), 1,
+                "//ti:edition[@urn='urn:cts:latinLit:phi1294.phi002.perseus-lat2']", namespaces=XPATH_NAMESPACES)), 1,
             "There should be one node in exported format corresponding to lat2"
         )
         self.assertEqual(
@@ -489,7 +494,7 @@ class TextXMLFolderResolver(TestCase):
 
         tr = self.resolver.getMetadata(objectId="urn:cts:greekLit:tlg0003.tlg001.opp-fre1")
         self.assertIsInstance(
-            tr, PrototypeTranslation, "Metadata should be translation"
+            tr, CtsTranslationMetadata, "Metadata should be translation"
         )
         self.assertIn(
             "Histoire de la Guerre du Péloponnése",
@@ -579,12 +584,12 @@ class TextXMLFolderResolverDispatcher(TestCase):
         get_graph().remove((None, None, None))
 
     def test_dispatching_latin_greek(self):
-        tic = TextInventoryCollection()
-        latin = PrototypeTextInventory("urn:perseus:latinLit", parent=tic)
+        tic = CtsTextInventoryCollection()
+        latin = XmlCtsTextInventoryMetadata("urn:perseus:latinLit", parent=tic)
         latin.set_label("Classical Latin", "eng")
-        farsi = PrototypeTextInventory("urn:perseus:farsiLit", parent=tic)
+        farsi = XmlCtsTextInventoryMetadata("urn:perseus:farsiLit", parent=tic)
         farsi.set_label("Farsi", "eng")
-        gc = PrototypeTextInventory("urn:perseus:greekLit", parent=tic)
+        gc = XmlCtsTextInventoryMetadata("urn:perseus:greekLit", parent=tic)
         gc.set_label("Ancient Greek", "eng")
         gc.set_label("Grec Ancien", "fre")
 
@@ -623,7 +628,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
             "There should be 19 readable descendants in Latin"
         )
         self.assertIsInstance(
-            latin_stuff, PrototypeTextInventory, "should be textinventory"
+            latin_stuff, CtsTextInventoryMetadata, "should be textinventory"
         )
         self.assertEqual(
             len(greek_stuff.readableDescendants), 6,
@@ -642,8 +647,8 @@ class TextXMLFolderResolverDispatcher(TestCase):
             _ = latin_stuff["urn:cts:greekLit:tlg0003"]
 
     def test_dispatching_error(self):
-        tic = TextInventoryCollection()
-        latin = PrototypeTextInventory("urn:perseus:latinLit", parent=tic)
+        tic = CtsTextInventoryCollection()
+        latin = CtsTextInventoryMetadata("urn:perseus:latinLit", parent=tic)
         latin.set_label("Classical Latin", "eng")
         dispatcher = CollectionDispatcher(tic)
         # We remove default dispatcher
@@ -677,12 +682,12 @@ class TextXMLFolderResolverDispatcher(TestCase):
             self.fail("UndispatchedTextError should not have been raised")
 
     def test_dispatching_output(self):
-        tic = TextInventoryCollection()
-        latin = PrototypeTextInventory("urn:perseus:latinLit", parent=tic)
+        tic = CtsTextInventoryCollection()
+        latin = CtsTextInventoryMetadata("urn:perseus:latinLit", parent=tic)
         latin.set_label("Classical Latin", "eng")
-        farsi = PrototypeTextInventory("urn:perseus:farsiLit", parent=tic)
+        farsi = CtsTextInventoryMetadata("urn:perseus:farsiLit", parent=tic)
         farsi.set_label("Farsi", "eng")
-        gc = PrototypeTextInventory("urn:perseus:greekLit", parent=tic)
+        gc = CtsTextInventoryMetadata("urn:perseus:greekLit", parent=tic)
         gc.set_label("Ancient Greek", "eng")
         gc.set_label("Grec Ancien", "fre")
 
@@ -719,14 +724,15 @@ class TextXMLFolderResolverDispatcher(TestCase):
         greek_stuff = resolver.getMetadata("urn:perseus:greekLit").export(Mimetypes.XML.CTS)
         farsi_stuff = resolver.getMetadata("urn:perseus:farsiLit").export(Mimetypes.XML.CTS)
         get_graph().remove((None, None, None))
-        latin_stuff, greek_stuff, farsi_stuff = TextInventory.parse(latin_stuff), TextInventory.parse(greek_stuff),\
-            TextInventory.parse(farsi_stuff)
+        latin_stuff, greek_stuff, farsi_stuff = XmlCtsTextInventoryMetadata.parse(latin_stuff), \
+                                                XmlCtsTextInventoryMetadata.parse(greek_stuff), \
+                                                XmlCtsTextInventoryMetadata.parse(farsi_stuff)
         self.assertEqual(
             len(latin_stuff.readableDescendants), 19,
             "There should be 19 readable descendants in Latin"
         )
         self.assertIsInstance(
-            latin_stuff, PrototypeTextInventory, "should be textinventory"
+            latin_stuff, CtsTextInventoryMetadata, "should be textinventory"
         )
         self.assertEqual(
             len(greek_stuff.readableDescendants), 6,
@@ -741,7 +747,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
             "Label should be correct"
         )
         get_graph().remove((None, None, None))
-        all = TextInventory.parse(all)
+        all = XmlCtsTextInventoryMetadata.parse(all)
         self.assertEqual(
             len(all.readableDescendants), 25,
             "There should be all 25 readable descendants in the master collection"

@@ -7,11 +7,11 @@ import json
 from capitains_nautilus.flask_ext import FlaskNautilus
 from capitains_nautilus.cts.resolver import NautilusCTSResolver
 
-from MyCapytain.resources.collections.cts import TextInventory, Citation
-from MyCapytain.resources.texts.api.cts import Text
-from MyCapytain.retrievers.cts5 import CTS
-from MyCapytain.resolvers.cts.api import HttpCTSResolver
-from MyCapytain.common.utils import xmlparser, NS
+from MyCapytain.resources.collections.cts import XmlCtsTextInventoryMetadata as TextInventory, XmlCtsCitation as Citation
+from MyCapytain.resources.texts.remote.cts import CtsText as Text
+from MyCapytain.retrievers.cts5 import HttpCtsRetriever
+from MyCapytain.resolvers.cts.api import HttpCtsResolver
+from MyCapytain.common.utils import xmlparser, XPATH_NAMESPACES
 from MyCapytain.common.reference import Reference
 from MyCapytain.common.constants import Mimetypes
 from lxml.etree import tostring
@@ -33,8 +33,8 @@ class TestRestAPI(TestCase):
         app.debug = True
         self.cache = None
         self.app = app.test_client()
-        self.parent = CTS("/cts")
-        self.resolver = HttpCTSResolver(endpoint=self.parent)
+        self.parent = HttpCtsRetriever("/cts")
+        self.resolver = HttpCtsResolver(endpoint=self.parent)
         logassert.setup(self, self.nautilus.logger.name)
         self.nautilus.logger.disabled = True
 
@@ -266,7 +266,7 @@ class TestRestAPI(TestCase):
         data = self.app.get("/cts?request=GetLabel&urn=urn:cts:latinLit:phi1294.phi002.perseus-lat2")\
             .data.decode("utf-8").replace("\n", "")
         parsed = xmlparser(data)
-        label = parsed.xpath(".//ti:label", namespaces=NS)
+        label = parsed.xpath(".//ti:label", namespaces=XPATH_NAMESPACES)
         label_str = re.sub("\s+", " ", tostring(label[0], encoding=str)).replace("\n", "")
         self.assertIn(
             '<groupname xml:lang="eng">Martial</groupname>',
@@ -432,8 +432,8 @@ class TestRestAPICache(TestRestAPI):
         app.debug = True
         self.cache.init_app(app)
         self.app = app.test_client()
-        self.parent = CTS("/cts")
-        self.resolver = HttpCTSResolver(endpoint=self.parent)
+        self.parent = HttpCtsRetriever("/cts")
+        self.resolver = HttpCtsResolver(endpoint=self.parent)
         logassert.setup(self, self.nautilus.logger.name)
         self.nautilus.logger.disabled = True
 

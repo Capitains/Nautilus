@@ -5,18 +5,24 @@ from werkzeug.contrib.cache import NullCache
 
 import MyCapytain.errors
 from MyCapytain.common.reference import URN, Reference
-from MyCapytain.resolvers.cts.local import CTSCapitainsLocalResolver
+from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
 from MyCapytain.resolvers.utils import CollectionDispatcher
-from MyCapytain.resources.collections.cts import TextInventory, TextGroup, Work, Citation, Edition
-from MyCapytain.resources.prototypes.cts.inventory import TextInventoryCollection
-from MyCapytain.resources.texts.locals.tei import Text
+from MyCapytain.resources.collections.cts import (
+    XmlCtsTextInventoryMetadata as TextInventory,
+    XmlCtsTextgroupMetadata as TextGroup,
+    XmlCtsWorkMetadata as Work,
+    XmlCtsCitation as Citation,
+    XmlCtsEditionMetadata as Edition
+)
+from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection as TextInventoryCollection
+from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
 from MyCapytain.common.constants import set_graph
 
 from capitains_nautilus import _cache_key
 from capitains_nautilus.errors import *
 
 
-class NautilusCTSResolver(CTSCapitainsLocalResolver):
+class NautilusCTSResolver(CtsCapitainsLocalResolver):
     """ XML Folder Based resolver.
 
     :param resource: Resource should be a list of folders retaining data as Capitains Guidelines Repositories
@@ -105,9 +111,10 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         """
         if self.CACHE_FULL_TEI is True:
             return self.get_or(
-                _cache_key("Nautilus", self.name, "File", "Tree", file.name), CTSCapitainsLocalResolver.xmlparse, self, file
+                _cache_key("Nautilus", self.name, "File", "Tree", file.name),
+                super(NautilusCTSResolver, self).xmlparse, file
             )
-        return CTSCapitainsLocalResolver.xmlparse(self, file)
+        return super(NautilusCTSResolver, self).xmlparse(file)
 
     def get_or(self, cache_key, callback, *args, **kwargs):
         """ Get or set the cache using callback and arguments
@@ -296,7 +303,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         """
         return self.get_or(
             _cache_key("Nautilus", self.name, "GetMetadata", objectId),
-            CTSCapitainsLocalResolver.getMetadata, self, objectId
+            super(NautilusCTSResolver, self).getMetadata, objectId
         )
 
     def getReffs(self, textId, level=1, subreference=None):
@@ -313,7 +320,7 @@ class NautilusCTSResolver(CTSCapitainsLocalResolver):
         """
         return self.get_or(
             self.__cache_key_reffs__(textId, level, subreference),
-            CTSCapitainsLocalResolver.getReffs, self, textId, level, subreference
+            super(NautilusCTSResolver, self).getReffs, textId, level, subreference
         )
 
     def __cache_key_reffs__(self, textId, level, subreference):

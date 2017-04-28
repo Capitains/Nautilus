@@ -3,7 +3,7 @@ import logging
 
 from flask import Blueprint, request, render_template, Markup, jsonify, Response
 
-from MyCapytain.common.constants import Mimetypes, NAMESPACES
+from MyCapytain.common.constants import Mimetypes, RDF_NAMESPACES
 from MyCapytain.common.reference import URN
 
 from capitains_nautilus.errors import NautilusError, MissingParameter, InvalidURN
@@ -339,10 +339,10 @@ class FlaskNautilus(object):
             prev_urn=node.prevId,
             next_urn=node.nextId,
             metadata={
-                "groupname": [(literal.language, str(literal)) for literal in node.metadata.get_all(NAMESPACES.CTS.groupname)],
-                "title": [(literal.language, str(literal)) for literal in node.metadata.get_all(NAMESPACES.CTS.title)],
-                "description": [(literal.language, str(literal)) for literal in node.metadata.get_all(NAMESPACES.CTS.description)],
-                "label": [(literal.language, str(literal)) for literal in node.metadata.get_all(NAMESPACES.CTS.label)]
+                "groupname": [(literal.language, str(literal)) for literal in node.metadata.get(RDF_NAMESPACES.CTS.groupname)],
+                "title": [(literal.language, str(literal)) for literal in node.metadata.get(RDF_NAMESPACES.CTS.title)],
+                "description": [(literal.language, str(literal)) for literal in node.metadata.get(RDF_NAMESPACES.CTS.description)],
+                "label": [(literal.language, str(literal)) for literal in node.metadata.get(RDF_NAMESPACES.CTS.label)]
             },
             citation=Markup(node.citation.export(Mimetypes.XML.CTS)),
             passage=Markup(node.export(Mimetypes.XML.TEI))
@@ -427,10 +427,10 @@ class FlaskNautilus(object):
             request_urn=str(urn),
             full_urn=node.urn,
             metadata={
-                "groupname": [(literal.language, str(literal)) for literal in node.metadata.get_all(NAMESPACES.CTS.groupname)],
-                "title": [(literal.language, str(literal)) for literal in node.metadata.get_all(NAMESPACES.CTS.title)],
-                "description": [(literal.language, str(literal)) for literal in node.metadata.get_all(NAMESPACES.CTS.description)],
-                "label": [(literal.language, str(literal)) for literal in node.metadata.get_all(NAMESPACES.CTS.label)]
+                "groupname": [(literal.language, str(literal)) for literal in node.metadata.get(RDF_NAMESPACES.CTS.groupname)],
+                "title": [(literal.language, str(literal)) for literal in node.metadata.get(RDF_NAMESPACES.CTS.title)],
+                "description": [(literal.language, str(literal)) for literal in node.metadata.get(RDF_NAMESPACES.CTS.description)],
+                "label": [(literal.language, str(literal)) for literal in node.metadata.get(RDF_NAMESPACES.CTS.label)]
             },
             citation=Markup(node.citation.export(Mimetypes.XML.CTS))
         )

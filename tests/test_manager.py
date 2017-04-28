@@ -3,8 +3,8 @@ from unittest import TestCase
 from flask import Flask
 from flask_caching import Cache
 from click.testing import CliRunner
-from werkzeug.contrib.cache import RedisCache, FileSystemCache
-from MyCapytain.resources.prototypes.cts.inventory import TextInventoryCollection
+from werkzeug.contrib.cache import FileSystemCache
+from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection as TextInventoryCollection
 
 from capitains_nautilus.flask_ext import FlaskNautilus
 from capitains_nautilus.cts.resolver import NautilusCTSResolver
