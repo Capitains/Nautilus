@@ -288,7 +288,12 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
         except Exception as E:
             raise E
 
-        resource = self.read(identifier=urn, path=text.path)
+
+        if os.path.isfile(text.path):
+            resource = self.read(identifier=urn, path=text.path)
+        else:
+            resource = None
+            raise UnknownCollection("File matching %s does not exist" % text.path)
 
         return resource, text
 
