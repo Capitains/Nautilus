@@ -57,6 +57,12 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
             "It should be possible to retrieve text"
         )
 
+    def test_missing_text_resource(self):
+        """ Test to make sure an UnknownCollection error is raised when a text is missing """
+        Repository = NautilusCTSResolver(["./tests/test_data/missing_text"])
+        with self.assertRaises(UnknownCollection):
+            text, metadata = Repository.__getText__("urn:cts:farsiLit:hafez.divan.missing_text")
+
     def test_get_capabilities(self):
         """ Check Get Capabilities """
         Repository = NautilusCTSResolver(
