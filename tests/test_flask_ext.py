@@ -21,6 +21,7 @@ from logassert import logassert
 
 # Clean up noise...
 logging.basicConfig(level=logging.CRITICAL)
+logger = logging.getLogger()
 
 
 class TestRestAPI(TestCase):
@@ -28,7 +29,8 @@ class TestRestAPI(TestCase):
         app = Flask("Nautilus")
         self.nautilus = FlaskNautilus(
             app=app,
-            resolver=NautilusCTSResolver(["./tests/test_data/latinLit"])
+            resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
+            logger=logger
         )
         app.debug = True
         self.cache = None
@@ -427,7 +429,8 @@ class TestRestAPICache(TestRestAPI):
         self.nautilus = FlaskNautilus(
             app=app,
             resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
-            flask_caching=self.cache
+            flask_caching=self.cache,
+            logger=logger
         )
         app.debug = True
         self.cache.init_app(app)
