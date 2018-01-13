@@ -7,7 +7,7 @@ setup(
   url='http://github.com/Capitains/nautilus',
   author='Thibault Clerice',
   author_email='leponteineptique@gmail.com',
-  license='MIT',
+  license='Mozilla Public License Version 2.0',
   packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
   install_requires=[
     "MyCapytain>=2.0.0rc1",

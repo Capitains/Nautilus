@@ -14,6 +14,9 @@ Capitains Nautilus
     :target: http://capitains-nautilus.readthedocs.org
 .. image:: https://zenodo.org/badge/45260156.svg
    :target: https://zenodo.org/badge/latestdoi/45260156
+.. image:: https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg
+    :alt: License: MPL 2.0
+    :target: https://opensource.org/licenses/MPL-2.0
 
 Documentation
 #############
