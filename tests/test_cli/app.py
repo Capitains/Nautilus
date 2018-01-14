@@ -29,13 +29,6 @@ def make_dispatcher():
     return dispatcher
 
 
-http_cache = Cache(
-    config={
-        'CACHE_TYPE': "filesystem",
-        "CACHE_DIR": http_cache_dir,
-        "CACHE_DEFAULT_TIMEOUT": 0
-    }
-)
 nautilus_cache = FileSystemCache(subprocess_cache_dir, default_timeout=0)
 
 resolver = NautilusCTSResolver(
@@ -45,6 +38,14 @@ resolver = NautilusCTSResolver(
 )
 
 app = Flask("Nautilus")
+http_cache = Cache(
+    app,
+    config={
+        'CACHE_TYPE': "filesystem",
+        "CACHE_DIR": http_cache_dir,
+        "CACHE_DEFAULT_TIMEOUT": 0
+    }
+)
 nautilus = FlaskNautilus(
     app=app,
     prefix="/api",
@@ -53,7 +54,7 @@ nautilus = FlaskNautilus(
     flask_caching=http_cache
 )
 
-http_cache.init_app(app)
+#http_cache.init_app(app)
 app.debug = True
 
 if __name__ == "__main__":
