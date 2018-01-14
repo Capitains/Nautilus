@@ -19,20 +19,20 @@ import re
 import logging
 from logassert import logassert
 
-# Clean up noise...
 logging.basicConfig(level=logging.CRITICAL)
-logger = logging.getLogger()
+logger = logging.getLogger("some_logger")
 
 
 class TestRestAPI(TestCase):
     def setUp(self):
+        # Clean up noise...
+
         app = Flask("Nautilus")
         self.nautilus = FlaskNautilus(
             app=app,
             resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
             logger=logger
         )
-        app.debug = True
         self.cache = None
         self.app = app.test_client()
         self.parent = HttpCtsRetriever("/cts")
@@ -314,27 +314,6 @@ class TestRestAPI(TestCase):
             "MissingParameter", data, "Error name should be displayed"
         )
 
-    def test_UnknownCollection_request(self):
-        """Check get Label"""
-        # Need to parse with Citation and parse individually or simply check for some equality
-        self.nautilus.logger.disabled = False
-        data = self.app.get("/cts?request=GetCapabilities&urn=urn:cts:latinLit:phi1295").data.decode()
-        self.assertIn(
-            "Resource requested is not found", data, "Error message should be displayed"
-        )
-        self.assertIn(
-            "UnknownCollection", data, "Error name should be displayed"
-        )
-        data = self.app.get("/cts?request=GetPassage&urn=urn:cts:latinLit:phi1294.phi003").data.decode()
-        self.assertIn(
-            "Resource requested is not found", data, "Error message should be displayed"
-        )
-        self.assertIn(
-            "UnknownCollection", data, "Error name should be displayed"
-        )
-        self.assertLogged("CTS error thrown UnknownCollection for request=GetCapabilities&urn=urn:cts:latinLit:phi1295 "
-                          "( Resource requested is not found )")
-
     def test_InvalidUrn_request(self):
         """Check get Label"""
         # Need to parse with Citation and parse individually or simply check for some equality
@@ -399,27 +378,6 @@ class TestRestAPI(TestCase):
             "urn:cts:latinLit:phi1294", data["@graph"]["@id"], "Label should be there"
         )
 
-    def test_dts_UnknownCollection_request(self):
-        """Check get Label"""
-        # Need to parse with Citation and parse individually or simply check for some equality
-        self.nautilus.logger.disabled = False
-        data = json.loads(self.app.get("/dts/collections/urn:cts:latinLit:phi1295").data.decode())
-        self.assertIn(
-            "Resource requested is not found", data["message"], "Error message should be displayed"
-        )
-        self.assertIn(
-            "UnknownCollection", data["error"], "Error name should be displayed"
-        )
-        data = json.loads(self.app.get("/dts/collections/urn:cts:latinLit:phi1294.phi003").data.decode())
-        self.assertIn(
-            "Resource requested is not found", data["message"], "Error message should be displayed"
-        )
-        self.assertIn(
-            "UnknownCollection", data["error"], "Error name should be displayed"
-        )
-        self.assertLogged("DTS error thrown UnknownCollection for /dts/collections/urn:cts:latinLit:phi1295 "
-                          "( Resource requested is not found )")
-
 
 class TestRestAPICache(TestRestAPI):
     def setUp(self):
@@ -464,3 +422,54 @@ class TestRestAPICache(TestRestAPI):
 
         self.parent.called = []
         self.parent.call = lambda x: call(self.parent, x)
+
+
+class TestNautilusLoggin(TestCase):
+    def setUp(self):
+        TestRestAPI.setUp(self)
+        self.nautilus.resolver.parse()
+        self.nautilus.logger.setLevel(logging.INFO)
+        self.nautilus.logger.disabled = False
+        logassert.setup(self, self.nautilus.logger.name)
+
+    def test_UnknownCollection_request(self):
+        """Check get Label"""
+        # Need to parse with Citation and parse individually or simply check for some equality
+        data = self.app.get("/cts?request=GetCapabilities&urn=urn:cts:latinLit:phi1295").data.decode()
+        self.assertIn(
+            "Resource requested is not found", data, "Error message should be displayed"
+        )
+        self.assertIn(
+            "UnknownCollection", data, "Error name should be displayed"
+        )
+
+        self.assertLogged("CTS error thrown UnknownCollection for "
+                          "request=GetCapabilities&urn=urn:cts:latinLit:phi1295 ( Resource requested is not found )")
+
+        data = self.app.get("/cts?request=GetPassage&urn=urn:cts:latinLit:phi1294.phi003").data.decode()
+        self.assertIn(
+            "Resource requested is not found", data, "Error message should be displayed"
+        )
+        self.assertIn(
+            "UnknownCollection", data, "Error name should be displayed"
+        )
+
+    def test_dts_UnknownCollection_request(self):
+        """Check get Label"""
+        # Need to parse with Citation and parse individually or simply check for some equality
+        data = json.loads(self.app.get("/dts/collections/urn:cts:latinLit:phi1295").data.decode())
+        self.assertIn(
+            "Resource requested is not found", data["message"], "Error message should be displayed"
+        )
+        self.assertIn(
+            "UnknownCollection", data["error"], "Error name should be displayed"
+        )
+        data = json.loads(self.app.get("/dts/collections/urn:cts:latinLit:phi1294.phi003").data.decode())
+        self.assertIn(
+            "Resource requested is not found", data["message"], "Error message should be displayed"
+        )
+        self.assertIn(
+            "UnknownCollection", data["error"], "Error name should be displayed"
+        )
+        self.assertLogged("DTS error thrown UnknownCollection for /dts/collections/urn:cts:latinLit:phi1295 "
+                          "( Resource requested is not found )")
