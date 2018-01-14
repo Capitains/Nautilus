@@ -32,6 +32,8 @@ class TestManager(TestCase):
             raise Exception("Run failed")
 
     def setUp(self):
+        shutil.rmtree(subprocess_cache_dir, ignore_errors=True)
+        shutil.rmtree(http_cache_dir, ignore_errors=True)
         self.cache = nautilus_cache
         self.resolver = resolver
         self.resolver.dispatcher = make_dispatcher()
@@ -60,9 +62,10 @@ class TestManager(TestCase):
         self.cli("parse")
         files = glob.glob(subprocess_cache_dir+"/*")
         self.assertGreater(len(files), 0, "There should be caching operated by resolver")
-
+        print(files)
         self.cli("flush_resolver")
         files = glob.glob(subprocess_cache_dir+"/*")
+        print(files)
         self.assertEqual(len(files), 0, "Resolver Cache should be flushed")
 
     def test_flush_http(self):
