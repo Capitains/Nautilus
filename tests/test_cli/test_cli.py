@@ -22,6 +22,11 @@ python = executable
 
 
 class TestManager(TestCase):
+    """ Test the manager ability to preprocess and cache some resources
+
+    .. note:: Werkzeug File System Cache leaves a cache file to indicate the number of other cache files . More in
+    https://github.com/Capitains/Nautilus/issues/62 and https://github.com/pallets/werkzeug/blob/8393ee88aaacf7bcd3a0b1d604511f70c222df25/werkzeug/contrib/cache.py#L773-L781
+    """
 
     class ParsingCalled(Exception):
         pass
@@ -61,12 +66,10 @@ class TestManager(TestCase):
         """ Check that parsing works and that flushing removes the cache """
         self.cli("parse")
         files = glob.glob(subprocess_cache_dir+"/*")
-        self.assertGreater(len(files), 0, "There should be caching operated by resolver")
-        print(files)
+        self.assertGreater(len(files), 1, "There should be caching operated by resolver")
         self.cli("flush_resolver")
         files = glob.glob(subprocess_cache_dir+"/*")
-        print(files)
-        self.assertEqual(len(files), 0, "Resolver Cache should be flushed")
+        self.assertEqual(len(files), 1, "Resolver Cache should be flushed (and only the count cache file should remain")
 
     def test_flush_http(self):
         """ Check that parsing works, that flushing removes the http cache """
@@ -80,14 +83,14 @@ class TestManager(TestCase):
             )
 
         files = glob.glob(http_cache_dir+"/*")
-        self.assertGreater(len(files), 0, "There should be caching operated by flask-caching")
+        self.assertGreater(len(files), 1, "There should be caching operated by flask-caching")
 
         self.cli("flush_http_cache")
         files = glob.glob(http_cache_dir+"/*")
-        self.assertEqual(len(files), 0, "There should be flushing of flask-caching")
+        self.assertEqual(len(files), 1, "HTTP Cache should be flushed (and only the count cache file should remain")
 
         files = glob.glob(subprocess_cache_dir+"/*")
-        self.assertGreater(len(files), 0, "But not of Resolver Cache")
+        self.assertGreater(len(files), 1, "But not of Resolver Cache")
 
     def test_flush_both(self):
         """ Check that parsing works, that both flushing removes the http cache and resolver cache"""
@@ -101,15 +104,15 @@ class TestManager(TestCase):
             )
 
         files = glob.glob(http_cache_dir+"/*")
-        self.assertGreater(len(files), 0, "There should be caching operated by flask-caching")
+        self.assertGreater(len(files), 1, "There should be caching operated by flask-caching")
         files = glob.glob(subprocess_cache_dir+"/*")
-        self.assertGreater(len(files), 0, "There should be caching operated by resolver")
+        self.assertGreater(len(files), 1, "There should be caching operated by resolver")
 
         self.cli("flush_both")
         files = glob.glob(http_cache_dir+"/*")
-        self.assertEqual(len(files), 0, "There should be flushing of flask-caching")
+        self.assertEqual(len(files), 1, "HTTP Cache should be flushed (and only the count cache file should remain")
         files = glob.glob(subprocess_cache_dir+"/*")
-        self.assertEqual(len(files), 0, "There should be flushing of resolver")
+        self.assertEqual(len(files), 1, "Resolver Cache should be flushed (and only the count cache file should remain")
 
     def test_references(self):
         output = self.cli("parse")
