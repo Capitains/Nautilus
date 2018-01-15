@@ -2,6 +2,7 @@ language: python
 python:
   - "3.4.5"
   - "3.5"
+  - "3.6"
 
 services:
   - "redis"
@@ -22,3 +23,12 @@ branches:
   only:
     - master
     - documentation
+
+
+deploy:
+  provider: pypi
+  user: ponteineptique
+  password: $PYPASS
+  on:
+    tags: true
+    python: "3.5"

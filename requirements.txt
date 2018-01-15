@@ -2,7 +2,7 @@ tornado>=4.3
 Flask>=0.12
 Werkzeug>=0.11.3
 redis>=2.10.5
-flask-caching==1.2.0
+flask-caching>=1.2.0
 MyCapytain>=2.0.0
 logassert
 mock==2.0.0

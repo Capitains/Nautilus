@@ -28,6 +28,10 @@ class TestManager(TestCase):
     https://github.com/Capitains/Nautilus/issues/62 and https://github.com/pallets/werkzeug/blob/8393ee88aaacf7bcd3a0b1d604511f70c222df25/werkzeug/contrib/cache.py#L773-L781
     """
 
+    @property
+    def app(self):
+        return self.__app__
+
     class ParsingCalled(Exception):
         pass
 
@@ -46,7 +50,9 @@ class TestManager(TestCase):
         self.resolver.logger.disabled = True
         self.former_parse = self.resolver.parse
         self.nautilus = nautilus
-        self.app = app
+        self.__app__ = app
+        self.nautilus.flaskcache.init_app(self.app)
+        self.test_client = self.app.test_client()
 
         def x(*k, **kw):
             raise self.ParsingCalled("Parse should not be called")
@@ -75,12 +81,11 @@ class TestManager(TestCase):
         """ Check that parsing works, that flushing removes the http cache """
         self.cli("parse")
 
-        with self.app.app_context():
-            x = nautilus._r_GetCapabilities()
-            self.assertIn(
-                '<label xml:lang="eng">Epigrammata</label>', x[0],
-                "Response should be correctly produced"
-            )
+        response = self.test_client.get("/api/cts?request=GetCapabilities")
+        self.assertIn(
+            '<label xml:lang="eng">Epigrammata</label>', response.data.decode(),
+            "Response should be correctly produced"
+        )
 
         files = glob.glob(http_cache_dir+"/*")
         self.assertGreater(len(files), 1, "There should be caching operated by flask-caching")
@@ -96,12 +101,11 @@ class TestManager(TestCase):
         """ Check that parsing works, that both flushing removes the http cache and resolver cache"""
         self.cli("parse")
 
-        with self.app.app_context():
-            x = nautilus._r_GetCapabilities()
-            self.assertIn(
-                '<label xml:lang="eng">Epigrammata</label>', x[0],
-                "Response should be correctly produced"
-            )
+        response = self.test_client.get("/api/cts?request=GetCapabilities")
+        self.assertIn(
+            '<label xml:lang="eng">Epigrammata</label>', response.data.decode(),
+            "Response should be correctly produced"
+        )
 
         files = glob.glob(http_cache_dir+"/*")
         self.assertGreater(len(files), 1, "There should be caching operated by flask-caching")
@@ -131,20 +135,21 @@ class TestManagerClickMethod(TestManager):
 
     def setUp(self):
         # Full creation of app
-        self.http_cache = Cache(
-            config={
-                'CACHE_TYPE': "filesystem",
-                "CACHE_DIR": http_cache_dir,
-                "CACHE_DEFAULT_TIMEOUT": 0
-            }
-        )
         self.cache = FileSystemCache(subprocess_cache_dir, default_timeout=0)
         self.resolver = NautilusCTSResolver(
             subprocess_repository,
             dispatcher=make_dispatcher(),
             cache=self.cache
         )
-        self.app = Flask("Nautilus")
+        self.__app__ = Flask("Nautilus")
+        self.http_cache = Cache(
+            self.app,
+            config={
+                'CACHE_TYPE': "filesystem",
+                "CACHE_DIR": http_cache_dir,
+                "CACHE_DEFAULT_TIMEOUT": 0
+            }
+        )
         self.nautilus = FlaskNautilus(
             app=self.app,
             prefix="/api",
@@ -152,7 +157,8 @@ class TestManagerClickMethod(TestManager):
             resolver=self.resolver,
             flask_caching=self.http_cache
         )
-        self.http_cache.init_app(self.app)
+
+        self.test_client = self.app.test_client()
 
         # Option to ensure cache works
         self.former_parse = self.resolver.parse
