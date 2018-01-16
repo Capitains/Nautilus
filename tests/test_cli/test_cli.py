@@ -22,6 +22,15 @@ python = executable
 
 
 class TestManager(TestCase):
+    """ Test the manager ability to preprocess and cache some resources
+
+    .. note:: Werkzeug File System Cache leaves a cache file to indicate the number of other cache files . More in
+    https://github.com/Capitains/Nautilus/issues/62 and https://github.com/pallets/werkzeug/blob/8393ee88aaacf7bcd3a0b1d604511f70c222df25/werkzeug/contrib/cache.py#L773-L781
+    """
+
+    @property
+    def app(self):
+        return self.__app__
 
     class ParsingCalled(Exception):
         pass
@@ -32,6 +41,8 @@ class TestManager(TestCase):
             raise Exception("Run failed")
 
     def setUp(self):
+        shutil.rmtree(subprocess_cache_dir, ignore_errors=True)
+        shutil.rmtree(http_cache_dir, ignore_errors=True)
         self.cache = nautilus_cache
         self.resolver = resolver
         self.resolver.dispatcher = make_dispatcher()
@@ -39,7 +50,9 @@ class TestManager(TestCase):
         self.resolver.logger.disabled = True
         self.former_parse = self.resolver.parse
         self.nautilus = nautilus
-        self.app = app
+        self.__app__ = app
+        self.nautilus.flaskcache.init_app(self.app)
+        self.test_client = self.app.test_client()
 
         def x(*k, **kw):
             raise self.ParsingCalled("Parse should not be called")
@@ -59,54 +72,51 @@ class TestManager(TestCase):
         """ Check that parsing works and that flushing removes the cache """
         self.cli("parse")
         files = glob.glob(subprocess_cache_dir+"/*")
-        self.assertGreater(len(files), 0, "There should be caching operated by resolver")
-
+        self.assertGreater(len(files), 1, "There should be caching operated by resolver")
         self.cli("flush_resolver")
         files = glob.glob(subprocess_cache_dir+"/*")
-        self.assertEqual(len(files), 0, "Resolver Cache should be flushed")
+        self.assertEqual(len(files), 1, "Resolver Cache should be flushed (and only the count cache file should remain")
 
     def test_flush_http(self):
         """ Check that parsing works, that flushing removes the http cache """
         self.cli("parse")
 
-        with self.app.app_context():
-            x = nautilus._r_GetCapabilities()
-            self.assertIn(
-                '<label xml:lang="eng">Epigrammata</label>', x[0],
-                "Response should be correctly produced"
-            )
+        response = self.test_client.get("/api/cts?request=GetCapabilities")
+        self.assertIn(
+            '<label xml:lang="eng">Epigrammata</label>', response.data.decode(),
+            "Response should be correctly produced"
+        )
 
         files = glob.glob(http_cache_dir+"/*")
-        self.assertGreater(len(files), 0, "There should be caching operated by flask-caching")
+        self.assertGreater(len(files), 1, "There should be caching operated by flask-caching")
 
         self.cli("flush_http_cache")
         files = glob.glob(http_cache_dir+"/*")
-        self.assertEqual(len(files), 0, "There should be flushing of flask-caching")
+        self.assertEqual(len(files), 1, "HTTP Cache should be flushed (and only the count cache file should remain")
 
         files = glob.glob(subprocess_cache_dir+"/*")
-        self.assertGreater(len(files), 0, "But not of Resolver Cache")
+        self.assertGreater(len(files), 1, "But not of Resolver Cache")
 
     def test_flush_both(self):
         """ Check that parsing works, that both flushing removes the http cache and resolver cache"""
         self.cli("parse")
 
-        with self.app.app_context():
-            x = nautilus._r_GetCapabilities()
-            self.assertIn(
-                '<label xml:lang="eng">Epigrammata</label>', x[0],
-                "Response should be correctly produced"
-            )
+        response = self.test_client.get("/api/cts?request=GetCapabilities")
+        self.assertIn(
+            '<label xml:lang="eng">Epigrammata</label>', response.data.decode(),
+            "Response should be correctly produced"
+        )
 
         files = glob.glob(http_cache_dir+"/*")
-        self.assertGreater(len(files), 0, "There should be caching operated by flask-caching")
+        self.assertGreater(len(files), 1, "There should be caching operated by flask-caching")
         files = glob.glob(subprocess_cache_dir+"/*")
-        self.assertGreater(len(files), 0, "There should be caching operated by resolver")
+        self.assertGreater(len(files), 1, "There should be caching operated by resolver")
 
         self.cli("flush_both")
         files = glob.glob(http_cache_dir+"/*")
-        self.assertEqual(len(files), 0, "There should be flushing of flask-caching")
+        self.assertEqual(len(files), 1, "HTTP Cache should be flushed (and only the count cache file should remain")
         files = glob.glob(subprocess_cache_dir+"/*")
-        self.assertEqual(len(files), 0, "There should be flushing of resolver")
+        self.assertEqual(len(files), 1, "Resolver Cache should be flushed (and only the count cache file should remain")
 
     def test_references(self):
         output = self.cli("parse")
@@ -125,20 +135,21 @@ class TestManagerClickMethod(TestManager):
 
     def setUp(self):
         # Full creation of app
-        self.http_cache = Cache(
-            config={
-                'CACHE_TYPE': "filesystem",
-                "CACHE_DIR": http_cache_dir,
-                "CACHE_DEFAULT_TIMEOUT": 0
-            }
-        )
         self.cache = FileSystemCache(subprocess_cache_dir, default_timeout=0)
         self.resolver = NautilusCTSResolver(
             subprocess_repository,
             dispatcher=make_dispatcher(),
             cache=self.cache
         )
-        self.app = Flask("Nautilus")
+        self.__app__ = Flask("Nautilus")
+        self.http_cache = Cache(
+            self.app,
+            config={
+                'CACHE_TYPE': "filesystem",
+                "CACHE_DIR": http_cache_dir,
+                "CACHE_DEFAULT_TIMEOUT": 0
+            }
+        )
         self.nautilus = FlaskNautilus(
             app=self.app,
             prefix="/api",
@@ -146,7 +157,8 @@ class TestManagerClickMethod(TestManager):
             resolver=self.resolver,
             flask_caching=self.http_cache
         )
-        self.http_cache.init_app(self.app)
+
+        self.test_client = self.app.test_client()
 
         # Option to ensure cache works
         self.former_parse = self.resolver.parse
