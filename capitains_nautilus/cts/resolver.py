@@ -6,7 +6,14 @@ from werkzeug.contrib.cache import NullCache
 import MyCapytain.errors
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
-from MyCapytain.resolvers.utils import CollectionDispatchergit
+from MyCapytain.resolvers.utils import CollectionDispatcher
+from MyCapytain.resources.collections.cts import (
+    XmlCtsTextInventoryMetadata as TextInventory,
+    XmlCtsTextgroupMetadata as TextGroup,
+    XmlCtsWorkMetadata as Work,
+    XmlCtsCitation as Citation,
+    XmlCtsEditionMetadata as Edition
+)
 from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection as TextInventoryCollection
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
 from MyCapytain.common.constants import set_graph

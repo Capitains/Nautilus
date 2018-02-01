@@ -2,6 +2,10 @@ from MyCapytain.resources.prototypes.metadata import Collection
 from MyCapytain.common.constants import RDF_NAMESPACES
 
 
+def NoneGenerator(object_id):
+    return None
+
+
 class SparqlNavigatedCollection(Collection):
 
     @staticmethod
