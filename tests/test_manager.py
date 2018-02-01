@@ -70,7 +70,6 @@ class TestManager(TestCase):
         """ Simulate python manager.py
         """
         # Preparation : checking resources are not there
-        self.assertEqual(len(self.resolver.__texts__), 0, "Texts should have been flushed")
         self.assertEqual(self.resolver.__inventory__, None, "Inventory should have been flushed")
         self.assertEqual(
             self.cache_manager.get(self.resolver.inventory_cache_key) is None,

@@ -6,15 +6,9 @@ from werkzeug.contrib.cache import NullCache
 import MyCapytain.errors
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
-from MyCapytain.resolvers.utils import CollectionDispatcher
 from MyCapytain.resources.collections.cts import (
-    XmlCtsTextInventoryMetadata as TextInventory,
-    XmlCtsTextgroupMetadata as TextGroup,
-    XmlCtsWorkMetadata as Work,
-    XmlCtsCitation as Citation,
     XmlCtsEditionMetadata as Edition
 )
-from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection as TextInventoryCollection
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
 from MyCapytain.common.constants import set_graph
 
@@ -45,30 +39,15 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
     NautilusCTSResolver = False
     REMOVE_EMPTY = True
     CACHE_FULL_TEI = False
+    RAISE_ON_GENERIC_PARSING_ERROR = False
 
     def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None):
         """ Initiate the XMLResolver
 
         """
-        if dispatcher is None:
-            inventory_collection = TextInventoryCollection(identifier="defaultTic")
-            ti = TextInventory("default")
-            ti.parent = inventory_collection
-            ti.set_label("Default collection", "eng")
-            self.dispatcher = CollectionDispatcher(inventory_collection)
-        else:
-            self.dispatcher = dispatcher
-
-        self.__inventory__ = None
-        self.__texts__ = []
-        self.name = name
-
-        self.logger = logger
-        if not logger:
-            self.logger = logging.getLogger(name)
-
-        if not name:
-            self.name = "repository"
+        super(NautilusCTSResolver, self).__init__(
+            resource=resource, dispatcher=dispatcher, name=name, logger=logger, autoparse=False
+        )
 
         if cache is None:
             cache = NullCache()
@@ -94,14 +73,6 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
     def inventory(self, value):
         self.__inventory__ = value
         self.cache.set(self.inventory_cache_key, value, self.TIMEOUT)
-
-    @property
-    def texts(self):
-        """ List of text known
-
-        :rtype: list
-        """
-        return self.inventory.readableDescendants
 
     def xmlparse(self, file):
         """ Parse a XML file
@@ -160,85 +131,19 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
 
     def parse(self, resource=None):
         """ Parse a list of directories ans
+
         :param resource: List of folders
-        :param ret: Return a specific item ("inventory" or "texts")
         """
         if resource is None:
             resource = self.__resources__
-        removing = []
-        for folder in resource:
-            textgroups = glob("{base_folder}/data/*/__cts__.xml".format(base_folder=folder))
-            for __cts__ in textgroups:
-                try:
-                    with open(__cts__) as __xml__:
-                        textgroup = TextGroup.parse(
-                            resource=__xml__
-                        )
-                        tg_urn = str(textgroup.urn)
-                    if tg_urn in self.dispatcher.collection:
-                        self.dispatcher.collection[tg_urn].update(textgroup)
-                    else:
-                        self.dispatcher.dispatch(textgroup, path=__cts__)
 
-                    for __subcts__ in glob("{parent}/*/__cts__.xml".format(parent=os.path.dirname(__cts__))):
-                        with open(__subcts__) as __xml__:
-                            work = Work.parse(
-                                resource=__xml__,
-                                parent=self.dispatcher.collection[tg_urn]
-                            )
-                            work_urn = str(work.urn)
-                            if work_urn in self.dispatcher.collection[tg_urn].works:
-                                self.dispatcher.collection[work_urn].update(work)
+        try:
+            super(NautilusCTSResolver, self).parse(resource=resource)
+        except MyCapytain.errors.UndispatchedTextError as E:
+            if self.RAISE_ON_UNDISPATCHED is True:
+                raise UndispatchedTextError(E)
 
-                        for __textkey__ in work.texts:
-                            __text__ = self.dispatcher.collection[__textkey__]
-                            __text__.path = "{directory}/{textgroup}.{work}.{version}.xml".format(
-                                directory=os.path.dirname(__subcts__),
-                                textgroup=__text__.urn.textgroup,
-                                work=__text__.urn.work,
-                                version=__text__.urn.version
-                            )
-                            if os.path.isfile(__text__.path):
-                                try:
-                                    t = self.read(__textkey__, __text__.path)
-                                    cites = list()
-                                    for cite in [c for c in t.citation][::-1]:
-                                        if len(cites) >= 1:
-                                            cites.append(Citation(
-                                                xpath=cite.xpath.replace("'", '"'),
-                                                scope=cite.scope.replace("'", '"'),
-                                                name=cite.name,
-                                                child=cites[-1]
-                                            ))
-                                        else:
-                                            cites.append(Citation(
-                                                xpath=cite.xpath.replace("'", '"'),
-                                                scope=cite.scope.replace("'", '"'),
-                                                name=cite.name
-                                            ))
-                                    del t
-                                    __text__.citation = cites[-1]
-                                    self.logger.info("%s has been parsed ", __text__.path)
-                                    if __text__.citation.isEmpty() is True:
-                                        removing.append(__textkey__)
-                                        self.logger.error("%s has no passages", __text__.path)
-                                except Exception as E:
-                                    removing.append(__textkey__)
-                                    self.logger.error(
-                                        "%s does not accept parsing at some level (most probably citation) ",
-                                        __text__.path
-                                    )
-                            else:
-                                removing.append(__textkey__)
-                                self.logger.error("%s is not present", __text__.path)
-                except MyCapytain.errors.UndispatchedTextError as E:
-                    self.logger.error("Error dispatching %s ", __cts__)
-                    if self.RAISE_ON_UNDISPATCHED is True:
-                        raise UndispatchedTextError(E)
-                except Exception as E:
-                    self.logger.error("Error parsing %s ", __cts__)
-
-        for removable in removing:
+        for removable in self.invalid_collections:
             del self.dispatcher.collection[removable]
 
         removing = []
@@ -246,7 +151,7 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
         if self.REMOVE_EMPTY is True:
             # Find resource with no readable descendants
             for item in self.dispatcher.collection.descendants:
-                if item.readable != True and len(item.readableDescendants) == 0:
+                if not item.readable and len(item.readableDescendants) == 0:
                     removing.append(item.id)
 
             # Remove them only if they have not been removed before
@@ -272,7 +177,7 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
                 urn = [
                     t.id
                     for t in self.texts
-                    if t.id.startswith(str(urn)) and isinstance(t, Edition)
+                    if t.id.startswith(str(urn)) and isinstance(t, self.classes["edition"])
                 ]
                 if len(urn) > 0:
                     urn = URN(urn[0])
@@ -288,11 +193,9 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
         except Exception as E:
             raise E
 
-
         if os.path.isfile(text.path):
             resource = self.read(identifier=urn, path=text.path)
         else:
-            resource = None
             raise UnknownCollection("File matching %s does not exist" % text.path)
 
         return resource, text
