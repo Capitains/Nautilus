@@ -28,6 +28,7 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
     def test_resource_parser(self):
         """ Test that the initiation finds correctly the resources """
         Repository = self.RESOLVER_CLASS(["./tests/testing_data/farsiLit"])
+
         self.assertEqual(
             Repository.inventory["urn:cts:farsiLit:hafez"].urn, URN("urn:cts:farsiLit:hafez"),
             "Hafez is found"

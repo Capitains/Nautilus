@@ -113,7 +113,7 @@ class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver):
             resource = self.__resources__
 
         try:
-            super(__BaseNautilusCTSResolver__, self).parse(resource=resource)
+            inventory = super(__BaseNautilusCTSResolver__, self).parse(resource=resource)
         except MyCapytain.errors.UndispatchedTextError as E:
             if self.RAISE_ON_UNDISPATCHED is True:
                 raise UndispatchedTextError(E)

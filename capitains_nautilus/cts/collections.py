@@ -28,10 +28,12 @@ class SparqlXmlCtsTextMetadata(SparqlNavigatedCollection, XmlCtsTextMetadata):
 
     @property
     def path(self):
+        print("Called")
         return list(self.graph.objects(self.asNode(), RDF_NAMESPACES.CAPITAINS.path))[0]
 
     @path.setter
     def path(self, value):
+        print("Setting the path ?")
         self.graph.set(
             (self.asNode(), RDF_NAMESPACES.CAPITAINS.path, value)
         )
