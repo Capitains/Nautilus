@@ -24,13 +24,15 @@ logger = logging.getLogger("some_logger")
 
 
 class TestRestAPI(TestCase):
+    RESOLVER_CLASS = NautilusCTSResolver
+
     def setUp(self):
         # Clean up noise...
 
         app = Flask("Nautilus")
         self.nautilus = FlaskNautilus(
             app=app,
-            resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
+            resolver=self.RESOLVER_CLASS(["./tests/test_data/latinLit"]),
             logger=logger
         )
         self.cache = None
@@ -386,7 +388,7 @@ class TestRestAPICache(TestRestAPI):
         self.cache = Cache(config={'CACHE_TYPE': 'simple'})
         self.nautilus = FlaskNautilus(
             app=app,
-            resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
+            resolver=self.RESOLVER_CLASS(["./tests/test_data/latinLit"]),
             flask_caching=self.cache,
             logger=logger
         )
@@ -424,7 +426,8 @@ class TestRestAPICache(TestRestAPI):
         self.parent.call = lambda x: call(self.parent, x)
 
 
-class TestNautilusLoggin(TestCase):
+class TestNautilusLogging(TestCase):
+    RESOLVER_CLASS = NautilusCTSResolver
     def setUp(self):
         TestRestAPI.setUp(self)
         self.nautilus.resolver.parse()

@@ -10,11 +10,11 @@ class SparqlNavigatedCollection(Collection):
 
     @staticmethod
     def children_class(object_id):
-        return SparqlNavigatedCollection
+        return SparqlNavigatedCollection(object_id)
 
     @staticmethod
     def parent_class(object_id):
-        return SparqlNavigatedCollection
+        return SparqlNavigatedCollection(object_id)
 
     @property
     def members(self):
@@ -24,9 +24,14 @@ class SparqlNavigatedCollection(Collection):
         """
         return list(
             [
-                self.children_class(self.graph.objects(self.asNode(), RDF_NAMESPACES.DTS.parent))
+                self.children_class(child)
+                for child in self.graph.subjects(RDF_NAMESPACES.DTS.parent, self.asNode())
             ]
         )
+
+    @property
+    def descendants(self):
+        return Collection.descendants.fget(self)
 
     @property
     def parent(self):
@@ -34,10 +39,14 @@ class SparqlNavigatedCollection(Collection):
 
         :rtype: Collection
         """
-        parent = self.graph.objects(self.asNode(), RDF_NAMESPACES.DTS.parent)
+        parent = list(self.graph.objects(self.asNode(), RDF_NAMESPACES.DTS.parent))
         if parent:
             return self.parent_class(parent[0])
         return None
+
+    @parent.setter
+    def parent(self, parent):
+        Collection.parent.fset(self, parent)
 
     @property
     def children(self):

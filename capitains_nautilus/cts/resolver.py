@@ -1,40 +1,27 @@
-from glob import glob
 import os.path
-import logging
 from werkzeug.contrib.cache import NullCache
 
 import MyCapytain.errors
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
-from MyCapytain.resources.collections.cts import (
-    XmlCtsEditionMetadata as Edition
-)
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
+from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection
 from MyCapytain.common.constants import set_graph
 
 from capitains_nautilus import _cache_key
 from capitains_nautilus.errors import *
+from capitains_nautilus.cts.collections import (
+    SparqlXmlCitation,
+    SparqlXmlCtsEditionMetadata,
+    SparqlXmlCtsTextgroupMetadata,
+    SparqlXmlCtsTextInventoryMetadata,
+    SparqlXmlCtsTranslationMetadata,
+    SparqlXmlCtsCommentaryMetadata,
+    SparqlXmlCtsWorkMetadata
+)
 
 
-class NautilusCTSResolver(CtsCapitainsLocalResolver):
-    """ XML Folder Based resolver.
-
-    :param resource: Resource should be a list of folders retaining data as Capitains Guidelines Repositories
-    :type resource: [str]
-    :param name: Key used to make cache key
-    :param cache: Cache object to be used for the inventory
-    :type cache: BaseCache
-    :param logger: Logging object
-    :type logger: logging.logger
-
-    :ivar inventory_cache_key: Werkzeug Cache key to get or set cache for the TextInventory
-    :ivar texts_cache_key:  Werkzeug Cache key to get or set cache for lists of metadata texts objects
-    :ivar texts_parsed:  Werkzeug Cache key to get or set cache for lists of parsed texts objects
-    :ivar texts: List of Text Metadata objects
-    :ivar source: Original resource parameter
-
-    .. warning :: This resolver does not support inventories
-    """
+class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver):
     TIMEOUT = 0
     NautilusCTSResolver = False
     REMOVE_EMPTY = True
@@ -45,7 +32,7 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
         """ Initiate the XMLResolver
 
         """
-        super(NautilusCTSResolver, self).__init__(
+        super(__BaseNautilusCTSResolver__, self).__init__(
             resource=resource, dispatcher=dispatcher, name=name, logger=logger, autoparse=False
         )
 
@@ -62,18 +49,6 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
     def cache(self):
         return self.__cache__
 
-    @property
-    def inventory(self):
-        if self.__inventory__ is None or len(self.__inventory__.readableDescendants) == 0:
-            self.__inventory__ = self.get_or(self.inventory_cache_key, self.parse, self.__resources__)
-            set_graph(self.__inventory__.graph)
-        return self.__inventory__
-
-    @inventory.setter
-    def inventory(self, value):
-        self.__inventory__ = value
-        self.cache.set(self.inventory_cache_key, value, self.TIMEOUT)
-
     def xmlparse(self, file):
         """ Parse a XML file
 
@@ -83,9 +58,9 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
         if self.CACHE_FULL_TEI is True:
             return self.get_or(
                 _cache_key("Nautilus", self.name, "File", "Tree", file.name),
-                super(NautilusCTSResolver, self).xmlparse, file
+                super(__BaseNautilusCTSResolver__, self).xmlparse, file
             )
-        return super(NautilusCTSResolver, self).xmlparse(file)
+        return super(__BaseNautilusCTSResolver__, self).xmlparse(file)
 
     def get_or(self, cache_key, callback, *args, **kwargs):
         """ Get or set the cache using callback and arguments
@@ -138,7 +113,7 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
             resource = self.__resources__
 
         try:
-            super(NautilusCTSResolver, self).parse(resource=resource)
+            super(__BaseNautilusCTSResolver__, self).parse(resource=resource)
         except MyCapytain.errors.UndispatchedTextError as E:
             if self.RAISE_ON_UNDISPATCHED is True:
                 raise UndispatchedTextError(E)
@@ -211,7 +186,7 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
         """
         return self.get_or(
             _cache_key("Nautilus", self.name, "GetMetadata", objectId),
-            super(NautilusCTSResolver, self).getMetadata, objectId
+            super(__BaseNautilusCTSResolver__, self).getMetadata, objectId
         )
 
     def getReffs(self, textId, level=1, subreference=None):
@@ -228,7 +203,7 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
         """
         return self.get_or(
             self.__cache_key_reffs__(textId, level, subreference),
-            super(NautilusCTSResolver, self).getReffs, textId, level, subreference
+            super(__BaseNautilusCTSResolver__, self).getReffs, textId, level, subreference
         )
 
     def __cache_key_reffs__(self, textId, level, subreference):
@@ -279,3 +254,50 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
         siblings = passage.siblingsId
         self.cache.set(key, siblings)
         return siblings
+
+
+class NautilusCTSResolver(__BaseNautilusCTSResolver__):
+    """ XML Folder Based resolver fully cache oriented (including the inventory)
+
+    :param resource: Resource should be a list of folders retaining data as Capitains Guidelines Repositories
+    :type resource: [str]
+    :param name: Key used to make cache key
+    :param cache: Cache object to be used for the inventory
+    :type cache: BaseCache
+    :param logger: Logging object
+    :type logger: logging.logger
+
+    :ivar inventory_cache_key: Werkzeug Cache key to get or set cache for the TextInventory
+    :ivar texts_cache_key:  Werkzeug Cache key to get or set cache for lists of metadata texts objects
+    :ivar texts_parsed:  Werkzeug Cache key to get or set cache for lists of parsed texts objects
+    :ivar texts: List of Text Metadata objects
+    :ivar source: Original resource parameter
+
+    .. warning :: This resolver does not support inventories
+    """
+
+    @property
+    def inventory(self):
+        if self.__inventory__ is None or len(self.__inventory__.readableDescendants) == 0:
+            self.__inventory__ = self.get_or(self.inventory_cache_key, self.parse, self.__resources__)
+            set_graph(self.__inventory__.graph)
+        return self.__inventory__
+
+    @inventory.setter
+    def inventory(self, value):
+        self.__inventory__ = value
+        self.cache.set(self.inventory_cache_key, value, self.TIMEOUT)
+
+
+class SparqlNautilusCTSResolver(__BaseNautilusCTSResolver__):
+    RAISE_ON_GENERIC_PARSING_ERROR = True
+    CLASSES = {
+        "edition": SparqlXmlCtsEditionMetadata,
+        "translation": SparqlXmlCtsTranslationMetadata,
+        "commentary": SparqlXmlCtsCommentaryMetadata,
+        "work": SparqlXmlCtsWorkMetadata,
+        "textgroup": SparqlXmlCtsTextgroupMetadata,
+        "inventory": SparqlXmlCtsTextInventoryMetadata,
+        "inventory_collection": CtsTextInventoryCollection,
+        "citation": SparqlXmlCitation
+    }

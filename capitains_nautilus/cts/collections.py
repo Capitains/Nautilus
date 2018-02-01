@@ -3,10 +3,38 @@ from MyCapytain.resources.collections.cts import (
     XmlCtsTextgroupMetadata,
     XmlCtsWorkMetadata,
     XmlCtsCitation,
-    XmlCtsEditionMetadata
+    XmlCtsEditionMetadata,
+    XmlCtsCommentaryMetadata,
+    XmlCtsTranslationMetadata,
+    XmlCtsTextMetadata
 )
 from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection
+from MyCapytain.common.constants import RDF_NAMESPACES
 from capitains_nautilus.collections import SparqlNavigatedCollection
+
+
+class SparqlXmlCtsTextMetadata(SparqlNavigatedCollection, XmlCtsTextMetadata):
+    @staticmethod
+    def children_class(object_id):
+        raise NameError("CTS Text cannot have children")
+
+    @staticmethod
+    def parent_class(object_id):
+        return SparqlXmlCtsWorkMetadata(urn=object_id)
+
+    @property
+    def readable(self):
+        return True
+
+    @property
+    def path(self):
+        return list(self.graph.objects(self.asNode(), RDF_NAMESPACES.CAPITAINS.path))[0]
+
+    @path.setter
+    def path(self, value):
+        self.graph.set(
+            (self.asNode(), RDF_NAMESPACES.CAPITAINS.path, value)
+        )
 
 
 class SparqlXmlCitation(XmlCtsCitation):
@@ -14,34 +42,36 @@ class SparqlXmlCitation(XmlCtsCitation):
     pass
 
 
-class SparqlXmlCtsEditionMetadata(SparqlNavigatedCollection, XmlCtsEditionMetadata):
-    @staticmethod
-    def children_class(object_id):
-        return lambda *x: None
+class SparqlXmlCtsTranslationMetadata(SparqlXmlCtsTextMetadata, XmlCtsTranslationMetadata):
+    """ """
 
-    @staticmethod
-    def parent_class(object_id):
-        return SparqlXmlCtsWorkMetadata
+
+class SparqlXmlCtsCommentaryMetadata(SparqlXmlCtsTextMetadata, XmlCtsCommentaryMetadata):
+    """ """
+
+
+class SparqlXmlCtsEditionMetadata(SparqlXmlCtsTextMetadata, XmlCtsEditionMetadata):
+    """ """
 
 
 class SparqlXmlCtsWorkMetadata(SparqlNavigatedCollection, XmlCtsWorkMetadata):
     @staticmethod
     def children_class(object_id):
-        return SparqlXmlCtsEditionMetadata
+        return SparqlXmlCtsEditionMetadata(object_id)
 
     @staticmethod
     def parent_class(object_id):
-        return SparqlXmlCtsTextgroupMetadata
+        return SparqlXmlCtsTextgroupMetadata(object_id)
 
 
 class SparqlXmlCtsTextgroupMetadata(SparqlNavigatedCollection, XmlCtsTextgroupMetadata):
     @staticmethod
     def children_class(object_id):
-        return SparqlXmlCtsWorkMetadata
+        return SparqlXmlCtsWorkMetadata(object_id)
 
     @staticmethod
     def parent_class(object_id):
-        return SparqlXmlCtsTextInventoryMetadata
+        return SparqlXmlCtsTextInventoryMetadata(object_id)
 
 
 class SparqlXmlCtsTextInventoryMetadata(SparqlNavigatedCollection, XmlCtsTextInventoryMetadata):
@@ -50,8 +80,8 @@ class SparqlXmlCtsTextInventoryMetadata(SparqlNavigatedCollection, XmlCtsTextInv
     """
     @staticmethod
     def children_class(object_id):
-        return SparqlXmlCtsTextgroupMetadata
+        return SparqlXmlCtsTextgroupMetadata(object_id)
 
     @staticmethod
     def parent_class(object_id):
-        return CtsTextInventoryCollection
+        return CtsTextInventoryCollection(object_id)

@@ -23,9 +23,11 @@ from capitains_nautilus.errors import UnknownCollection, InvalidURN, Undispatche
 
 class TestXMLFolderResolverBehindTheScene(TestCase):
     """ Test behind the scene functions of the Resolver """
+    RESOLVER_CLASS = NautilusCTSResolver
+    
     def test_resource_parser(self):
         """ Test that the initiation finds correctly the resources """
-        Repository = NautilusCTSResolver(["./tests/testing_data/farsiLit"])
+        Repository = self.RESOLVER_CLASS(["./tests/testing_data/farsiLit"])
         self.assertEqual(
             Repository.inventory["urn:cts:farsiLit:hafez"].urn, URN("urn:cts:farsiLit:hafez"),
             "Hafez is found"
@@ -45,7 +47,7 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
 
     def test_text_resource(self):
         """ Test to get the text resource to perform other queries """
-        Repository = NautilusCTSResolver(["./tests/testing_data/farsiLit"])
+        Repository = self.RESOLVER_CLASS(["./tests/testing_data/farsiLit"])
         text, metadata = Repository.__getText__("urn:cts:farsiLit:hafez.divan.perseus-eng1")
         self.assertEqual(
             len(text.citation), 4,
@@ -59,13 +61,13 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
 
     def test_missing_text_resource(self):
         """ Test to make sure an UnknownCollection error is raised when a text is missing """
-        Repository = NautilusCTSResolver(["./tests/test_data/missing_text"])
+        Repository = self.RESOLVER_CLASS(["./tests/test_data/missing_text"])
         with self.assertRaises(UnknownCollection):
             text, metadata = Repository.__getText__("urn:cts:farsiLit:hafez.divan.missing_text")
 
     def test_get_capabilities(self):
         """ Check Get Capabilities """
-        Repository = NautilusCTSResolver(
+        Repository = self.RESOLVER_CLASS(
             ["./tests/testing_data/farsiLit"]
         )
         Repository.parse()
@@ -112,7 +114,7 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
 
     def test_get_shared_textgroup_cross_repo(self):
         """ Check Get Capabilities """
-        Repository = NautilusCTSResolver(
+        Repository = self.RESOLVER_CLASS(
             [
                 "./tests/testing_data/farsiLit",
                 "./tests/testing_data/latinLit2"
@@ -129,7 +131,7 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
 
     def test_get_capabilities_nocites(self):
         """ Check Get Capabilities latinLit data"""
-        Repository = NautilusCTSResolver(
+        Repository = self.RESOLVER_CLASS(
             ["./tests/testing_data/latinLit"]
         )
         self.assertEqual(
@@ -162,9 +164,11 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
 
 class TextXMLFolderResolver(TestCase):
     """ Ensure working state of resolver """
+    RESOLVER_CLASS = NautilusCTSResolver
+
     def setUp(self):
         get_graph().remove((None, None, None))
-        self.resolver = NautilusCTSResolver(["./tests/testing_data/latinLit2"])
+        self.resolver = self.RESOLVER_CLASS(["./tests/testing_data/latinLit2"])
 
     def test_getPassage_full(self):
         """ Test that we can get a full text """
@@ -586,6 +590,8 @@ class TextXMLFolderResolver(TestCase):
 
 class TextXMLFolderResolverDispatcher(TestCase):
     """ Ensure working state of resolver """
+    RESOLVER_CLASS = NautilusCTSResolver
+
     def setUp(self):
         get_graph().remove((None, None, None))
 
@@ -619,7 +625,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
                 return True
             return False
 
-        resolver = NautilusCTSResolver(
+        resolver = self.RESOLVER_CLASS(
             ["./tests/testing_data/latinLit2"],
             dispatcher=dispatcher
         )
@@ -666,18 +672,18 @@ class TextXMLFolderResolverDispatcher(TestCase):
                 return True
             return False
 
-        NautilusCTSResolver.RAISE_ON_UNDISPATCHED = True
+        self.RESOLVER_CLASS.RAISE_ON_UNDISPATCHED = True
         with self.assertRaises(Exception):
-            resolver = NautilusCTSResolver(
+            resolver = self.RESOLVER_CLASS(
                 ["./tests/testing_data/latinLit2"],
                 dispatcher=dispatcher
             )
             resolver.logger.disabled = True
             resolver.parse()
 
-        NautilusCTSResolver.RAISE_ON_UNDISPATCHED = False
+        self.RESOLVER_CLASS.RAISE_ON_UNDISPATCHED = False
         try:
-            resolver = NautilusCTSResolver(
+            resolver = self.RESOLVER_CLASS(
                 ["./tests/testing_data/latinLit2"],
                 dispatcher=dispatcher
             )
@@ -717,7 +723,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
                 return True
             return False
 
-        resolver = NautilusCTSResolver(
+        resolver = self.RESOLVER_CLASS(
             ["./tests/testing_data/latinLit2"],
             dispatcher=dispatcher
         )
