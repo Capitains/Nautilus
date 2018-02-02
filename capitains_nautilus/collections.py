@@ -30,10 +30,6 @@ class SparqlNavigatedCollection(Collection):
         )
 
     @property
-    def descendants(self):
-        return Collection.descendants.fget(self)
-
-    @property
     def parent(self):
         """ Parent of current object
 
@@ -46,7 +42,9 @@ class SparqlNavigatedCollection(Collection):
 
     @parent.setter
     def parent(self, parent):
-        Collection.parent.fset(self, parent)
+        self.graph.set(
+            (self.asNode(), RDF_NAMESPACES.DTS.parent, parent.asNode())
+        )
 
     @property
     def children(self):

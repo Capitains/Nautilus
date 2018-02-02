@@ -1,3 +1,5 @@
+minitest.py
+http_cache_dir/
 # IDE
 .idea
 env

@@ -1,12 +1,10 @@
-from .test_resolver import TestXMLFolderResolverBehindTheScene, TextXMLFolderResolver, TextXMLFolderResolverDispatcher
+from tests.cts.test_resolver import TestXMLFolderResolverBehindTheScene, TextXMLFolderResolver, TextXMLFolderResolverDispatcher
 from capitains_nautilus.cts.resolver import SparqlNautilusCTSResolver
 
+
 class _Parser:
-    def RESOLVER_CLASS(self, *args, **kwargs):
-        x = SparqlNautilusCTSResolver(*args, **kwargs)
-        x.parse()
-        print("I parsed !")
-        return x
+    RESOLVER_CLASS = SparqlNautilusCTSResolver
+
 
 class TestSparqlBasedResolverDispatcher(_Parser, TextXMLFolderResolverDispatcher):
     """"""

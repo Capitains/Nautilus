@@ -5,7 +5,6 @@ import MyCapytain.errors
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
-from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection
 from MyCapytain.common.constants import set_graph
 
 from capitains_nautilus import _cache_key
@@ -17,13 +16,13 @@ from capitains_nautilus.cts.collections import (
     SparqlXmlCtsTextInventoryMetadata,
     SparqlXmlCtsTranslationMetadata,
     SparqlXmlCtsCommentaryMetadata,
-    SparqlXmlCtsWorkMetadata
+    SparqlXmlCtsWorkMetadata,
+    SparqlTextInventoryCollection
 )
 
 
 class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver):
     TIMEOUT = 0
-    NautilusCTSResolver = False
     REMOVE_EMPTY = True
     CACHE_FULL_TEI = False
     RAISE_ON_GENERIC_PARSING_ERROR = False
@@ -119,7 +118,8 @@ class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver):
                 raise UndispatchedTextError(E)
 
         for removable in self.invalid_collections:
-            del self.dispatcher.collection[removable]
+            if removable in self.dispatcher.collection:
+                del self.dispatcher.collection[removable]
 
         removing = []
 
@@ -290,7 +290,7 @@ class NautilusCTSResolver(__BaseNautilusCTSResolver__):
 
 
 class SparqlNautilusCTSResolver(__BaseNautilusCTSResolver__):
-    RAISE_ON_GENERIC_PARSING_ERROR = True
+    RAISE_ON_GENERIC_PARSING_ERROR = False
     CLASSES = {
         "edition": SparqlXmlCtsEditionMetadata,
         "translation": SparqlXmlCtsTranslationMetadata,
@@ -298,6 +298,16 @@ class SparqlNautilusCTSResolver(__BaseNautilusCTSResolver__):
         "work": SparqlXmlCtsWorkMetadata,
         "textgroup": SparqlXmlCtsTextgroupMetadata,
         "inventory": SparqlXmlCtsTextInventoryMetadata,
-        "inventory_collection": CtsTextInventoryCollection,
+        "inventory_collection": SparqlTextInventoryCollection,
         "citation": SparqlXmlCitation
     }
+
+    @property
+    def inventory(self):
+        return self.dispatcher.collection
+
+    @inventory.setter
+    def inventory(self, value):
+        pass
+
+
