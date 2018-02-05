@@ -1,9 +1,9 @@
 from tests.cts.test_resolver import TestXMLFolderResolverBehindTheScene, TextXMLFolderResolver, TextXMLFolderResolverDispatcher
-from capitains_nautilus.cts.resolver import SparqlNautilusCTSResolver
+from capitains_nautilus.cts.resolver import SparqlAlchemyNautilusCTSResolver
 
 
 class _Parser:
-    RESOLVER_CLASS = SparqlNautilusCTSResolver
+    RESOLVER_CLASS = SparqlAlchemyNautilusCTSResolver
 
 
 class TestSparqlBasedResolverDispatcher(_Parser, TextXMLFolderResolverDispatcher):

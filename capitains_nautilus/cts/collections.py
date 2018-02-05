@@ -21,7 +21,7 @@ class SparqlXmlCtsTextMetadata(SparqlNavigatedCollection, XmlCtsTextMetadata):
 
     @staticmethod
     def parent_class(object_id):
-        return SparqlXmlCtsWorkMetadata(urn=object_id)
+        return SparqlXmlCtsWorkMetadata(identifier=object_id)
 
     @property
     def readable(self):
@@ -146,12 +146,11 @@ class SparqlXmlCtsWorkMetadata(SparqlNavigatedCollection, XmlCtsWorkMetadata):
         _type = o.split("/")[-1]
 
         if _type == "edition":
-            return SparqlXmlCtsEditionMetadata(object_id)
+            return SparqlXmlCtsEditionMetadata.from_id(object_id)
         elif _type == "translation":
-            return SparqlXmlCtsTranslationMetadata(object_id)
+            return SparqlXmlCtsTranslationMetadata.from_id(object_id)
         elif _type == "commentary":
-            return SparqlXmlCtsCommentaryMetadata(object_id)
-
+            return SparqlXmlCtsCommentaryMetadata.from_id(object_id)
 
     @staticmethod
     def parent_class(object_id):
@@ -176,6 +175,7 @@ class SparqlXmlCtsTextInventoryMetadata(SparqlNavigatedCollection, XmlCtsTextInv
     """ Collection that does tree traversal based on Sparql queries on the local Graph
 
     """
+
     @staticmethod
     def children_class(object_id):
         return SparqlXmlCtsTextgroupMetadata(object_id)

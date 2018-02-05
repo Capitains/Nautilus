@@ -5,7 +5,7 @@ import MyCapytain.errors
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
-from MyCapytain.common.constants import set_graph
+from MyCapytain.common.constants import set_graph, get_graph
 
 from capitains_nautilus import _cache_key
 from capitains_nautilus.errors import *
@@ -19,6 +19,11 @@ from capitains_nautilus.cts.collections import (
     SparqlXmlCtsWorkMetadata,
     SparqlTextInventoryCollection
 )
+
+
+from rdflib import URIRef, Literal, plugin, Graph
+from rdflib.store import Store
+from rdflib_sqlalchemy import registerplugins
 
 
 class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver):
@@ -289,7 +294,7 @@ class NautilusCTSResolver(__BaseNautilusCTSResolver__):
         self.cache.set(self.inventory_cache_key, value, self.TIMEOUT)
 
 
-class SparqlNautilusCTSResolver(__BaseNautilusCTSResolver__):
+class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
     RAISE_ON_GENERIC_PARSING_ERROR = False
     CLASSES = {
         "edition": SparqlXmlCtsEditionMetadata,
@@ -301,6 +306,32 @@ class SparqlNautilusCTSResolver(__BaseNautilusCTSResolver__):
         "inventory_collection": SparqlTextInventoryCollection,
         "citation": SparqlXmlCitation
     }
+
+    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, sqlalchemy_address=None):
+        if sqlalchemy_address:
+            registerplugins()
+            self.ident = URIRef("NautilusSparql")
+            self.uri = Literal(sqlalchemy_address)
+            store = plugin.get("SQLAlchemy", Store)(identifier=self.ident)
+            self.graph = Graph(store, identifier=self.ident)
+            self.graph.open(self.uri, create=True)
+            
+        super(SparqlAlchemyNautilusCTSResolver, self).__init__(
+            resource=resource,
+            name=name,
+            logger=logger,
+            cache=cache,
+            dispatcher=dispatcher
+        )
+
+
+    @property
+    def graph(self):
+        return get_graph()
+
+    @graph.setter
+    def graph(self, value):
+        set_graph(value)
 
     @property
     def inventory(self):
