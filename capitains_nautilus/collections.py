@@ -1,6 +1,7 @@
 from MyCapytain.resources.prototypes.metadata import Collection
 from MyCapytain.common.constants import RDF_NAMESPACES, get_graph
 from MyCapytain.common.metadata import Metadata
+from MyCapytain.common.reference import URN
 from rdflib import URIRef, RDF
 
 
@@ -19,18 +20,16 @@ class SparqlNavigatedCollection(Collection):
             elif "urn" in kwargs:
                 identifier = kwargs["urn"]
 
-        if not self.exists(identifier):
-            print("Full init", identifier, type(self))
-            super(CTSSparqlNavigatedCollection, self).__init__(*args, **kwargs)
-        else:
-            print("Simple init", identifier, type(self))
+        if self.exists(identifier):
             self._simple_init(identifier)
+        else:
+            super(SparqlNavigatedCollection, self).__init__(*args, **kwargs)
 
     def exists(self, identifier):
         if not identifier:
             return False
         query = list(self.graph.objects(identifier, RDF.type))
-        return bool(query)
+        return len(query) > 0
 
     def _simple_init(self, identifier):
         self.__node__ = URIRef(identifier)
@@ -43,11 +42,11 @@ class SparqlNavigatedCollection(Collection):
 
     @staticmethod
     def children_class(object_id):
-        return CTSSparqlNavigatedCollection(object_id)
+        return SparqlNavigatedCollection(object_id)
 
     @staticmethod
     def parent_class(object_id):
-        return CTSSparqlNavigatedCollection(object_id)
+        return SparqlNavigatedCollection(object_id)
 
     @property
     def members(self):
@@ -87,17 +86,9 @@ class SparqlNavigatedCollection(Collection):
 
 
 class CTSSparqlNavigatedCollection(SparqlNavigatedCollection):
-    """
-    def __init__(self, identifier="", **kwargs):
-
-        if "urn" in kwargs:
-            identifier = kwargs["urn"]
-        print(len(self.graph.collection(URIRef(identifier))))
-        if len(self.graph.collection(URIRef(identifier))):
-            self._simple_init(identifier)
-        else:
-            super(SparqlNavigatedCollection, self).__init__(identifier, **kwargs)"""
-
     def _simple_init(self, identifier):
+        if isinstance(identifier, URN):
+            self.__urn__ = identifier
+        else:
+            self.__urn__ = URN(str(identifier))
         super(CTSSparqlNavigatedCollection, self)._simple_init(identifier)
-        self.__urn__ = identifier

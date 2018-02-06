@@ -10,7 +10,7 @@ from MyCapytain.resources.collections.cts import (
 )
 from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection
 from MyCapytain.common.constants import RDF_NAMESPACES, get_graph
-from capitains_nautilus.collections import CTSSparqlNavigatedCollection
+from capitains_nautilus.collections import CTSSparqlNavigatedCollection, SparqlNavigatedCollection
 from rdflib import BNode, Literal, RDF
 
 
@@ -171,7 +171,7 @@ class SparqlXmlCtsTextgroupMetadata(CTSSparqlNavigatedCollection, XmlCtsTextgrou
         return SparqlXmlCtsTextInventoryMetadata(object_id)
 
 
-class SparqlXmlCtsTextInventoryMetadata(CTSSparqlNavigatedCollection, XmlCtsTextInventoryMetadata):
+class SparqlXmlCtsTextInventoryMetadata(SparqlNavigatedCollection, XmlCtsTextInventoryMetadata):
     """ Collection that does tree traversal based on Sparql queries on the local Graph
 
     """
@@ -185,7 +185,7 @@ class SparqlXmlCtsTextInventoryMetadata(CTSSparqlNavigatedCollection, XmlCtsText
         return SparqlTextInventoryCollection(object_id)
 
 
-class SparqlTextInventoryCollection(CTSSparqlNavigatedCollection, CtsTextInventoryCollection):
+class SparqlTextInventoryCollection(SparqlNavigatedCollection, CtsTextInventoryCollection):
     @staticmethod
     def children_class(object_id):
         return SparqlXmlCtsTextInventoryMetadata(object_id)

@@ -356,4 +356,14 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
     def inventory(self, value):
         pass
 
+    def clear(self):
+        """ Deletes the database
+
+        :return:
+        """
+        self.graph.destroy(self.uri)
+        try:
+            self.graph.close()
+        except:
+            pass
 
