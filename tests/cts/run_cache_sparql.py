@@ -2,6 +2,10 @@ from capitains_nautilus.cts.resolver import SparqlAlchemyNautilusCTSResolver
 from werkzeug.contrib.cache import FileSystemCache
 from tests.cts.config import subprocess_repository, subprocess_cache_dir
 
+import os
+
+os.remove("./here.sqlite")
+
 cache = FileSystemCache(subprocess_cache_dir)
 resolver = SparqlAlchemyNautilusCTSResolver(
     resource=subprocess_repository,
@@ -10,4 +14,4 @@ resolver = SparqlAlchemyNautilusCTSResolver(
 )
 print("parsing")
 resolver.parse()
-print(resolver.getMetadata().descendants)
+print(resolver.getMetadata().readableDescendants)

@@ -6,6 +6,7 @@ from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
 from MyCapytain.common.constants import set_graph, get_graph
+from MyCapytain.resolvers.utils import CollectionDispatcher
 
 from capitains_nautilus import _cache_key
 from capitains_nautilus.errors import *
@@ -180,20 +181,6 @@ class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver):
 
         return resource, text
 
-    def getMetadata(self, objectId=None, **filters):
-        """ Request metadata about a text or a collection
-
-        :param objectId: Object Identifier to filter on
-        :type objectId: str
-        :param filters: Kwargs parameters.
-        :type filters: dict
-        :return: Collection
-        """
-        return self.get_or(
-            _cache_key("Nautilus", self.name, "GetMetadata", objectId),
-            super(__BaseNautilusCTSResolver__, self).getMetadata, objectId
-        )
-
     def getReffs(self, textId, level=1, subreference=None):
         """ Retrieve the siblings of a textual node
 
@@ -293,6 +280,20 @@ class NautilusCTSResolver(__BaseNautilusCTSResolver__):
         self.__inventory__ = value
         self.cache.set(self.inventory_cache_key, value, self.TIMEOUT)
 
+    def getMetadata(self, objectId=None, **filters):
+        """ Request metadata about a text or a collection
+
+        :param objectId: Object Identifier to filter on
+        :type objectId: str
+        :param filters: Kwargs parameters.
+        :type filters: dict
+        :return: Collection
+        """
+        return self.get_or(
+            _cache_key("Nautilus", self.name, "GetMetadata", objectId),
+            super(__BaseNautilusCTSResolver__, self).getMetadata, objectId
+        )
+
 
 class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
     RAISE_ON_GENERIC_PARSING_ERROR = False
@@ -308,6 +309,7 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
     }
 
     def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, sqlalchemy_address=None):
+        exceptions = []
         if sqlalchemy_address:
             registerplugins()
             self.ident = URIRef("NautilusSparql")
@@ -315,6 +317,17 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
             store = plugin.get("SQLAlchemy", Store)(identifier=self.ident)
             self.graph = Graph(store, identifier=self.ident)
             self.graph.open(self.uri, create=True)
+
+        if not dispatcher:
+            # Normal init is setting label automatically
+            inventory_collection = type(self).CLASSES["inventory_collection"](identifier="defaultTic")
+            ti = type(self).CLASSES["inventory"]("default")
+            ti.parent = inventory_collection
+            try:
+                ti.set_label("Default collection", "eng")
+            except Exception:
+                exceptions = ["Label was already set on the default dispatcher"]
+            dispatcher = CollectionDispatcher(inventory_collection)
             
         super(SparqlAlchemyNautilusCTSResolver, self).__init__(
             resource=resource,
@@ -324,6 +337,8 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
             dispatcher=dispatcher
         )
 
+        for exception in exceptions:
+            self.logger.warning(exception)
 
     @property
     def graph(self):

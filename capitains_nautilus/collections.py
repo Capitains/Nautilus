@@ -9,17 +9,6 @@ def NoneGenerator(object_id):
 
 
 class SparqlNavigatedCollection(Collection):
-    """
-    def __init__(self, identifier="", **kwargs):
-
-        if "urn" in kwargs:
-            identifier = kwargs["urn"]
-        print(len(self.graph.collection(URIRef(identifier))))
-        if len(self.graph.collection(URIRef(identifier))):
-            self._simple_init(identifier)
-        else:
-            super(SparqlNavigatedCollection, self).__init__(identifier, **kwargs)"""
-
     def __init__(self, *args, **kwargs):
         identifier = None
         if len(args) > 0:
@@ -32,7 +21,7 @@ class SparqlNavigatedCollection(Collection):
 
         if not self.exists(identifier):
             print("Full init", identifier, type(self))
-            super(SparqlNavigatedCollection, self).__init__(*args, **kwargs)
+            super(CTSSparqlNavigatedCollection, self).__init__(*args, **kwargs)
         else:
             print("Simple init", identifier, type(self))
             self._simple_init(identifier)
@@ -54,11 +43,11 @@ class SparqlNavigatedCollection(Collection):
 
     @staticmethod
     def children_class(object_id):
-        return SparqlNavigatedCollection(object_id)
+        return CTSSparqlNavigatedCollection(object_id)
 
     @staticmethod
     def parent_class(object_id):
-        return SparqlNavigatedCollection(object_id)
+        return CTSSparqlNavigatedCollection(object_id)
 
     @property
     def members(self):
@@ -95,3 +84,20 @@ class SparqlNavigatedCollection(Collection):
         return {
             collection.id: collection for collection in self.members
         }
+
+
+class CTSSparqlNavigatedCollection(SparqlNavigatedCollection):
+    """
+    def __init__(self, identifier="", **kwargs):
+
+        if "urn" in kwargs:
+            identifier = kwargs["urn"]
+        print(len(self.graph.collection(URIRef(identifier))))
+        if len(self.graph.collection(URIRef(identifier))):
+            self._simple_init(identifier)
+        else:
+            super(SparqlNavigatedCollection, self).__init__(identifier, **kwargs)"""
+
+    def _simple_init(self, identifier):
+        super(CTSSparqlNavigatedCollection, self)._simple_init(identifier)
+        self.__urn__ = identifier
