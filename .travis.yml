@@ -10,6 +10,7 @@ services:
 # command to install dependencies
 install:
     - pip install -r requirements.txt
+    - pip install https://github.com/Capitains/MyCapytain/archive/issue-154.zip --upgrade
     - pip install coveralls
 
 # command to run tests
@@ -23,6 +24,7 @@ branches:
   only:
     - master
     - documentation
+    - sparql-collections
 
 
 deploy:

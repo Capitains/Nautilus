@@ -308,15 +308,13 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
         "citation": SparqlXmlCitation
     }
 
-    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, sqlalchemy_address=None):
+    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None,
+                 sqlalchemy_address=None, graph=None):
         exceptions = []
         if sqlalchemy_address:
-            registerplugins()
-            self.ident = URIRef("NautilusSparql")
-            self.uri = Literal(sqlalchemy_address)
-            store = plugin.get("SQLAlchemy", Store)(identifier=self.ident)
-            self.graph = Graph(store, identifier=self.ident)
-            self.graph.open(self.uri, create=True)
+            type(self).set_graph(sqlalchemy_address, self)
+        elif graph is not None:
+            self.graph = graph
 
         if not dispatcher:
             # Normal init is setting label automatically
@@ -337,6 +335,23 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
 
         for exception in exceptions:
             self.logger.warning(exception)
+
+    @staticmethod
+    def set_graph(sqlalchemy_address, obj=None):
+        registerplugins()
+        ident = URIRef("NautilusSparql")
+        uri = Literal(sqlalchemy_address)
+        store = plugin.get("SQLAlchemy", Store)(identifier=ident)
+        graph = Graph(store, identifier=ident)
+        graph.open(uri, create=True)
+
+        if obj:
+            obj.ident = ident
+            obj.uri = uri
+            obj.graph = graph
+        else:
+            set_graph(graph)
+        return graph
 
     @property
     def graph(self):

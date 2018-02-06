@@ -46,3 +46,4 @@ class TestSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderResolverBe
     def setUp(self):
         Repository = self.RESOLVER_CLASS([], sqlalchemy_address=sqlite_address)
         Repository.clear()
+        self.RESOLVER_CLASS.set_graph(sqlite_address)
