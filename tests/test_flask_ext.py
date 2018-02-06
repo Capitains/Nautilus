@@ -24,7 +24,8 @@ logger = logging.getLogger("some_logger")
 
 
 class TestRestAPI(TestCase):
-    RESOLVER_CLASS = NautilusCTSResolver
+    def generate_resolver(self, directories):
+        return NautilusCTSResolver(directories)
 
     def setUp(self):
         # Clean up noise...
@@ -32,7 +33,7 @@ class TestRestAPI(TestCase):
         app = Flask("Nautilus")
         self.nautilus = FlaskNautilus(
             app=app,
-            resolver=self.RESOLVER_CLASS(["./tests/test_data/latinLit"]),
+            resolver=self.generate_resolver(["./tests/test_data/latinLit"]),
             logger=logger
         )
         self.cache = None
@@ -77,7 +78,7 @@ class TestRestAPI(TestCase):
         app = Flask("Nautilus")
         FlaskNautilus(
             app=app,
-            resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
+            resolver=self.generate_resolver(["./tests/test_data/latinLit"]),
             access_Control_Allow_Methods={"r_cts": "OPTIONS", "r_dts_collection": "OPTIONS", "r_dts_collections": "OPTIONS"},
             access_Control_Allow_Origin={"r_cts": "foo.bar", "r_dts_collection":"*", "r_dts_collections":"*"}
         )
@@ -163,7 +164,7 @@ class TestRestAPI(TestCase):
                 "request": "GetValidReff",
                 "urn": "urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr",
                 "level": "1"
-            },{
+            }, {
                 "request": "GetValidReff",
                 "urn": "urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr.1-1.pr.5",
                 "level": "0"
@@ -382,13 +383,16 @@ class TestRestAPI(TestCase):
 
 
 class TestRestAPICache(TestRestAPI):
+    def generate_resolver(self, directories):
+        return NautilusCTSResolver(directories)
+
     def setUp(self):
         nautilus_cache = RedisCache()
         app = Flask("Nautilus")
         self.cache = Cache(config={'CACHE_TYPE': 'simple'})
         self.nautilus = FlaskNautilus(
             app=app,
-            resolver=self.RESOLVER_CLASS(["./tests/test_data/latinLit"]),
+            resolver=self.generate_resolver(["./tests/test_data/latinLit"]),
             flask_caching=self.cache,
             logger=logger
         )
@@ -427,10 +431,12 @@ class TestRestAPICache(TestRestAPI):
 
 
 class TestNautilusLogging(TestCase):
-    RESOLVER_CLASS = NautilusCTSResolver
+    def generate_resolver(self, directories):
+        return NautilusCTSResolver(directories)
+
     def setUp(self):
         TestRestAPI.setUp(self)
-        self.nautilus.resolver.parse()
+        self.nautilus.resolver.parse(["./tests/test_data/latinLit"])
         self.nautilus.logger.setLevel(logging.INFO)
         self.nautilus.logger.disabled = False
         logassert.setup(self, self.nautilus.logger.name)

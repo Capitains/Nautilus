@@ -603,7 +603,6 @@ class TextXMLFolderResolverDispatcher(TestCase):
     """ Ensure working state of resolver """
     RESOLVER_CLASS = NautilusCTSResolver
 
-
     def setUp(self):
         get_graph().remove((None, None, None))
 

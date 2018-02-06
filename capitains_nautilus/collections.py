@@ -19,6 +19,8 @@ class SparqlNavigatedCollection(Collection):
                 identifier = kwargs["identifier"]
             elif "urn" in kwargs:
                 identifier = kwargs["urn"]
+            elif "name" in kwargs:
+                identifier = kwargs["name"]
 
         if self.exists(identifier):
             self._simple_init(identifier)

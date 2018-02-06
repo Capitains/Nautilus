@@ -323,10 +323,8 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
             inventory_collection = type(self).CLASSES["inventory_collection"](identifier="defaultTic")
             ti = type(self).CLASSES["inventory"]("default")
             ti.parent = inventory_collection
-            try:
+            if ti.get_label(lang="eng") is None:
                 ti.set_label("Default collection", "eng")
-            except Exception:
-                exceptions = ["Label was already set on the default dispatcher"]
             dispatcher = CollectionDispatcher(inventory_collection)
             
         super(SparqlAlchemyNautilusCTSResolver, self).__init__(

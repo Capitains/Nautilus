@@ -186,6 +186,9 @@ class SparqlXmlCtsTextInventoryMetadata(SparqlNavigatedCollection, XmlCtsTextInv
 
 
 class SparqlTextInventoryCollection(SparqlNavigatedCollection, CtsTextInventoryCollection):
+    def __init__(self, identifier="default"):
+        super(SparqlTextInventoryCollection, self).__init__(identifier)
+
     @staticmethod
     def children_class(object_id):
         return SparqlXmlCtsTextInventoryMetadata(object_id)
