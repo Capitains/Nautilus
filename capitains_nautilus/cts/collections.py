@@ -11,7 +11,7 @@ from MyCapytain.resources.collections.cts import (
 from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection
 from MyCapytain.common.constants import RDF_NAMESPACES, get_graph
 from capitains_nautilus.collections import CTSSparqlNavigatedCollection, SparqlNavigatedCollection
-from rdflib import BNode, Literal, RDF
+from rdflib import BNode, Literal, RDF, URIRef
 from capitains_nautilus.errors import UnknownCollection
 
 
@@ -154,13 +154,12 @@ class SparqlXmlCtsWorkMetadata(CTSSparqlNavigatedCollection, XmlCtsWorkMetadata)
     @staticmethod
     def children_class(object_id):
         o = list(get_graph().objects(object_id, RDF.type))[0]
-        _type = o.split("/")[-1]
 
-        if _type == "edition":
+        if o == SparqlXmlCtsEditionMetadata.TYPE_URI:
             return SparqlXmlCtsEditionMetadata(object_id)
-        elif _type == "translation":
+        elif o == XmlCtsTranslationMetadata.TYPE_URI:
             return SparqlXmlCtsTranslationMetadata(object_id)
-        elif _type == "commentary":
+        elif o == XmlCtsCommentaryMetadata.TYPE_URI:
             return SparqlXmlCtsCommentaryMetadata(object_id)
 
     @staticmethod
@@ -171,23 +170,16 @@ class SparqlXmlCtsWorkMetadata(CTSSparqlNavigatedCollection, XmlCtsWorkMetadata)
     def texts(self):
         return self.children
 
-    def update(self, other):
-        pass
-
-    def __getitem__(self, key):
-        return self.decide_class(key)
-
     def decide_class(self, key):
-        o = list(get_graph().objects(key, RDF.type))
         if key == self.id:
             return self
-        if len(o):
-            _type = o[0].split("/")[-1]
-            if _type == "edition":
+        o = self.get_type(key)
+        if o:
+            if o == SparqlXmlCtsEditionMetadata.TYPE_URI:
                 return SparqlXmlCtsEditionMetadata(key)
-            elif _type == "translation":
+            elif o == XmlCtsTranslationMetadata.TYPE_URI:
                 return SparqlXmlCtsTranslationMetadata(key)
-            elif _type == "commentary":
+            elif o == XmlCtsCommentaryMetadata.TYPE_URI:
                 return SparqlXmlCtsCommentaryMetadata(key)
         raise UnknownCollection("%s is not part of this object" % key)
 
@@ -201,25 +193,18 @@ class SparqlXmlCtsTextgroupMetadata(CTSSparqlNavigatedCollection, XmlCtsTextgrou
     def parent_class(object_id):
         return SparqlXmlCtsTextInventoryMetadata(object_id)
 
-    def update(self, other):
-        pass
-
-    def __getitem__(self, key):
-        return self.decide_class(key)
-
     def decide_class(self, key):
-        o = list(get_graph().objects(key, RDF.type))
         if key == self.id:
             return self
-        if len(o):
-            _type = o[0].split("/")[-1]
-            if _type == "edition":
+        o = self.get_type(key)
+        if o:
+            if o == SparqlXmlCtsEditionMetadata.TYPE_URI:
                 return SparqlXmlCtsEditionMetadata(key)
-            elif _type == "translation":
+            elif o == XmlCtsTranslationMetadata.TYPE_URI:
                 return SparqlXmlCtsTranslationMetadata(key)
-            elif _type == "commentary":
+            elif o == XmlCtsCommentaryMetadata.TYPE_URI:
                 return SparqlXmlCtsCommentaryMetadata(key)
-            elif _type == "work":
+            elif o == SparqlXmlCtsWorkMetadata.TYPE_URI:
                 return SparqlXmlCtsWorkMetadata(key)
         raise UnknownCollection("%s is not part of this object" % key)
 
@@ -236,22 +221,20 @@ class SparqlXmlCtsTextInventoryMetadata(SparqlNavigatedCollection, XmlCtsTextInv
     def parent_class(object_id):
         return SparqlTextInventoryCollection(object_id)
 
-    def __getitem__(self, key):
-        return self.decide_class(key)
-
     def decide_class(self, key):
-        o = list(get_graph().objects(key, RDF.type))
-        if len(o):
-            _type = o[0].split("/")[-1]
-            if _type == "edition":
+        if key == self.id:
+            return self
+        o = self.get_type(key)
+        if o:
+            if o == SparqlXmlCtsEditionMetadata.TYPE_URI:
                 return SparqlXmlCtsEditionMetadata(key)
-            elif _type == "translation":
+            elif o == XmlCtsTranslationMetadata.TYPE_URI:
                 return SparqlXmlCtsTranslationMetadata(key)
-            elif _type == "commentary":
+            elif o == XmlCtsCommentaryMetadata.TYPE_URI:
                 return SparqlXmlCtsCommentaryMetadata(key)
-            elif _type == "work":
+            elif o == SparqlXmlCtsWorkMetadata.TYPE_URI:
                 return SparqlXmlCtsWorkMetadata(key)
-            elif _type == "textgroup":
+            elif o == SparqlXmlCtsTextgroupMetadata.TYPE_URI:
                 return SparqlXmlCtsTextgroupMetadata(key)
         raise UnknownCollection("%s is not part of this object" % key)
 
@@ -268,26 +251,22 @@ class SparqlTextInventoryCollection(SparqlNavigatedCollection, CtsTextInventoryC
     def parent_class(object_id):
         raise NameError("Text Inventory Collection cannot have parents")
 
-    def __getitem__(self, key):
-        return self.decide_class(key)
-
     def decide_class(self, key):
-        o = list(get_graph().objects(key, RDF.type))
         if key == self.id:
             return self
-        if len(o):
-            _type = o[0].split("/")[-1]
-            if _type == "edition":
+        o = self.get_type(key)
+        if o:
+            if o == SparqlXmlCtsEditionMetadata.TYPE_URI:
                 return SparqlXmlCtsEditionMetadata(key)
-            elif _type == "translation":
+            elif o == XmlCtsTranslationMetadata.TYPE_URI:
                 return SparqlXmlCtsTranslationMetadata(key)
-            elif _type == "commentary":
+            elif o == XmlCtsCommentaryMetadata.TYPE_URI:
                 return SparqlXmlCtsCommentaryMetadata(key)
-            elif _type == "work":
+            elif o == SparqlXmlCtsWorkMetadata.TYPE_URI:
                 return SparqlXmlCtsWorkMetadata(key)
-            elif _type == "textgroup":
+            elif o == SparqlXmlCtsTextgroupMetadata.TYPE_URI:
                 return SparqlXmlCtsTextgroupMetadata(key)
-            elif _type == "inventory":
+            elif o == SparqlXmlCtsTextInventoryMetadata.TYPE_URI:
                 return SparqlXmlCtsTextInventoryMetadata(key)
-        raise UnknownCollection("%s is not part of this object" % key)
+        raise UnknownCollection("%s is not part of this object %s" % (key, self))
 

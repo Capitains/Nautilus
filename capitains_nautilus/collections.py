@@ -3,6 +3,7 @@ from MyCapytain.common.constants import RDF_NAMESPACES, get_graph
 from MyCapytain.common.metadata import Metadata
 from MyCapytain.common.reference import URN
 from rdflib import URIRef, RDF
+from capitains_nautilus.errors import UnknownCollection
 
 
 def NoneGenerator(object_id):
@@ -66,34 +67,45 @@ class SparqlNavigatedCollection(Collection):
     def decide_class(self, key):
         return type(self)(key)
 
+    def __getitem__(self, item):
+        if item in self:
+            return self.decide_class(item)
+        raise UnknownCollection("%s does not contain %s" % (self, item))
+
     @property
     def descendants(self):
         return list(
             [
                 self.decide_class(child)
-                for child in self.graph.query(
+                for child, *_ in self.graph.query(
                     """
-                    select ?object
+                    select ?desc
                     where {
-                      <"""+self.id+"""> <"""+RDF_NAMESPACES.DTS.parent+""">+ ?object .
+                      ?desc <"""+RDF_NAMESPACES.DTS.parent+""">+ <"""+self.id+"""> .
                     }"""
                 )
             ]
         )
 
-    def __contains__(self, item):
-        """ Retrieve an item by its ID in the tree of a collection
+    def get_type(self, key):
+        query_key = key
+        if isinstance(query_key, str):
+            query_key = URIRef(query_key)
+        for x in self.graph.objects(query_key, RDF.type):
+            return x
 
-        :param item:
-        :return: Collection identified by the item
-        """
-        return bool(len(list(self.graph.query(
-                    """
-                    select ?object
-                    where {
-                      <{sub}> <{rel}>+ ?object .
-                    }""".format(sub=self.id, rel=RDF_NAMESPACES.DTS.parent)
-        ))))
+    def __contains__(self, item):
+        return bool(list(self.graph.query(
+                """
+                SELECT ?type
+                where {
+                  <""" + item + """> <""" + RDF_NAMESPACES.DTS.parent + """>+ <""" + self.id + """> .
+                  <""" + item + """> a ?type
+                }
+                LIMIT 1
+                """
+            )
+        ))
 
     @property
     def parent(self):
@@ -108,6 +120,7 @@ class SparqlNavigatedCollection(Collection):
 
     @parent.setter
     def parent(self, parent):
+        print(self, "parent", parent)
         self.graph.set(
             (self.asNode(), RDF_NAMESPACES.DTS.parent, parent.asNode())
         )

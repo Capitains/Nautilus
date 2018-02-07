@@ -58,3 +58,20 @@ class TestSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderResolverBe
             len(Repository.__getTextMetadata__(urn="urn:cts:latinLit:stoa0045.stoa008.perseus-lat2")[0]), 0,
             "Texts without citations were ignored"
         )
+
+    def test_get_shared_textgroup_cross_repo(self):
+        """ Check Get Capabilities """
+        Repository = self.generate_repository(
+            [
+                "./tests/testing_data/farsiLit",
+                "./tests/testing_data/latinLit2"
+            ]
+        )
+        self.assertIsNotNone(
+            Repository.__getText__("urn:cts:latinLit:phi1294.phi002.perseus-lat2"),
+            "We should find perseus-lat2"
+        )
+        self.assertIsNotNone(
+            Repository.__getText__("urn:cts:latinLit:phi1294.phi002.opp-lat2"),
+            "We should find perseus-lat2"
+        )

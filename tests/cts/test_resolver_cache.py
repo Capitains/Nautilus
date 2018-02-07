@@ -45,13 +45,13 @@ class TestCache(TestCase):
         key = list(self.resolver.getMetadata().children.keys())[0]
         inventory = self.resolver.getMetadata(key)
 
+        self.assertEqual(
+            len(inventory.readableDescendants), 4
+        )
         self.assertIn(
             "Divān (English)",
             inventory.export(Mimetypes.XML.CTS),
             "Metadata are there"
-        )
-        self.assertEqual(
-            len(inventory.readableDescendants), 4
         )
 
     def test_textgroup(self):
