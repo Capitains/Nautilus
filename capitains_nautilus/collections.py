@@ -1,8 +1,10 @@
 from MyCapytain.resources.prototypes.metadata import Collection
+from MyCapytain.resources.prototypes.cts.inventory import PrototypeCtsCollection
 from MyCapytain.common.constants import RDF_NAMESPACES, get_graph
 from MyCapytain.common.metadata import Metadata
 from MyCapytain.common.reference import URN
-from rdflib import URIRef, RDF
+from rdflib import URIRef, RDF, RDFS, Literal
+from rdflib.namespace import SKOS
 from capitains_nautilus.errors import UnknownCollection
 
 
@@ -27,6 +29,20 @@ class SparqlNavigatedCollection(Collection):
             self._simple_init(identifier)
         else:
             super(SparqlNavigatedCollection, self).__init__(*args, **kwargs)
+
+    def set_label(self, label, lang):
+        """ Add the label of the collection in given lang
+
+        :param label: Label Value
+        :param lang:  Language code
+        """
+        try:
+            self.metadata.add(SKOS.prefLabel, Literal(label, lang=lang))
+            self.graph.addN([
+                (self.asNode(), RDFS.label, Literal(label, lang=lang), self.graph),
+            ])
+        except Exception as E:
+            print("Already tried ?", E)
 
     def exists(self, identifier):
         if not identifier:
@@ -132,10 +148,18 @@ class SparqlNavigatedCollection(Collection):
         }
 
 
-class CTSSparqlNavigatedCollection(SparqlNavigatedCollection):
+class CTSSparqlNavigatedCollection(PrototypeCtsCollection, SparqlNavigatedCollection):
     def _simple_init(self, identifier):
         if isinstance(identifier, URN):
             self.__urn__ = identifier
         else:
             self.__urn__ = URN(str(identifier))
         super(CTSSparqlNavigatedCollection, self)._simple_init(identifier)
+
+    def set_cts_property(self, prop, value, lang=None):
+        if not isinstance(value, Literal):
+            value = Literal(value, lang=lang)
+        _prop = RDF_NAMESPACES.CTS.term(prop)
+
+        if not (self.asNode(), _prop, value) in self.graph:
+            super(CTSSparqlNavigatedCollection, self).set_cts_property(prop, value)

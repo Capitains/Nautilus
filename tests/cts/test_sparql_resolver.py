@@ -1,9 +1,10 @@
 from tests.cts.test_resolver import TestXMLFolderResolverBehindTheScene, TextXMLFolderResolver, TextXMLFolderResolverDispatcher
 from capitains_nautilus.cts.resolver import SparqlAlchemyNautilusCTSResolver
 from .config import sqlite_address
+from ..sparql_class import Sparql
 
 
-class _Parser:
+class _Parser(Sparql):
     RESOLVER_CLASS = SparqlAlchemyNautilusCTSResolver
 
 
@@ -40,13 +41,19 @@ class TestSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderResolverBe
         print("Generate")
         if "sqlalchemy_address" not in kwargs:
             kwargs["sqlalchemy_address"] = sqlite_address
+
         Repository = self.RESOLVER_CLASS(*args, **kwargs)
+
         Repository.parse()
         print("Parsed")
         return Repository
 
     def setUp(self):
-        pass
+        print("\nClearing")
+        try:
+            self.RESOLVER_CLASS.clear_graph(sqlite_address)
+        except:
+            pass
 
     def test_get_capabilities_nocites(self):
         """ Check Get Capabilities latinLit data"""

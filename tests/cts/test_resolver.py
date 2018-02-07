@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-from MyCapytain.common.constants import XPATH_NAMESPACES, Mimetypes, RDF_NAMESPACES, get_graph
+from MyCapytain.common.constants import XPATH_NAMESPACES, Mimetypes, RDF_NAMESPACES, get_graph, set_graph, gen_graph
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resources.prototypes.metadata import Collection
 from MyCapytain.resources.collections.cts import XmlCtsTextInventoryMetadata
@@ -20,14 +20,16 @@ from unittest import TestCase
 from capitains_nautilus.cts.resolver import NautilusCTSResolver
 from capitains_nautilus.errors import UnknownCollection, InvalidURN, UndispatchedTextError
 
+from .config import sqlite_address
+from rdflib import Graph
+
 
 class TestXMLFolderResolverBehindTheScene(TestCase):
     """ Test behind the scene functions of the Resolver """
     RESOLVER_CLASS = NautilusCTSResolver
 
     def setUp(self):
-        print("Called")
-        get_graph().remove((None, None, None))
+        set_graph(gen_graph())
 
     def generate_repository(self, *args, **kwargs):
         Repository = self.RESOLVER_CLASS(*args, **kwargs)
@@ -179,7 +181,7 @@ class TextXMLFolderResolver(TestCase):
     RESOLVER_CLASS = NautilusCTSResolver
 
     def setUp(self):
-        get_graph().remove((None, None, None))
+        set_graph(gen_graph())
         self.resolver = self.RESOLVER_CLASS(["./tests/testing_data/latinLit2"])
         self.resolver.parse()
 
@@ -606,7 +608,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
     RESOLVER_CLASS = NautilusCTSResolver
 
     def setUp(self):
-        get_graph().remove((None, None, None))
+        set_graph(gen_graph())
 
     def generate_repository(self, resource, dispatcher=None, remove_empty=True):
         Repository = self.RESOLVER_CLASS(resource, dispatcher=dispatcher)

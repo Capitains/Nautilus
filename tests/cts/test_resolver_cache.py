@@ -71,6 +71,11 @@ class TestCache(TestCase):
 
 class TestSparqlCache(TestCache):
     def setUp(self):
+        try:
+            SparqlAlchemyNautilusCTSResolver.clear_graph(sqlite_address)
+        except:
+            """ Nothing to do here """
+
         output = call([python, "./tests/cts/run_cache_sparql.py"], cwd=cwd)
         if output != 0:
             raise Exception("Creating cache failed")

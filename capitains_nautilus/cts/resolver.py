@@ -5,7 +5,7 @@ import MyCapytain.errors
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
-from MyCapytain.common.constants import set_graph, get_graph
+from MyCapytain.common.constants import set_graph, get_graph, gen_graph
 from MyCapytain.resolvers.utils import CollectionDispatcher
 
 from capitains_nautilus import _cache_key
@@ -309,12 +309,10 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
     }
 
     def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None,
-                 sqlalchemy_address=None, graph=None):
+                 sqlalchemy_address=None):
         exceptions = []
         if sqlalchemy_address:
             type(self).set_graph(sqlalchemy_address, self)
-        elif graph is not None:
-            self.graph = graph
 
         if not dispatcher:
             # Normal init is setting label automatically
@@ -344,6 +342,7 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
         store = plugin.get("SQLAlchemy", Store)(identifier=ident)
         graph = Graph(store, identifier=ident)
         graph.open(uri, create=True)
+        gen_graph(graph)
 
         if obj:
             obj.ident = ident
@@ -356,7 +355,7 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
     @staticmethod
     def clear_graph(sqlalchemy_address=None):
         graph = get_graph()
-        graph.destroy(Literal(sqlalchemy_address))
+        graph.destroy(sqlalchemy_address)
         graph.close()
 
     @property

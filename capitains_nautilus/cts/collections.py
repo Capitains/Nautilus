@@ -22,7 +22,7 @@ class SparqlXmlCtsTextMetadata(CTSSparqlNavigatedCollection, XmlCtsTextMetadata)
 
     @staticmethod
     def parent_class(object_id):
-        return SparqlXmlCtsWorkMetadata(identifier=object_id)
+        return SparqlXmlCtsWorkMetadata(object_id)
 
     @property
     def readable(self):
@@ -56,8 +56,7 @@ class SparqlXmlCtsTextMetadata(CTSSparqlNavigatedCollection, XmlCtsTextMetadata)
     def subtype(self):
         for _type in self.graph.objects(self.asNode(), RDF.type):
             x = str(_type).split("/")[-1].lower()
-            print(self, x)
-        return x
+            return x
 
 
 class SparqlXmlCitation(XmlCtsCitation):
@@ -170,6 +169,9 @@ class SparqlXmlCtsWorkMetadata(CTSSparqlNavigatedCollection, XmlCtsWorkMetadata)
     def texts(self):
         return self.children
 
+    def update(self, other):
+        pass
+
     def decide_class(self, key):
         if key == self.id:
             return self
@@ -192,6 +194,9 @@ class SparqlXmlCtsTextgroupMetadata(CTSSparqlNavigatedCollection, XmlCtsTextgrou
     @staticmethod
     def parent_class(object_id):
         return SparqlXmlCtsTextInventoryMetadata(object_id)
+
+    def update(self, other):
+        pass
 
     def decide_class(self, key):
         if key == self.id:
