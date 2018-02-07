@@ -26,6 +26,7 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
     RESOLVER_CLASS = NautilusCTSResolver
 
     def setUp(self):
+        print("Called")
         get_graph().remove((None, None, None))
 
     def generate_repository(self, *args, **kwargs):
@@ -144,6 +145,7 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
         Repository = self.generate_repository(
             ["./tests/testing_data/latinLit"]
         )
+        print("Generated ?")
         self.assertEqual(
             len(Repository.__getTextMetadata__(urn="urn:cts:latinLit:stoa0045.stoa008.perseus-lat2")[0]), 0,
             "Texts without citations were ignored"

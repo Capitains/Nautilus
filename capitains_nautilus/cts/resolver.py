@@ -353,6 +353,12 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
             set_graph(graph)
         return graph
 
+    @staticmethod
+    def clear_graph(sqlalchemy_address=None):
+        graph = get_graph()
+        graph.destroy(Literal(sqlalchemy_address))
+        graph.close()
+
     @property
     def graph(self):
         return get_graph()

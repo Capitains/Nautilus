@@ -13,6 +13,7 @@ class TestSparqlBasedResolverDispatcher(_Parser, TextXMLFolderResolverDispatcher
         Repository = self.RESOLVER_CLASS(resource, dispatcher=dispatcher, sqlalchemy_address=sqlite_address)
         Repository.logger.disabled = True
         Repository.REMOVE_EMPTY = remove_empty
+
         Repository.parse()
         return Repository
 
@@ -36,14 +37,24 @@ class TestSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderResolverBe
     """ """
 
     def generate_repository(self, *args, **kwargs):
-
+        print("Generate")
         if "sqlalchemy_address" not in kwargs:
             kwargs["sqlalchemy_address"] = sqlite_address
         Repository = self.RESOLVER_CLASS(*args, **kwargs)
         Repository.parse()
+        print("Parsed")
         return Repository
 
     def setUp(self):
-        Repository = self.RESOLVER_CLASS([], sqlalchemy_address=sqlite_address)
-        Repository.clear()
-        self.RESOLVER_CLASS.set_graph(sqlite_address)
+        pass
+
+    def test_get_capabilities_nocites(self):
+        """ Check Get Capabilities latinLit data"""
+        Repository = self.generate_repository(
+            ["./tests/testing_data/latinLit"]
+        )
+        print("Generated ?")
+        self.assertEqual(
+            len(Repository.__getTextMetadata__(urn="urn:cts:latinLit:stoa0045.stoa008.perseus-lat2")[0]), 0,
+            "Texts without citations were ignored"
+        )

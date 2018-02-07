@@ -63,6 +63,38 @@ class SparqlNavigatedCollection(Collection):
             ]
         )
 
+    def decide_class(self, key):
+        return type(self)(key)
+
+    @property
+    def descendants(self):
+        return list(
+            [
+                self.decide_class(child)
+                for child in self.graph.query(
+                    """
+                    select ?object
+                    where {
+                      <"""+self.id+"""> <"""+RDF_NAMESPACES.DTS.parent+""">+ ?object .
+                    }"""
+                )
+            ]
+        )
+
+    def __contains__(self, item):
+        """ Retrieve an item by its ID in the tree of a collection
+
+        :param item:
+        :return: Collection identified by the item
+        """
+        return bool(len(list(self.graph.query(
+                    """
+                    select ?object
+                    where {
+                      <{sub}> <{rel}>+ ?object .
+                    }""".format(sub=self.id, rel=RDF_NAMESPACES.DTS.parent)
+        ))))
+
     @property
     def parent(self):
         """ Parent of current object
