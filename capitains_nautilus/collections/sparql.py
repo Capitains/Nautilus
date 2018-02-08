@@ -1,10 +1,9 @@
-from MyCapytain.resources.prototypes.metadata import Collection
-from MyCapytain.resources.prototypes.cts.inventory import PrototypeCtsCollection
 from MyCapytain.common.constants import RDF_NAMESPACES, get_graph
 from MyCapytain.common.metadata import Metadata
-from MyCapytain.common.reference import URN
-from rdflib import URIRef, RDF, RDFS, Literal
+from MyCapytain.resources.prototypes.metadata import Collection
+from rdflib import Literal, RDFS, RDF, URIRef
 from rdflib.namespace import SKOS
+
 from capitains_nautilus.errors import UnknownCollection
 
 
@@ -148,18 +147,3 @@ class SparqlNavigatedCollection(Collection):
         }
 
 
-class CTSSparqlNavigatedCollection(PrototypeCtsCollection, SparqlNavigatedCollection):
-    def _simple_init(self, identifier):
-        if isinstance(identifier, URN):
-            self.__urn__ = identifier
-        else:
-            self.__urn__ = URN(str(identifier))
-        super(CTSSparqlNavigatedCollection, self)._simple_init(identifier)
-
-    def set_cts_property(self, prop, value, lang=None):
-        if not isinstance(value, Literal):
-            value = Literal(value, lang=lang)
-        _prop = RDF_NAMESPACES.CTS.term(prop)
-
-        if not (self.asNode(), _prop, value) in self.graph:
-            super(CTSSparqlNavigatedCollection, self).set_cts_property(prop, value)

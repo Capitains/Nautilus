@@ -1,3 +1,4 @@
+from MyCapytain.common.reference import URN
 from MyCapytain.resources.collections.cts import (
     XmlCtsTextInventoryMetadata,
     XmlCtsTextgroupMetadata,
@@ -8,11 +9,28 @@ from MyCapytain.resources.collections.cts import (
     XmlCtsTranslationMetadata,
     XmlCtsTextMetadata
 )
-from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection
+from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection, PrototypeCtsCollection
 from MyCapytain.common.constants import RDF_NAMESPACES, get_graph
-from capitains_nautilus.collections import CTSSparqlNavigatedCollection, SparqlNavigatedCollection
+from capitains_nautilus.collections.sparql import SparqlNavigatedCollection
 from rdflib import BNode, Literal, RDF, URIRef
 from capitains_nautilus.errors import UnknownCollection
+
+
+class CTSSparqlNavigatedCollection(PrototypeCtsCollection, SparqlNavigatedCollection):
+    def _simple_init(self, identifier):
+        if isinstance(identifier, URN):
+            self.__urn__ = identifier
+        else:
+            self.__urn__ = URN(str(identifier))
+        super(CTSSparqlNavigatedCollection, self)._simple_init(identifier)
+
+    def set_cts_property(self, prop, value, lang=None):
+        if not isinstance(value, Literal):
+            value = Literal(value, lang=lang)
+        _prop = RDF_NAMESPACES.CTS.term(prop)
+
+        if not (self.asNode(), _prop, value) in self.graph:
+            super(CTSSparqlNavigatedCollection, self).set_cts_property(prop, value)
 
 
 class SparqlXmlCtsTextMetadata(CTSSparqlNavigatedCollection, XmlCtsTextMetadata):
