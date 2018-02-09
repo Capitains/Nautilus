@@ -1,5 +1,4 @@
-from MyCapytain.common.constants import set_graph, gen_graph
-from capitains_nautilus.cts.resolver import SparqlAlchemyNautilusCTSResolver
+from capitains_nautilus.collections.sparql import clear_graph
 from .cts.config import sqlite_address
 from unittest import TestCase
 
@@ -7,7 +6,12 @@ from unittest import TestCase
 class Sparql(TestCase):
     @classmethod
     def setUpClass(cls):
+        print("Clearing")
         try:
-            SparqlAlchemyNautilusCTSResolver.clear_graph(sqlite_address)
-        finally:
-            set_graph(gen_graph())
+            clear_graph(sqlite_address)
+        except Exception as E:
+            print("Failed clearing", E)
+            pass
+
+    def tearDown(self):
+        clear_graph(sqlite_address)

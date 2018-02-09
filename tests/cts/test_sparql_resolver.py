@@ -25,13 +25,9 @@ class TestSparqlBasedResolverDispatcher(_Parser, TextXMLFolderResolverDispatcher
 
 class TextSparqlXMLFolderResolver(_Parser, TextXMLFolderResolver):
     """"""
-
     def setUp(self):
         self.resolver = self.RESOLVER_CLASS(["./tests/testing_data/latinLit2"], sqlalchemy_address=sqlite_address)
         self.resolver.parse()
-
-    def tearDown(self):
-        self.resolver.clear()
 
 
 class TestSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderResolverBehindTheScene):

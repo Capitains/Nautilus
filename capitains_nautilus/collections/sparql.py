@@ -3,8 +3,17 @@ from MyCapytain.common.metadata import Metadata
 from MyCapytain.resources.prototypes.metadata import Collection
 from rdflib import Literal, RDFS, RDF, URIRef
 from rdflib.namespace import SKOS
-
 from capitains_nautilus.errors import UnknownCollection
+from warnings import warn
+
+
+def clear_graph(graph_id=None):
+    graph = get_graph()
+    graph.destroy(graph_id)
+    try:
+        graph.close()
+    except:
+        warn("Unable to close the Graph")
 
 
 def NoneGenerator(object_id):

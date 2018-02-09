@@ -5,7 +5,7 @@ import MyCapytain.errors
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
-from MyCapytain.common.constants import set_graph, get_graph, gen_graph
+from MyCapytain.common.constants import set_graph, get_graph, RDF_NAMESPACES, SKOS
 from MyCapytain.resolvers.utils import CollectionDispatcher
 
 from capitains_nautilus import _cache_key
@@ -342,7 +342,11 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
         store = plugin.get("SQLAlchemy", Store)(identifier=ident)
         graph = Graph(store, identifier=ident)
         graph.open(uri, create=True)
-        gen_graph(graph)
+        graph.bind("cts", RDF_NAMESPACES.CTS)
+        graph.bind("dts", RDF_NAMESPACES.DTS)
+        graph.bind("tei", RDF_NAMESPACES.TEI)
+        graph.bind("skos", SKOS)
+        graph.bind("cpt", RDF_NAMESPACES.CAPITAINS)
 
         if obj:
             obj.ident = ident
@@ -351,12 +355,6 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
         else:
             set_graph(graph)
         return graph
-
-    @staticmethod
-    def clear_graph(sqlalchemy_address=None):
-        graph = get_graph()
-        graph.destroy(sqlalchemy_address)
-        graph.close()
 
     @property
     def graph(self):

@@ -463,16 +463,11 @@ class TextXMLFolderResolver(TestCase):
             len([x for x in metadata.readableDescendants if isinstance(x, CtsTextMetadata)]), 25,
             "There should be 24 editions + 1 translations in readableDescendants"
         )
+        print(metadata.export(output=Mimetypes.XML.CTS))
         self.assertEqual(
             len(metadata.export(output=Mimetypes.PYTHON.ETREE).xpath(
                 "//ti:edition[@urn='urn:cts:latinLit:phi1294.phi002.perseus-lat2']", namespaces=XPATH_NAMESPACES)), 1,
             "There should be one node in exported format corresponding to lat2"
-        )
-        self.assertCountEqual(
-            [x["@id"] for x in metadata.export(output=Mimetypes.JSON.DTS.Std)["@graph"]["dts:members"]],
-            ["urn:cts:latinLit:phi1294", "urn:cts:latinLit:phi0959",
-             "urn:cts:greekLit:tlg0003", "urn:cts:latinLit:phi1276"],
-            "There should be 4 Members in DTS JSON"
         )
 
     def test_getMetadata_subset(self):
@@ -510,11 +505,6 @@ class TextXMLFolderResolver(TestCase):
             len(metadata.export(output=Mimetypes.PYTHON.ETREE).xpath(
                 "//ti:edition[@urn='urn:cts:latinLit:phi1294.phi002.perseus-lat2']", namespaces=XPATH_NAMESPACES)), 1,
             "There should be one node in exported format corresponding to lat2"
-        )
-        self.assertEqual(
-            [x["@id"] for x in metadata.export(output=Mimetypes.JSON.DTS.Std)["@graph"]["dts:members"]],
-            ["urn:cts:latinLit:phi1294.phi002.perseus-lat2"],
-            "There should be one member in DTS JSON"
         )
 
         tr = self.resolver.getMetadata(objectId="urn:cts:greekLit:tlg0003.tlg001.opp-fre1")
