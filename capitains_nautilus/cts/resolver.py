@@ -1,14 +1,16 @@
 import os.path
 from werkzeug.contrib.cache import NullCache
+from rdflib import Graph
 
 import MyCapytain.errors
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
-from MyCapytain.common.constants import set_graph, get_graph, RDF_NAMESPACES, SKOS
+from MyCapytain.common.constants import set_graph, get_graph
 from MyCapytain.resolvers.utils import CollectionDispatcher
 
 from capitains_nautilus import _cache_key
+from capitains_nautilus.collections.sparql import generate_alchemy_graph, clear_graph
 from capitains_nautilus.errors import *
 from capitains_nautilus.cts.collections import (
     SparqlXmlCitation,
@@ -20,11 +22,6 @@ from capitains_nautilus.cts.collections import (
     SparqlXmlCtsWorkMetadata,
     SparqlTextInventoryCollection
 )
-
-
-from rdflib import URIRef, Literal, plugin, Graph
-from rdflib.store import Store
-from rdflib_sqlalchemy import registerplugins
 
 
 class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver):
@@ -308,11 +305,17 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
         "citation": SparqlXmlCitation
     }
 
-    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None,
-                 sqlalchemy_address=None):
+    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, graph=None):
         exceptions = []
-        if sqlalchemy_address:
-            type(self).set_graph(sqlalchemy_address, self)
+
+        if graph is not None:
+            if isinstance(graph, str):  # Graph is a string : is a SQLAlchemy identifier
+                self.graph, self.graph_identifier, _ = generate_alchemy_graph(graph)
+            elif isinstance(graph, Graph):
+                self.graph = graph
+                self.graph_identifier = graph.identifier
+        else:
+            self.graph, self.graph_identifier, _ = generate_alchemy_graph(graph)
 
         if not dispatcher:
             # Normal init is setting label automatically
@@ -334,28 +337,6 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
         for exception in exceptions:
             self.logger.warning(exception)
 
-    @staticmethod
-    def set_graph(sqlalchemy_address, obj=None):
-        registerplugins()
-        ident = URIRef("NautilusSparql")
-        uri = Literal(sqlalchemy_address)
-        store = plugin.get("SQLAlchemy", Store)(identifier=ident)
-        graph = Graph(store, identifier=ident)
-        graph.open(uri, create=True)
-        graph.bind("cts", RDF_NAMESPACES.CTS)
-        graph.bind("dts", RDF_NAMESPACES.DTS)
-        graph.bind("tei", RDF_NAMESPACES.TEI)
-        graph.bind("skos", SKOS)
-        graph.bind("cpt", RDF_NAMESPACES.CAPITAINS)
-
-        if obj:
-            obj.ident = ident
-            obj.uri = uri
-            obj.graph = graph
-        else:
-            set_graph(graph)
-        return graph
-
     @property
     def graph(self):
         return get_graph()
@@ -374,12 +355,5 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
 
     def clear(self):
         """ Deletes the database
-
-        :return:
         """
-        self.graph.destroy(self.uri)
-        try:
-            self.graph.close()
-        except:
-            pass
-
+        clear_graph(self.graph_identifier)

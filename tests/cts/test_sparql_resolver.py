@@ -1,5 +1,7 @@
 from tests.cts.test_resolver import TestXMLFolderResolverBehindTheScene, TextXMLFolderResolver, TextXMLFolderResolverDispatcher
 from capitains_nautilus.cts.resolver import SparqlAlchemyNautilusCTSResolver
+from capitains_nautilus.collections.sparql import generate_alchemy_graph, clear_graph
+from MyCapytain.common.constants import set_graph
 from .config import sqlite_address
 from ..sparql_class import Sparql
 
@@ -11,45 +13,58 @@ class _Parser(Sparql):
 class TestSparqlBasedResolverDispatcher(_Parser, TextXMLFolderResolverDispatcher):
     """"""
     def generate_repository(self, resource, dispatcher=None, remove_empty=True):
-        Repository = self.RESOLVER_CLASS(resource, dispatcher=dispatcher, sqlalchemy_address=sqlite_address)
-        Repository.logger.disabled = True
-        Repository.REMOVE_EMPTY = remove_empty
+        if self.generated_graphs >= 1:
+            clear_graph(self.graph_identifier)
+            self.gen_graph()
+        repo = self.RESOLVER_CLASS(resource, dispatcher=dispatcher, graph=self.graph)
+        repo.logger.disabled = True
+        repo.REMOVE_EMPTY = remove_empty
+        repo.parse()
+        self.generated_graphs += 1
+        return repo
 
-        Repository.parse()
-        return Repository
+    def gen_graph(self):
+        self.graph, self.graph_identifier, self.store_uri = generate_alchemy_graph(alchemy_uri=sqlite_address)
+        set_graph(self.graph)
 
     def setUp(self):
-        Repository = self.RESOLVER_CLASS([], sqlalchemy_address=sqlite_address)
-        Repository.clear()
+        self.generated_graphs = 0
+        self.gen_graph()
+
+    def tearDown(self):
+        clear_graph(self.graph_identifier)
 
 
 class TextSparqlXMLFolderResolver(_Parser, TextXMLFolderResolver):
     """"""
     def setUp(self):
-        self.resolver = self.RESOLVER_CLASS(["./tests/testing_data/latinLit2"], sqlalchemy_address=sqlite_address)
+        self.graph, self.graph_identifier, self.store_uri = generate_alchemy_graph(alchemy_uri=sqlite_address)
+        self.resolver = self.RESOLVER_CLASS(["./tests/testing_data/latinLit2"], graph=self.graph)
         self.resolver.parse()
+
+    def tearDown(self):
+        clear_graph(self.graph_identifier)
 
 
 class TestSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderResolverBehindTheScene):
     """ """
 
     def generate_repository(self, *args, **kwargs):
-        print("Generate")
-        if "sqlalchemy_address" not in kwargs:
-            kwargs["sqlalchemy_address"] = sqlite_address
+        if "graph" not in kwargs:
+            kwargs["graph"] = self.graph
 
-        Repository = self.RESOLVER_CLASS(*args, **kwargs)
+        print(kwargs)
+        repository = self.RESOLVER_CLASS(*args, **kwargs)
 
-        Repository.parse()
-        print("Parsed")
-        return Repository
+        repository.parse()
+        return repository
 
     def setUp(self):
-        print("\nClearing")
-        try:
-            self.RESOLVER_CLASS.clear_graph(sqlite_address)
-        except:
-            pass
+        self.graph, self.graph_identifier, self.store_uri = generate_alchemy_graph(alchemy_uri=sqlite_address)
+        set_graph(self.graph)
+
+    def tearDown(self):
+        clear_graph(self.graph)
 
     def test_get_capabilities_nocites(self):
         """ Check Get Capabilities latinLit data"""

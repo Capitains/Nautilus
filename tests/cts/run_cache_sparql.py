@@ -6,6 +6,6 @@ cache = FileSystemCache(subprocess_cache_dir)
 resolver = SparqlAlchemyNautilusCTSResolver(
     resource=subprocess_repository,
     cache=cache,
-    sqlalchemy_address=sqlite_address
+    graph=sqlite_address
 )
 resolver.parse()

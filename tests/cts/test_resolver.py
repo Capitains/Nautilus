@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-from MyCapytain.common.constants import XPATH_NAMESPACES, Mimetypes, RDF_NAMESPACES, get_graph, set_graph, gen_graph
+from MyCapytain.common.constants import XPATH_NAMESPACES, Mimetypes, RDF_NAMESPACES, get_graph, set_graph, bind_graph
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resources.prototypes.metadata import Collection
 from MyCapytain.resources.collections.cts import XmlCtsTextInventoryMetadata
@@ -29,7 +29,7 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
     RESOLVER_CLASS = NautilusCTSResolver
 
     def setUp(self):
-        set_graph(gen_graph())
+        set_graph(bind_graph())
 
     def generate_repository(self, *args, **kwargs):
         Repository = self.RESOLVER_CLASS(*args, **kwargs)
@@ -147,7 +147,6 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
         Repository = self.generate_repository(
             ["./tests/testing_data/latinLit"]
         )
-        print("Generated ?")
         self.assertEqual(
             len(Repository.__getTextMetadata__(urn="urn:cts:latinLit:stoa0045.stoa008.perseus-lat2")[0]), 0,
             "Texts without citations were ignored"
@@ -181,7 +180,7 @@ class TextXMLFolderResolver(TestCase):
     RESOLVER_CLASS = NautilusCTSResolver
 
     def setUp(self):
-        set_graph(gen_graph())
+        set_graph(bind_graph())
         self.resolver = self.RESOLVER_CLASS(["./tests/testing_data/latinLit2"])
         self.resolver.parse()
 
@@ -463,7 +462,6 @@ class TextXMLFolderResolver(TestCase):
             len([x for x in metadata.readableDescendants if isinstance(x, CtsTextMetadata)]), 25,
             "There should be 24 editions + 1 translations in readableDescendants"
         )
-        print(metadata.export(output=Mimetypes.XML.CTS))
         self.assertEqual(
             len(metadata.export(output=Mimetypes.PYTHON.ETREE).xpath(
                 "//ti:edition[@urn='urn:cts:latinLit:phi1294.phi002.perseus-lat2']", namespaces=XPATH_NAMESPACES)), 1,
@@ -598,7 +596,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
     RESOLVER_CLASS = NautilusCTSResolver
 
     def setUp(self):
-        set_graph(gen_graph())
+        set_graph(bind_graph())
 
     def generate_repository(self, resource, dispatcher=None, remove_empty=True):
         Repository = self.RESOLVER_CLASS(resource, dispatcher=dispatcher)

@@ -13,9 +13,8 @@ from MyCapytain.retrievers.cts5 import HttpCtsRetriever
 from MyCapytain.resolvers.cts.api import HttpCtsResolver
 from MyCapytain.common.utils import xmlparser, XPATH_NAMESPACES
 from MyCapytain.common.reference import Reference
-from MyCapytain.common.constants import Mimetypes, set_graph, gen_graph
+from MyCapytain.common.constants import Mimetypes, set_graph, bind_graph
 from lxml.etree import tostring
-from rdflib import Graph
 import re
 import logging
 from logassert import logassert
@@ -26,7 +25,7 @@ logger = logging.getLogger("some_logger")
 
 class TestRestAPI(TestCase):
     def generate_resolver(self, directories):
-        set_graph(gen_graph())
+        set_graph(bind_graph())
         return NautilusCTSResolver(directories)
 
     def setUp(self):

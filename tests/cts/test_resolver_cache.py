@@ -84,7 +84,7 @@ class TestSparqlCache(TestCache):
         self.resolver = SparqlAlchemyNautilusCTSResolver(
             resource=subprocess_repository,
             cache=self.cache,
-            sqlalchemy_address=sqlite_address
+            graph=sqlite_address
         )
         self.resolver.logger.disabled = True
 

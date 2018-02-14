@@ -1,19 +1,49 @@
-from MyCapytain.common.constants import RDF_NAMESPACES, get_graph
+from MyCapytain.common.constants import RDF_NAMESPACES, get_graph, set_graph, GRAPH_BINDINGS
 from MyCapytain.common.metadata import Metadata
 from MyCapytain.resources.prototypes.metadata import Collection
-from rdflib import Literal, RDFS, RDF, URIRef
+from rdflib import Literal, RDFS, RDF, URIRef, Graph, plugin
+from rdflib.store import Store
+from rdflib_sqlalchemy import registerplugins
 from rdflib.namespace import SKOS
 from capitains_nautilus.errors import UnknownCollection
 from warnings import warn
 
 
-def clear_graph(graph_id=None):
+def clear_graph(identifier=None):
+    """ Clean up a graph by removing it
+
+    :param identifier: Root identifier of the graph
+    :return:
+    """
     graph = get_graph()
-    graph.destroy(graph_id)
+    if identifier:
+        graph.destroy(identifier)
     try:
         graph.close()
     except:
         warn("Unable to close the Graph")
+
+
+def generate_alchemy_graph(alchemy_uri, prefixes=None, identifier="NautilusSparql"):
+    """ Generate a graph and change the global graph to this one
+
+    :param alchemy_uri: A Uri for the graph
+    :param prefixes: A dictionary of prefixes and namespaces to bind to the graph
+    :param identifier: An identifier that will identify the Graph root
+    """
+    registerplugins()
+    ident = URIRef(identifier)
+    uri = Literal(alchemy_uri)
+    store = plugin.get("SQLAlchemy", Store)(identifier=ident)
+    graph = Graph(store, identifier=ident)
+    graph.open(uri, create=True)
+
+    for prefix, ns in (prefixes or GRAPH_BINDINGS).items():
+        if prefix == "":
+            prefix = "cts"  # Fix until ALchemy Store accepts empty prefixes
+        graph.bind(prefix, ns)
+
+    return graph, identifier, uri
 
 
 def NoneGenerator(object_id):
