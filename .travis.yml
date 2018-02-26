@@ -11,6 +11,7 @@ services:
 install:
     - pip install -r requirements.txt
     - pip install https://github.com/Capitains/MyCapytain/archive/issue-154.zip --upgrade
+    - pip install https://github.com/PonteIneptique/rdflib-sqlalchemy/archive/empty-prefix-fix.zip
     - pip install coveralls
 
 # command to run tests
