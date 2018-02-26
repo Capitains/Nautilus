@@ -80,7 +80,7 @@ class SparqlNavigatedCollection(Collection):
                 (self.asNode(), RDFS.label, Literal(label, lang=lang), self.graph),
             ])
         except Exception as E:
-            print("Already tried ?", E)
+            pass
 
     def exists(self, identifier):
         if not identifier:

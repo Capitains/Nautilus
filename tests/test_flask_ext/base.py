@@ -1,7 +1,6 @@
 import json
 import re
 from abc import abstractmethod
-from unittest import TestCase
 
 from MyCapytain.common.constants import Mimetypes, XPATH_NAMESPACES
 from MyCapytain.common.reference import Reference
@@ -15,7 +14,7 @@ from flask import Flask
 from flask_caching import Cache
 from logassert import logassert
 from lxml.etree import tostring
-from werkzeug.contrib.cache import RedisCache
+from werkzeug.contrib.cache import SimpleCache
 
 from capitains_nautilus.flask_ext import FlaskNautilus
 import logging
@@ -37,7 +36,7 @@ class SetupModule:
         self.nautilus_resolver = self.generate_resolver(["./tests/test_data/latinLit"])
         self.nautilus = FlaskNautilus(
             app=app,
-            resolver=self.nautilus_resolver ,
+            resolver=self.nautilus_resolver,
             logger=logger
         )
         self.cache = None
@@ -57,57 +56,6 @@ class SetupModule:
 
             parameters = {
                 key: str(parameters[key]) for key in parameters if parameters[key] is not None
-            }
-            if this.inventory is not None and "inv" not in parameters:
-                parameters["inv"] = this.inventory
-
-            request = self.app.get("/cts?{}".format(
-                "&".join(
-                    ["{}={}".format(key, value) for key, value in parameters.items()])
-                )
-            )
-            self.parent.called.append(parameters)
-            return request.data.decode()
-
-        self.parent.called = []
-        self.parent.call = lambda x: call(self.parent, x)
-
-
-class CacheModule:
-    def tearDown(self):
-        self.cache.clear()
-
-    def setUp(self):
-        app = Flask("Nautilus")
-        self.cache = Cache(config={'CACHE_TYPE': 'filesystem', 'CACHE_DIR': 'cache'})
-        nautilus_resolver = self.generate_resolver(
-            ["/tests/test_data/latinLit"]
-        )
-        app.debug = True
-        self.nautilus = FlaskNautilus(
-            app=app,
-            resolver=nautilus_resolver,
-            flask_caching=self.cache,
-            logger=logger
-        )
-        self.cache.init_app(app)
-
-        self.app = app.test_client()
-        self.parent = HttpCtsRetriever("/cts")
-        self.resolver = HttpCtsResolver(endpoint=self.parent)
-        logassert.setup(self, self.nautilus.logger.name)
-        self.nautilus.logger.disabled = True
-
-        def call(this, parameters=None):
-            """ Call an endpoint given the parameters
-
-            :param parameters: Dictionary of parameters
-            :type parameters: dict
-            :rtype: text
-            """
-
-            parameters = {
-                key: str(parameters[key]) for key in parameters or {} if parameters[key] is not None
             }
             if this.inventory is not None and "inv" not in parameters:
                 parameters["inv"] = this.inventory
