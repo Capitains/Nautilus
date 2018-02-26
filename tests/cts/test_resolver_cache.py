@@ -3,6 +3,7 @@ from subprocess import call
 from sys import executable
 import os
 from capitains_nautilus.cts.resolver import NautilusCTSResolver, SparqlAlchemyNautilusCTSResolver
+from capitains_nautilus.collections.sparql import clear_graph
 from werkzeug.contrib.cache import FileSystemCache
 from MyCapytain.common.constants import Mimetypes
 from tests.cts.config import subprocess_cache_dir, subprocess_repository, sqlite_address
@@ -72,9 +73,9 @@ class TestCache(TestCase):
 class TestSparqlCache(TestCache):
     def setUp(self):
         try:
-            SparqlAlchemyNautilusCTSResolver.clear_graph(sqlite_address)
+            clear_graph(sqlite_address)
         except:
-            """ Nothing to do here """
+            print("Unable to clear graph")
 
         output = call([python, "./tests/cts/run_cache_sparql.py"], cwd=cwd)
         if output != 0:
