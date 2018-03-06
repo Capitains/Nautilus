@@ -174,7 +174,6 @@ class SparqlNavigatedCollection(Collection):
 
     @parent.setter
     def parent(self, parent):
-        print(self, "parent", parent)
         self.graph.set(
             (self.asNode(), RDF_NAMESPACES.DTS.parent, parent.asNode())
         )

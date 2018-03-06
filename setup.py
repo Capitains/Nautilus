@@ -20,12 +20,13 @@ setup(
   ],
   test_requires=[
     "logassert",
-    "mock"
+    "mock",
+    "nose"
   ],
   entry_points={
       'console_scripts': ['capitains-nautilus=capitains_nautilus.cmd:cmd'],
   },
   include_package_data=True,
-  test_suite="tests",
+  test_suite="nose.collector",
   zip_safe=False
 )
