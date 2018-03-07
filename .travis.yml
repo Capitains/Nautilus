@@ -26,6 +26,7 @@ branches:
     - master
     - documentation
     - sparql-collections
+    - sparql-collections-multiproc
     - dev
 
 

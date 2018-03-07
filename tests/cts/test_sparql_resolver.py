@@ -12,6 +12,8 @@ class _Parser(Sparql):
 
 class TestSparqlBasedResolverDispatcher(_Parser, TextXMLFolderResolverDispatcher):
     """"""
+    TEST_RUN = 0
+
     def generate_repository(self, resource, dispatcher=None, remove_empty=True):
         if self.generated_graphs >= 1:
             clear_graph(self.graph_identifier)
@@ -24,12 +26,22 @@ class TestSparqlBasedResolverDispatcher(_Parser, TextXMLFolderResolverDispatcher
         return repo
 
     def gen_graph(self):
+        if self.TEST_RUN == 0 and ".sqlite" in sqlite_address:
+            # It can happen on local build that a here.sqlite remained.
+            # This allows the test to run
+            #  + Added a small security to check that we dealt with a file
+            import os
+            try:
+                os.remove(sqlite_address.replace("sqlite:///", "./"))
+            except Exception as E:
+                print(E)
         self.graph, self.graph_identifier, self.store_uri = generate_alchemy_graph(alchemy_uri=sqlite_address)
         set_graph(self.graph)
 
     def setUp(self):
         self.generated_graphs = 0
         self.gen_graph()
+        self.TEST_RUN += 1
 
     def tearDown(self):
         clear_graph(self.graph_identifier)
@@ -53,7 +65,6 @@ class TestSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderResolverBe
         if "graph" not in kwargs:
             kwargs["graph"] = self.graph
 
-        print(kwargs)
         repository = self.RESOLVER_CLASS(*args, **kwargs)
 
         repository.parse()

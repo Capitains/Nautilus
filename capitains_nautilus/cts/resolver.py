@@ -1,6 +1,9 @@
 import os.path
 from werkzeug.contrib.cache import NullCache
 from rdflib import Graph
+from glob import glob
+from multiprocessing.pool import ThreadPool, Pool
+from concurrent.futures import ThreadPoolExecutor as Executor
 
 import MyCapytain.errors
 from MyCapytain.common.reference import URN, Reference
@@ -115,11 +118,20 @@ class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver):
             resource = self.__resources__
 
         try:
-            inventory = super(__BaseNautilusCTSResolver__, self).parse(resource=resource)
+            self._parse(resource)
         except MyCapytain.errors.UndispatchedTextError as E:
             if self.RAISE_ON_UNDISPATCHED is True:
                 raise UndispatchedTextError(E)
 
+        self._after_parse()
+
+        self.inventory = self.dispatcher.collection
+        return self.inventory
+
+    def _parse(self, resource):
+        super(__BaseNautilusCTSResolver__, self).parse(resource=resource)
+
+    def _after_parse(self):
         for removable in self.invalid_collections:
             if removable in self.dispatcher.collection:
                 del self.dispatcher.collection[removable]
@@ -136,9 +148,6 @@ class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver):
             for removable in removing:
                 if removable in self.dispatcher.collection:
                     del self.dispatcher.collection[removable]
-
-        self.inventory = self.dispatcher.collection
-        return self.inventory
 
     def __getText__(self, urn):
         """ Returns a PrototypeText object
@@ -305,7 +314,7 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
         "citation": SparqlXmlCitation
     }
 
-    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, graph=None):
+    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, graph=None, _workers=3):
         exceptions = []
 
         if graph is not None:
@@ -317,6 +326,8 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
         else:
             self.graph, self.graph_identifier, _ = generate_alchemy_graph(graph)
 
+        self._workers = _workers or 3
+
         if not dispatcher:
             # Normal init is setting label automatically
             inventory_collection = type(self).CLASSES["inventory_collection"](identifier="defaultTic")
@@ -325,7 +336,7 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
             if ti.get_label(lang="eng") is None:
                 ti.set_label("Default collection", "eng")
             dispatcher = CollectionDispatcher(inventory_collection)
-            
+
         super(SparqlAlchemyNautilusCTSResolver, self).__init__(
             resource=resource,
             name=name,
@@ -336,6 +347,73 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
 
         for exception in exceptions:
             self.logger.warning(exception)
+
+    def _dispatch(self, textgroup, directory):
+        """ Sparql dispatcher do not need to dispatch works, as the link is DB stored through Textgroup
+
+        :param textgroup: A Textgroup object
+        :param directory: The path in which we found the textgroup
+        :return:
+        """
+        self.dispatcher.dispatch(textgroup, path=directory)
+
+    def _dispatch_container(self, tg_id, path):
+        return super(SparqlAlchemyNautilusCTSResolver, self)._dispatch_container(
+            self.classes["textgroup"](tg_id), path
+        )
+
+    def _parse_textgroup(self, cts_file):
+        try:
+            with open(cts_file) as __xml__:
+                return self.classes["textgroup"].parse(
+                    resource=__xml__,
+                    _cls_dict=self.classes
+                ), cts_file
+        except Exception as E:
+            self.logger.error("Error parsing %s ", cts_file)
+            if self.RAISE_ON_GENERIC_PARSING_ERROR:
+                raise E
+
+    def _parse(self, resource=None):
+        workers = self._workers
+        self._textgroups = []
+        for folder in resource:
+            cts_files = glob("{base_folder}/data/*/__cts__.xml".format(base_folder=folder))
+
+            textgroups = []
+            with ThreadPool(processes=workers) as executor:
+                for futures in executor.imap_unordered(self._parse_textgroup, cts_files):
+                    textgroups.append(futures)
+                # Required for coverage
+                executor.close()
+                executor.join()
+
+            with ThreadPool(processes=workers) as executor:
+                executor.imap_unordered(self._after_textgroup, textgroups)
+
+                # Required for coverage
+                executor.close()
+                executor.join()
+
+        done = []
+        for (tg, path) in self._textgroups:
+            if not tg.id in done:
+                self._dispatch_container(tg.id, path)
+                done.append(tg.id)
+
+    def _after_textgroup(self, futures):
+        textgroup, cts_file = futures
+        works = glob("{parent}/*/__cts__.xml".format(parent=os.path.dirname(cts_file)))
+        for cts_work_file in works:
+            work, texts = self._parse_work(cts_work_file, textgroup)
+
+            directory = os.path.dirname(cts_work_file)
+            for text in texts:
+                self._parse_text(text, directory)
+
+        self._textgroups.append(
+            (textgroup, cts_file)
+        )
 
     @property
     def graph(self):
