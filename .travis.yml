@@ -10,7 +10,7 @@ services:
 # command to install dependencies
 install:
     - pip install -r requirements.txt
-    - pip install https://github.com/Capitains/MyCapytain/archive/issue-154.zip --upgrade
+    - pip install https://github.com/Capitains/MyCapytain/archive/dev.zip --upgrade
     - pip install https://github.com/PonteIneptique/rdflib-sqlalchemy/archive/empty-prefix-fix.zip --upgrade
     - pip install coveralls
 
