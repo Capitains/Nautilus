@@ -136,18 +136,20 @@ class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver):
             if removable in self.dispatcher.collection:
                 del self.dispatcher.collection[removable]
 
-        removing = []
-
         if self.REMOVE_EMPTY is True:
-            # Find resource with no readable descendants
-            for item in self.dispatcher.collection.descendants:
-                if not item.readable and len(item.readableDescendants) == 0:
-                    removing.append(item.id)
+            self._remove_empty()
 
-            # Remove them only if they have not been removed before
-            for removable in removing:
-                if removable in self.dispatcher.collection:
-                    del self.dispatcher.collection[removable]
+    def _remove_empty(self):
+        removing = []
+        # Find resource with no readable descendants
+        for item in self.dispatcher.collection.descendants:
+            if not item.readable and len(item.readableDescendants) == 0:
+                removing.append(item.id)
+
+        # Remove them only if they have not been removed before
+        for removable in removing:
+            if removable in self.dispatcher.collection:
+                del self.dispatcher.collection[removable]
 
     def __getText__(self, urn):
         """ Returns a PrototypeText object
@@ -374,46 +376,71 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
             if self.RAISE_ON_GENERIC_PARSING_ERROR:
                 raise E
 
+    def _parse_work(self, args):
+        cts_file, textgroup = args
+        work, children = super(SparqlAlchemyNautilusCTSResolver, self)._parse_work(cts_file, textgroup)
+        return work, children, os.path.dirname(cts_file)
+
+    def _parse_text(self, args):
+        text, directory = args
+        return super(SparqlAlchemyNautilusCTSResolver, self)._parse_text(text, directory)
+
     def _parse(self, resource=None):
         workers = self._workers
-        self._textgroups = []
+        global_textgroups = []
+
         for folder in resource:
             cts_files = glob("{base_folder}/data/*/__cts__.xml".format(base_folder=folder))
 
             textgroups = []
-            with ThreadPool(processes=workers) as executor:
-                for futures in executor.imap_unordered(self._parse_textgroup, cts_files):
-                    textgroups.append(futures)
-                # Required for coverage
-                executor.close()
-                executor.join()
+            works_to_process = []
+            texts_to_process = []
 
-            with ThreadPool(processes=workers) as executor:
-                executor.imap_unordered(self._after_textgroup, textgroups)
+            with ThreadPool(processes=workers) as pool:
+                for tg, tg_path in pool.map(self._parse_textgroup, cts_files):
+                    textgroups.append((tg, tg_path))
+                    global_textgroups.append((tg.id, tg_path))
+
+                    for cts_work_file in glob("{parent}/*/__cts__.xml".format(parent=os.path.dirname(tg_path))):
+                        works_to_process.append((cts_work_file, tg))
 
                 # Required for coverage
-                executor.close()
-                executor.join()
+                pool.close()
+                pool.join()
+
+            with ThreadPool(processes=workers) as pool:
+                for work, texts, work_directory in pool.map(self._parse_work, works_to_process):
+                    for text in texts:
+                        path = "{directory}/{textgroup}.{work}.{version}.xml".format(
+                            directory=work_directory,
+                            textgroup=text.urn.textgroup,
+                            work=text.urn.work,
+                            version=text.urn.version
+                        )
+
+                        # Cleaning up texts that do not exist to avoid unecessary thread waiting
+                        if os.path.isfile(path):
+                            texts_to_process.append((text, work_directory))
+                        else:
+                            self.logger.error("%s is not present", path)
+                            self.invalid_collections.append(text.id)
+
+                # Required for coverage
+                pool.close()
+                pool.join()
+
+            with ThreadPool(processes=workers) as pool:
+                for _ in pool.map(self._parse_text, texts_to_process):
+                    continue
+                # Required for coverage
+                pool.close()
+                pool.join()
 
         done = []
-        for (tg, path) in self._textgroups:
-            if not tg.id in done:
-                self._dispatch_container(tg.id, path)
-                done.append(tg.id)
-
-    def _after_textgroup(self, futures):
-        textgroup, cts_file = futures
-        works = glob("{parent}/*/__cts__.xml".format(parent=os.path.dirname(cts_file)))
-        for cts_work_file in works:
-            work, texts = self._parse_work(cts_work_file, textgroup)
-
-            directory = os.path.dirname(cts_work_file)
-            for text in texts:
-                self._parse_text(text, directory)
-
-        self._textgroups.append(
-            (textgroup, cts_file)
-        )
+        for (tg_id, path) in global_textgroups:
+            if tg_id not in done:
+                self._dispatch_container(tg_id, path)
+                done.append(tg_id)
 
     @property
     def graph(self):
