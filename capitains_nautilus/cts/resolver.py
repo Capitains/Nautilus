@@ -325,7 +325,7 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
         "citation": SparqlXmlCitation
     }
 
-    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, graph=None, _workers=3):
+    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, graph=None, _workers=None):
         exceptions = []
 
         if graph is not None:
@@ -337,7 +337,7 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
         else:
             self.graph, self.graph_identifier, _ = generate_alchemy_graph(graph)
 
-        self._workers = _workers or 10
+        self._workers = _workers or 1
 
         if not dispatcher:
             # Normal init is setting label automatically
