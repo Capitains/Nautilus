@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-from MyCapytain.common.constants import XPATH_NAMESPACES, Mimetypes, RDF_NAMESPACES, get_graph
+from MyCapytain.common.constants import XPATH_NAMESPACES, Mimetypes, RDF_NAMESPACES, get_graph, set_graph, bind_graph
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resources.prototypes.metadata import Collection
 from MyCapytain.resources.collections.cts import XmlCtsTextInventoryMetadata
@@ -20,12 +20,26 @@ from unittest import TestCase
 from capitains_nautilus.cts.resolver import NautilusCTSResolver
 from capitains_nautilus.errors import UnknownCollection, InvalidURN, UndispatchedTextError
 
+from .config import sqlite_address
+from rdflib import Graph
+
 
 class TestXMLFolderResolverBehindTheScene(TestCase):
     """ Test behind the scene functions of the Resolver """
+    RESOLVER_CLASS = NautilusCTSResolver
+
+    def setUp(self):
+        set_graph(bind_graph())
+
+    def generate_repository(self, *args, **kwargs):
+        Repository = self.RESOLVER_CLASS(*args, **kwargs)
+        Repository.parse()
+        return Repository
+
     def test_resource_parser(self):
         """ Test that the initiation finds correctly the resources """
-        Repository = NautilusCTSResolver(["./tests/testing_data/farsiLit"])
+        Repository = self.generate_repository(["./tests/testing_data/farsiLit"])
+
         self.assertEqual(
             Repository.inventory["urn:cts:farsiLit:hafez"].urn, URN("urn:cts:farsiLit:hafez"),
             "Hafez is found"
@@ -45,7 +59,7 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
 
     def test_text_resource(self):
         """ Test to get the text resource to perform other queries """
-        Repository = NautilusCTSResolver(["./tests/testing_data/farsiLit"])
+        Repository = self.generate_repository(["./tests/testing_data/farsiLit"])
         text, metadata = Repository.__getText__("urn:cts:farsiLit:hafez.divan.perseus-eng1")
         self.assertEqual(
             len(text.citation), 4,
@@ -59,13 +73,14 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
 
     def test_missing_text_resource(self):
         """ Test to make sure an UnknownCollection error is raised when a text is missing """
-        Repository = NautilusCTSResolver(["./tests/test_data/missing_text"])
+        Repository = self.generate_repository(["./tests/test_data/missing_text"])
         with self.assertRaises(UnknownCollection):
             text, metadata = Repository.__getText__("urn:cts:farsiLit:hafez.divan.missing_text")
 
     def test_get_capabilities(self):
         """ Check Get Capabilities """
-        Repository = NautilusCTSResolver(
+
+        Repository = self.generate_repository(
             ["./tests/testing_data/farsiLit"]
         )
         Repository.parse()
@@ -112,7 +127,7 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
 
     def test_get_shared_textgroup_cross_repo(self):
         """ Check Get Capabilities """
-        Repository = NautilusCTSResolver(
+        Repository = self.generate_repository(
             [
                 "./tests/testing_data/farsiLit",
                 "./tests/testing_data/latinLit2"
@@ -129,7 +144,7 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
 
     def test_get_capabilities_nocites(self):
         """ Check Get Capabilities latinLit data"""
-        Repository = NautilusCTSResolver(
+        Repository = self.generate_repository(
             ["./tests/testing_data/latinLit"]
         )
         self.assertEqual(
@@ -162,9 +177,12 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
 
 class TextXMLFolderResolver(TestCase):
     """ Ensure working state of resolver """
+    RESOLVER_CLASS = NautilusCTSResolver
+
     def setUp(self):
-        get_graph().remove((None, None, None))
-        self.resolver = NautilusCTSResolver(["./tests/testing_data/latinLit2"])
+        set_graph(bind_graph())
+        self.resolver = self.RESOLVER_CLASS(["./tests/testing_data/latinLit2"])
+        self.resolver.parse()
 
     def test_getPassage_full(self):
         """ Test that we can get a full text """
@@ -449,12 +467,6 @@ class TextXMLFolderResolver(TestCase):
                 "//ti:edition[@urn='urn:cts:latinLit:phi1294.phi002.perseus-lat2']", namespaces=XPATH_NAMESPACES)), 1,
             "There should be one node in exported format corresponding to lat2"
         )
-        self.assertCountEqual(
-            [x["@id"] for x in metadata.export(output=Mimetypes.JSON.DTS.Std)["@graph"]["dts:members"]],
-            ["urn:cts:latinLit:phi1294", "urn:cts:latinLit:phi0959",
-             "urn:cts:greekLit:tlg0003", "urn:cts:latinLit:phi1276"],
-            "There should be 4 Members in DTS JSON"
-        )
 
     def test_getMetadata_subset(self):
         """ Checks retrieval of Metadata information """
@@ -491,11 +503,6 @@ class TextXMLFolderResolver(TestCase):
             len(metadata.export(output=Mimetypes.PYTHON.ETREE).xpath(
                 "//ti:edition[@urn='urn:cts:latinLit:phi1294.phi002.perseus-lat2']", namespaces=XPATH_NAMESPACES)), 1,
             "There should be one node in exported format corresponding to lat2"
-        )
-        self.assertEqual(
-            [x["@id"] for x in metadata.export(output=Mimetypes.JSON.DTS.Std)["@graph"]["dts:members"]],
-            ["urn:cts:latinLit:phi1294.phi002.perseus-lat2"],
-            "There should be one member in DTS JSON"
         )
 
         tr = self.resolver.getMetadata(objectId="urn:cts:greekLit:tlg0003.tlg001.opp-fre1")
@@ -586,16 +593,25 @@ class TextXMLFolderResolver(TestCase):
 
 class TextXMLFolderResolverDispatcher(TestCase):
     """ Ensure working state of resolver """
+    RESOLVER_CLASS = NautilusCTSResolver
+
     def setUp(self):
-        get_graph().remove((None, None, None))
+        set_graph(bind_graph())
+
+    def generate_repository(self, resource, dispatcher=None, remove_empty=True):
+        Repository = self.RESOLVER_CLASS(resource, dispatcher=dispatcher)
+        Repository.logger.disabled = True
+        Repository.REMOVE_EMPTY = remove_empty
+        Repository.parse()
+        return Repository
 
     def test_dispatching_latin_greek(self):
-        tic = CtsTextInventoryCollection()
-        latin = XmlCtsTextInventoryMetadata("urn:perseus:latinLit", parent=tic)
+        tic = self.RESOLVER_CLASS.CLASSES["inventory_collection"]()
+        latin = self.RESOLVER_CLASS.CLASSES["inventory"]("urn:perseus:latinLit", parent=tic)
         latin.set_label("Classical Latin", "eng")
-        farsi = XmlCtsTextInventoryMetadata("urn:perseus:farsiLit", parent=tic)
+        farsi = self.RESOLVER_CLASS.CLASSES["inventory"]("urn:perseus:farsiLit", parent=tic)
         farsi.set_label("Farsi", "eng")
-        gc = XmlCtsTextInventoryMetadata("urn:perseus:greekLit", parent=tic)
+        gc = self.RESOLVER_CLASS.CLASSES["inventory"]("urn:perseus:greekLit", parent=tic)
         gc.set_label("Ancient Greek", "eng")
         gc.set_label("Grec Ancien", "fre")
 
@@ -619,13 +635,11 @@ class TextXMLFolderResolverDispatcher(TestCase):
                 return True
             return False
 
-        resolver = NautilusCTSResolver(
+        resolver = self.generate_repository(
             ["./tests/testing_data/latinLit2"],
-            dispatcher=dispatcher
+            dispatcher=dispatcher,
+            remove_empty=False
         )
-        resolver.logger.disabled = True
-        resolver.REMOVE_EMPTY = False
-        resolver.parse()
         latin_stuff = resolver.getMetadata("urn:perseus:latinLit")
         greek_stuff = resolver.getMetadata("urn:perseus:greekLit")
         farsi_stuff = resolver.getMetadata("urn:perseus:farsiLit")
@@ -653,8 +667,8 @@ class TextXMLFolderResolverDispatcher(TestCase):
             _ = latin_stuff["urn:cts:greekLit:tlg0003"]
 
     def test_dispatching_error(self):
-        tic = CtsTextInventoryCollection()
-        latin = CtsTextInventoryMetadata("urn:perseus:latinLit", parent=tic)
+        tic = self.RESOLVER_CLASS.CLASSES["inventory_collection"]()
+        latin = self.RESOLVER_CLASS.CLASSES["inventory"]("urn:perseus:latinLit", parent=tic)
         latin.set_label("Classical Latin", "eng")
         dispatcher = CollectionDispatcher(tic)
         # We remove default dispatcher
@@ -666,34 +680,30 @@ class TextXMLFolderResolverDispatcher(TestCase):
                 return True
             return False
 
-        NautilusCTSResolver.RAISE_ON_UNDISPATCHED = True
+        self.RESOLVER_CLASS.RAISE_ON_UNDISPATCHED = True
         with self.assertRaises(Exception):
-            resolver = NautilusCTSResolver(
+            resolver = self.generate_repository(
                 ["./tests/testing_data/latinLit2"],
                 dispatcher=dispatcher
             )
-            resolver.logger.disabled = True
-            resolver.parse()
 
-        NautilusCTSResolver.RAISE_ON_UNDISPATCHED = False
+        self.RESOLVER_CLASS.RAISE_ON_UNDISPATCHED = False
         try:
-            resolver = NautilusCTSResolver(
+            resolver = self.generate_repository(
                 ["./tests/testing_data/latinLit2"],
-                dispatcher=dispatcher
+                dispatcher=dispatcher,
+                remove_empty=False
             )
-            resolver.logger.disabled = True
-            resolver.REMOVE_EMPTY = False
-            resolver.parse()
         except UndispatchedTextError as E:
             self.fail("UndispatchedTextError should not have been raised")
 
     def test_dispatching_output(self):
-        tic = CtsTextInventoryCollection()
-        latin = CtsTextInventoryMetadata("urn:perseus:latinLit", parent=tic)
+        tic = self.RESOLVER_CLASS.CLASSES["inventory_collection"]()
+        latin = self.RESOLVER_CLASS.CLASSES["inventory"]("urn:perseus:latinLit", parent=tic)
         latin.set_label("Classical Latin", "eng")
-        farsi = CtsTextInventoryMetadata("urn:perseus:farsiLit", parent=tic)
+        farsi = self.RESOLVER_CLASS.CLASSES["inventory"]("urn:perseus:farsiLit", parent=tic)
         farsi.set_label("Farsi", "eng")
-        gc = CtsTextInventoryMetadata("urn:perseus:greekLit", parent=tic)
+        gc = self.RESOLVER_CLASS.CLASSES["inventory"]("urn:perseus:greekLit", parent=tic)
         gc.set_label("Ancient Greek", "eng")
         gc.set_label("Grec Ancien", "fre")
 
@@ -717,13 +727,11 @@ class TextXMLFolderResolverDispatcher(TestCase):
                 return True
             return False
 
-        resolver = NautilusCTSResolver(
+        resolver = self.generate_repository(
             ["./tests/testing_data/latinLit2"],
-            dispatcher=dispatcher
+            dispatcher=dispatcher,
+            remove_empty=False
         )
-        resolver.logger.disabled = True
-        resolver.REMOVE_EMPTY = False
-        resolver.parse()
 
         all = resolver.getMetadata().export(Mimetypes.XML.CTS)
         latin_stuff = resolver.getMetadata("urn:perseus:latinLit").export(Mimetypes.XML.CTS)

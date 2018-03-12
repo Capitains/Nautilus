@@ -46,8 +46,6 @@ def FlaskNautilusManager(resolver, flask_nautilus):
             manager()
 
     """
-
-    app = flask_nautilus.app
     global NAUTILUSRESOLVER
     NAUTILUSRESOLVER = resolver
 
@@ -61,7 +59,7 @@ def FlaskNautilusManager(resolver, flask_nautilus):
     @CLI.command()
     def flush_resolver():
         """ Flush the resolver cache system """
-        if resolver.cache.clear() is True:
+        if resolver.clear() is True:
             click.echo("Caching of Resolver Cleared")
 
     @CLI.command()

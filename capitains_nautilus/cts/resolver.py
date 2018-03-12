@@ -1,74 +1,45 @@
-from glob import glob
 import os.path
-import logging
 from werkzeug.contrib.cache import NullCache
+from rdflib import Graph
+from glob import glob
+from multiprocessing.pool import ThreadPool
 
 import MyCapytain.errors
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
-from MyCapytain.resolvers.utils import CollectionDispatcher
-from MyCapytain.resources.collections.cts import (
-    XmlCtsTextInventoryMetadata as TextInventory,
-    XmlCtsTextgroupMetadata as TextGroup,
-    XmlCtsWorkMetadata as Work,
-    XmlCtsCitation as Citation,
-    XmlCtsEditionMetadata as Edition
-)
-from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection as TextInventoryCollection
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
-from MyCapytain.common.constants import set_graph
+from MyCapytain.common.constants import set_graph, get_graph
+from MyCapytain.resolvers.utils import CollectionDispatcher
 
 from capitains_nautilus import _cache_key
+from capitains_nautilus.collections.sparql import generate_alchemy_graph, clear_graph
 from capitains_nautilus.errors import *
+from capitains_nautilus.cts.collections import (
+    SparqlXmlCitation,
+    SparqlXmlCtsEditionMetadata,
+    SparqlXmlCtsTextgroupMetadata,
+    SparqlXmlCtsTextInventoryMetadata,
+    SparqlXmlCtsTranslationMetadata,
+    SparqlXmlCtsCommentaryMetadata,
+    SparqlXmlCtsWorkMetadata,
+    SparqlTextInventoryCollection
+)
+from capitains_nautilus.resolver_prototype import NautilusPrototypeResolver
 
 
-class NautilusCTSResolver(CtsCapitainsLocalResolver):
-    """ XML Folder Based resolver.
-
-    :param resource: Resource should be a list of folders retaining data as Capitains Guidelines Repositories
-    :type resource: [str]
-    :param name: Key used to make cache key
-    :param cache: Cache object to be used for the inventory
-    :type cache: BaseCache
-    :param logger: Logging object
-    :type logger: logging.logger
-
-    :ivar inventory_cache_key: Werkzeug Cache key to get or set cache for the TextInventory
-    :ivar texts_cache_key:  Werkzeug Cache key to get or set cache for lists of metadata texts objects
-    :ivar texts_parsed:  Werkzeug Cache key to get or set cache for lists of parsed texts objects
-    :ivar texts: List of Text Metadata objects
-    :ivar source: Original resource parameter
-
-    .. warning :: This resolver does not support inventories
-    """
+class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver, NautilusPrototypeResolver):
     TIMEOUT = 0
-    NautilusCTSResolver = False
     REMOVE_EMPTY = True
     CACHE_FULL_TEI = False
+    RAISE_ON_GENERIC_PARSING_ERROR = False
 
     def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None):
         """ Initiate the XMLResolver
 
         """
-        if dispatcher is None:
-            inventory_collection = TextInventoryCollection(identifier="defaultTic")
-            ti = TextInventory("default")
-            ti.parent = inventory_collection
-            ti.set_label("Default collection", "eng")
-            self.dispatcher = CollectionDispatcher(inventory_collection)
-        else:
-            self.dispatcher = dispatcher
-
-        self.__inventory__ = None
-        self.__texts__ = []
-        self.name = name
-
-        self.logger = logger
-        if not logger:
-            self.logger = logging.getLogger(name)
-
-        if not name:
-            self.name = "repository"
+        super(__BaseNautilusCTSResolver__, self).__init__(
+            resource=resource, dispatcher=dispatcher, name=name, logger=logger, autoparse=False
+        )
 
         if cache is None:
             cache = NullCache()
@@ -83,26 +54,6 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
     def cache(self):
         return self.__cache__
 
-    @property
-    def inventory(self):
-        if self.__inventory__ is None or len(self.__inventory__.readableDescendants) == 0:
-            self.__inventory__ = self.get_or(self.inventory_cache_key, self.parse, self.__resources__)
-            set_graph(self.__inventory__.graph)
-        return self.__inventory__
-
-    @inventory.setter
-    def inventory(self, value):
-        self.__inventory__ = value
-        self.cache.set(self.inventory_cache_key, value, self.TIMEOUT)
-
-    @property
-    def texts(self):
-        """ List of text known
-
-        :rtype: list
-        """
-        return self.inventory.readableDescendants
-
     def xmlparse(self, file):
         """ Parse a XML file
 
@@ -112,9 +63,9 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
         if self.CACHE_FULL_TEI is True:
             return self.get_or(
                 _cache_key("Nautilus", self.name, "File", "Tree", file.name),
-                super(NautilusCTSResolver, self).xmlparse, file
+                super(__BaseNautilusCTSResolver__, self).xmlparse, file
             )
-        return super(NautilusCTSResolver, self).xmlparse(file)
+        return super(__BaseNautilusCTSResolver__, self).xmlparse(file)
 
     def get_or(self, cache_key, callback, *args, **kwargs):
         """ Get or set the cache using callback and arguments
@@ -160,102 +111,48 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
 
     def parse(self, resource=None):
         """ Parse a list of directories ans
+
         :param resource: List of folders
-        :param ret: Return a specific item ("inventory" or "texts")
         """
         if resource is None:
             resource = self.__resources__
-        removing = []
-        for folder in resource:
-            textgroups = glob("{base_folder}/data/*/__cts__.xml".format(base_folder=folder))
-            for __cts__ in textgroups:
-                try:
-                    with open(__cts__) as __xml__:
-                        textgroup = TextGroup.parse(
-                            resource=__xml__
-                        )
-                        tg_urn = str(textgroup.urn)
-                    if tg_urn in self.dispatcher.collection:
-                        self.dispatcher.collection[tg_urn].update(textgroup)
-                    else:
-                        self.dispatcher.dispatch(textgroup, path=__cts__)
 
-                    for __subcts__ in glob("{parent}/*/__cts__.xml".format(parent=os.path.dirname(__cts__))):
-                        with open(__subcts__) as __xml__:
-                            work = Work.parse(
-                                resource=__xml__,
-                                parent=self.dispatcher.collection[tg_urn]
-                            )
-                            work_urn = str(work.urn)
-                            if work_urn in self.dispatcher.collection[tg_urn].works:
-                                self.dispatcher.collection[work_urn].update(work)
+        self.inventory = self.dispatcher.collection
 
-                        for __textkey__ in work.texts:
-                            __text__ = self.dispatcher.collection[__textkey__]
-                            __text__.path = "{directory}/{textgroup}.{work}.{version}.xml".format(
-                                directory=os.path.dirname(__subcts__),
-                                textgroup=__text__.urn.textgroup,
-                                work=__text__.urn.work,
-                                version=__text__.urn.version
-                            )
-                            if os.path.isfile(__text__.path):
-                                try:
-                                    t = self.read(__textkey__, __text__.path)
-                                    cites = list()
-                                    for cite in [c for c in t.citation][::-1]:
-                                        if len(cites) >= 1:
-                                            cites.append(Citation(
-                                                xpath=cite.xpath.replace("'", '"'),
-                                                scope=cite.scope.replace("'", '"'),
-                                                name=cite.name,
-                                                child=cites[-1]
-                                            ))
-                                        else:
-                                            cites.append(Citation(
-                                                xpath=cite.xpath.replace("'", '"'),
-                                                scope=cite.scope.replace("'", '"'),
-                                                name=cite.name
-                                            ))
-                                    del t
-                                    __text__.citation = cites[-1]
-                                    self.logger.info("%s has been parsed ", __text__.path)
-                                    if __text__.citation.isEmpty() is True:
-                                        removing.append(__textkey__)
-                                        self.logger.error("%s has no passages", __text__.path)
-                                except Exception as E:
-                                    removing.append(__textkey__)
-                                    self.logger.error(
-                                        "%s does not accept parsing at some level (most probably citation) ",
-                                        __text__.path
-                                    )
-                            else:
-                                removing.append(__textkey__)
-                                self.logger.error("%s is not present", __text__.path)
-                except MyCapytain.errors.UndispatchedTextError as E:
-                    self.logger.error("Error dispatching %s ", __cts__)
-                    if self.RAISE_ON_UNDISPATCHED is True:
-                        raise UndispatchedTextError(E)
-                except Exception as E:
-                    self.logger.error("Error parsing %s ", __cts__)
-
-        for removable in removing:
-            del self.dispatcher.collection[removable]
-
-        removing = []
-
-        if self.REMOVE_EMPTY is True:
-            # Find resource with no readable descendants
-            for item in self.dispatcher.collection.descendants:
-                if item.readable != True and len(item.readableDescendants) == 0:
-                    removing.append(item.id)
-
-            # Remove them only if they have not been removed before
-            for removable in removing:
-                if removable in self.dispatcher.collection:
-                    del self.dispatcher.collection[removable]
+        try:
+            self._parse(resource)
+        except MyCapytain.errors.UndispatchedTextError as E:
+            if self.RAISE_ON_UNDISPATCHED is True:
+                raise UndispatchedTextError(E)
 
         self.inventory = self.dispatcher.collection
         return self.inventory
+
+    def _parse(self, resource):
+        return super(__BaseNautilusCTSResolver__, self).parse(resource=resource)
+
+    def _clean_invalids(self, invalids):
+        for removable in invalids:
+            if removable.id in self.dispatcher.collection:
+                del self.dispatcher.collection[removable.id]
+
+        if self.REMOVE_EMPTY is True:
+            self._remove_empty()
+
+    def _remove_empty(self):
+        removing = []
+        # Find resource with no readable descendants
+        for item in self.dispatcher.collection.descendants:
+            if not item.readable and len(item.readableDescendants) == 0:
+                removing.append(item.id)
+
+        # Remove them only if they have not been removed before
+        for removable in removing:
+            if removable in self.dispatcher.collection:
+                del self.dispatcher.collection[removable]
+
+    def _dispatch_container(self, textgroup, directory):
+        super(__BaseNautilusCTSResolver__, self)._dispatch_container(textgroup, directory)
 
     def __getText__(self, urn):
         """ Returns a PrototypeText object
@@ -272,7 +169,7 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
                 urn = [
                     t.id
                     for t in self.texts
-                    if t.id.startswith(str(urn)) and isinstance(t, Edition)
+                    if t.id.startswith(str(urn)) and isinstance(t, self.classes["edition"])
                 ]
                 if len(urn) > 0:
                     urn = URN(urn[0])
@@ -288,28 +185,12 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
         except Exception as E:
             raise E
 
-
         if os.path.isfile(text.path):
             resource = self.read(identifier=urn, path=text.path)
         else:
-            resource = None
             raise UnknownCollection("File matching %s does not exist" % text.path)
 
         return resource, text
-
-    def getMetadata(self, objectId=None, **filters):
-        """ Request metadata about a text or a collection
-
-        :param objectId: Object Identifier to filter on
-        :type objectId: str
-        :param filters: Kwargs parameters.
-        :type filters: dict
-        :return: Collection
-        """
-        return self.get_or(
-            _cache_key("Nautilus", self.name, "GetMetadata", objectId),
-            super(NautilusCTSResolver, self).getMetadata, objectId
-        )
 
     def getReffs(self, textId, level=1, subreference=None):
         """ Retrieve the siblings of a textual node
@@ -325,7 +206,7 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
         """
         return self.get_or(
             self.__cache_key_reffs__(textId, level, subreference),
-            super(NautilusCTSResolver, self).getReffs, textId, level, subreference
+            super(__BaseNautilusCTSResolver__, self).getReffs, textId, level, subreference
         )
 
     def __cache_key_reffs__(self, textId, level, subreference):
@@ -376,3 +257,211 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
         siblings = passage.siblingsId
         self.cache.set(key, siblings)
         return siblings
+
+    def clear(self):
+        return self.__cache__.clear()
+
+
+class NautilusCTSResolver(__BaseNautilusCTSResolver__):
+    """ XML Folder Based resolver fully cache oriented (including the inventory)
+
+    :param resource: Resource should be a list of folders retaining data as Capitains Guidelines Repositories
+    :type resource: [str]
+    :param name: Key used to make cache key
+    :param cache: Cache object to be used for the inventory
+    :type cache: BaseCache
+    :param logger: Logging object
+    :type logger: logging.logger
+
+    :ivar inventory_cache_key: Werkzeug Cache key to get or set cache for the TextInventory
+    :ivar texts_cache_key:  Werkzeug Cache key to get or set cache for lists of metadata texts objects
+    :ivar texts_parsed:  Werkzeug Cache key to get or set cache for lists of parsed texts objects
+    :ivar texts: List of Text Metadata objects
+    :ivar source: Original resource parameter
+
+    .. warning :: This resolver does not support inventories
+    """
+
+    @property
+    def inventory(self):
+        if self.__inventory__ is None or len(self.__inventory__.readableDescendants) == 0:
+            self.__inventory__ = self.get_or(self.inventory_cache_key, self.parse, self.__resources__)
+            set_graph(self.__inventory__.graph)
+        return self.__inventory__
+
+    @inventory.setter
+    def inventory(self, value):
+        self.__inventory__ = value
+        self.cache.set(self.inventory_cache_key, value, self.TIMEOUT)
+
+    def getMetadata(self, objectId=None, **filters):
+        """ Request metadata about a text or a collection
+
+        :param objectId: Object Identifier to filter on
+        :type objectId: str
+        :param filters: Kwargs parameters.
+        :type filters: dict
+        :return: Collection
+        """
+        return self.get_or(
+            _cache_key("Nautilus", self.name, "GetMetadata", objectId),
+            super(__BaseNautilusCTSResolver__, self).getMetadata, objectId
+        )
+
+    def clear(self):
+        return self.__cache__.clear()
+
+
+class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
+    RAISE_ON_GENERIC_PARSING_ERROR = False
+    CLASSES = {
+        "edition": SparqlXmlCtsEditionMetadata,
+        "translation": SparqlXmlCtsTranslationMetadata,
+        "commentary": SparqlXmlCtsCommentaryMetadata,
+        "work": SparqlXmlCtsWorkMetadata,
+        "textgroup": SparqlXmlCtsTextgroupMetadata,
+        "inventory": SparqlXmlCtsTextInventoryMetadata,
+        "inventory_collection": SparqlTextInventoryCollection,
+        "citation": SparqlXmlCitation
+    }
+
+    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, graph=None, _workers=None):
+        exceptions = []
+
+        if graph is not None:
+            if isinstance(graph, str):  # Graph is a string : is a SQLAlchemy identifier
+                self.graph, self.graph_identifier, _ = generate_alchemy_graph(graph)
+            elif isinstance(graph, Graph):
+                self.graph = graph
+                self.graph_identifier = graph.identifier
+        else:
+            self.graph, self.graph_identifier, _ = generate_alchemy_graph(graph)
+
+        self._workers = _workers or 1
+
+        if not dispatcher:
+            # Normal init is setting label automatically
+            inventory_collection = type(self).CLASSES["inventory_collection"](identifier="defaultTic")
+            ti = type(self).CLASSES["inventory"]("default")
+            ti.parent = inventory_collection
+            if ti.get_label(lang="eng") is None:
+                ti.set_label("Default collection", "eng")
+            dispatcher = CollectionDispatcher(inventory_collection)
+
+        super(SparqlAlchemyNautilusCTSResolver, self).__init__(
+            resource=resource,
+            name=name,
+            logger=logger,
+            cache=cache,
+            dispatcher=dispatcher
+        )
+
+        for exception in exceptions:
+            self.logger.warning(exception)
+
+    def _dispatch(self, textgroup, directory):
+        """ Sparql dispatcher do not need to dispatch works, as the link is DB stored through Textgroup
+
+        :param textgroup: A Textgroup object
+        :param directory: The path in which we found the textgroup
+        :return:
+        """
+        self.dispatcher.dispatch(textgroup, path=directory)
+
+    def _parse_work_wrapper(self, args):
+        cts_file, textgroup = args
+        return super(SparqlAlchemyNautilusCTSResolver, self)._parse_work_wrapper(cts_file, textgroup)
+
+    def _parse_text(self, args):
+        text, directory = args
+        return super(SparqlAlchemyNautilusCTSResolver, self)._parse_text(text, directory), text
+
+    def _clean_invalids(self, invalids):
+        for removable in invalids:
+            del removable
+
+        if self.REMOVE_EMPTY is True:
+            self._remove_empty()
+
+    def _parse(self, resource=None):
+        workers = self._workers
+        textgroups = []
+        texts_to_process = []
+        invalids = []
+
+        for folder in resource:
+            cts_files = glob("{base_folder}/data/*/__cts__.xml".format(base_folder=folder))
+
+            with ThreadPool(processes=workers) as pool:
+                for tg, tg_path in pool.map(self._parse_textgroup_wrapper, cts_files):
+                    textgroups.append((tg, tg_path))
+
+                # Required for coverage
+                pool.close()
+                pool.join()
+
+        with ThreadPool(processes=workers) as pool:
+            works = []
+            for textgroup, path in textgroups:
+                works.extend([
+                    (cts_work_file, textgroup)
+                    for cts_work_file in glob("{parent}/*/__cts__.xml".format(parent=os.path.dirname(path)))
+                ])
+
+            for work, texts, work_directory in pool.map(self._parse_work_wrapper, works):
+                for text in texts:
+                    text.path = "{directory}/{textgroup}.{work}.{version}.xml".format(
+                        directory=work_directory,
+                        textgroup=text.urn.textgroup,
+                        work=text.urn.work,
+                        version=text.urn.version
+                    )
+
+                    # Cleaning up texts that do not exist to avoid unecessary thread waiting
+                    if os.path.isfile(text.path):
+                        texts_to_process.append((text, work_directory))
+                    else:
+                        self.logger.error("%s is not present", text.path)
+                        invalids.append(text)
+
+            # Required for coverage
+            pool.close()
+            pool.join()
+
+        with ThreadPool(processes=workers) as pool:
+            for invalid, text in pool.map(self._parse_text, texts_to_process):
+                if not invalid:
+                    invalids.append(text)
+            # Required for coverage
+            pool.close()
+            pool.join()
+
+        done = []
+        for textgroup, path in textgroups:
+            if textgroup.id not in done:
+                self._dispatch_container(textgroup, path)
+                done.append(textgroup.id)
+
+        self._clean_invalids(invalids)
+
+    @property
+    def graph(self):
+        return get_graph()
+
+    @graph.setter
+    def graph(self, value):
+        set_graph(value)
+
+    @property
+    def inventory(self):
+        return self.dispatcher.collection
+
+    @inventory.setter
+    def inventory(self, value):
+        pass
+
+    def clear(self):
+        """ Deletes the database
+        """
+        clear_graph(self.graph_identifier)
+        super(SparqlAlchemyNautilusCTSResolver, self).clear()

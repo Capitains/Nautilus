@@ -14,15 +14,16 @@ from capitains_nautilus.manager import FlaskNautilusManager
 logging.basicConfig(level=logging.CRITICAL)
 logger = logging.getLogger()
 
+
 class TestManager(TestCase):
     CacheType, Cache_type_String = FileSystemCache, "filesystem"
 
     def setUp(self):
         """ Set up a dummy application with a manager """
         nautilus_cache = FileSystemCache("cache_dir")
-        nautilus_cache.clear()
         app = Flask("Nautilus")
         resolver = NautilusCTSResolver(["./tests/test_data/latinLit"], cache=nautilus_cache, logger=logger)
+        resolver.clear()
         flask_nautilus = FlaskNautilus(
             app=app,
             resolver=resolver,
@@ -70,11 +71,10 @@ class TestManager(TestCase):
         """ Simulate python manager.py
         """
         # Preparation : checking resources are not there
-        self.assertEqual(len(self.resolver.__texts__), 0, "Texts should have been flushed")
-        self.assertEqual(self.resolver.__inventory__, None, "Inventory should have been flushed")
+        # The following line has been desactivated because it would automatically run .parse()
+        # self.assertEqual(len(self.resolver.inventory), 0, "Inventory should have been flushed")
         self.assertEqual(
-            self.cache_manager.get(self.resolver.inventory_cache_key) is None,
-            True,
+            self.cache_manager.get(self.resolver.inventory_cache_key), None,
             "There should not be inventory in cache"
         )
 
@@ -82,6 +82,10 @@ class TestManager(TestCase):
         out = self.cmd("parse")
         self.assertIn("Preprocessed 2 texts", out.output)
 
+        self.assertEqual(
+            len(self.cache_manager.get(self.resolver.inventory_cache_key).readableDescendants), 2,
+            "There should be inventory in cache with 2 texts"
+        )
         # Checking after state
         self.assertGreater(len(self.resolver.texts), 0, "Texts should have been parsed")
         self.assertGreater(len(self.resolver.inventory), 0, "Inventory should have been parsed")

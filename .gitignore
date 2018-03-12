@@ -1,9 +1,13 @@
+minitest.py
+http_cache_dir/
 # IDE
 .idea
 env
 venv
 *.rdb
 *.autosave
+*.sqlite
+cache
 
 cache_dir
 benchmarking/node_modules

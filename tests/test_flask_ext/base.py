@@ -1,36 +1,42 @@
-from unittest import TestCase
-from flask import Flask
-from flask_caching import Cache
-from werkzeug.contrib.cache import RedisCache
 import json
+import re
+from abc import abstractmethod
 
-from capitains_nautilus.flask_ext import FlaskNautilus
-from capitains_nautilus.cts.resolver import NautilusCTSResolver
-
-from MyCapytain.resources.collections.cts import XmlCtsTextInventoryMetadata as TextInventory, XmlCtsCitation as Citation
+from MyCapytain.common.constants import Mimetypes, XPATH_NAMESPACES
+from MyCapytain.common.reference import Reference
+from MyCapytain.common.utils import xmlparser
+from MyCapytain.resolvers.cts.api import HttpCtsResolver
+from MyCapytain.resources.collections.cts import XmlCtsTextInventoryMetadata as TextInventory, \
+    XmlCtsCitation as Citation
 from MyCapytain.resources.texts.remote.cts import CtsText as Text
 from MyCapytain.retrievers.cts5 import HttpCtsRetriever
-from MyCapytain.resolvers.cts.api import HttpCtsResolver
-from MyCapytain.common.utils import xmlparser, XPATH_NAMESPACES
-from MyCapytain.common.reference import Reference
-from MyCapytain.common.constants import Mimetypes
-from lxml.etree import tostring
-import re
-import logging
+from flask import Flask
+from flask_caching import Cache
 from logassert import logassert
+from lxml.etree import tostring
+from werkzeug.contrib.cache import SimpleCache
+
+from capitains_nautilus.flask_ext import FlaskNautilus
+import logging
+
 
 logging.basicConfig(level=logging.CRITICAL)
 logger = logging.getLogger("some_logger")
 
 
-class TestRestAPI(TestCase):
+class SetupModule:
+    @abstractmethod
+    def generate_resolver(self, directories):
+        raise NotImplementedError()
+
     def setUp(self):
         # Clean up noise...
 
         app = Flask("Nautilus")
+        self.nautilus_resolver = self.generate_resolver(["./tests/test_data/latinLit"])
         self.nautilus = FlaskNautilus(
             app=app,
-            resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
+            resolver=self.nautilus_resolver,
             logger=logger
         )
         self.cache = None
@@ -65,6 +71,8 @@ class TestRestAPI(TestCase):
         self.parent.called = []
         self.parent.call = lambda x: call(self.parent, x)
 
+
+class CTSModule:
     def test_cors(self):
         """ Check that CORS enabling works """
         self.assertEqual(self.app.get("/cts?request=GetCapabilities").headers["Access-Control-Allow-Origin"], "*")
@@ -75,7 +83,7 @@ class TestRestAPI(TestCase):
         app = Flask("Nautilus")
         FlaskNautilus(
             app=app,
-            resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
+            resolver=self.generate_resolver(["./tests/test_data/latinLit"]),
             access_Control_Allow_Methods={"r_cts": "OPTIONS", "r_dts_collection": "OPTIONS", "r_dts_collections": "OPTIONS"},
             access_Control_Allow_Origin={"r_cts": "foo.bar", "r_dts_collection":"*", "r_dts_collections":"*"}
         )
@@ -161,7 +169,7 @@ class TestRestAPI(TestCase):
                 "request": "GetValidReff",
                 "urn": "urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr",
                 "level": "1"
-            },{
+            }, {
                 "request": "GetValidReff",
                 "urn": "urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr.1-1.pr.5",
                 "level": "0"
@@ -343,6 +351,8 @@ class TestRestAPI(TestCase):
             (data.startswith("<GetFirstUrn"), data.endswith("</GetFirstUrn>")), (True, True), "Nodes are Correct"
         )
 
+
+class DTSModule:
     def test_dts_collection_route(self):
         """ Check that DTS Main collection works """
         response = self.app.get("/dts/collections")
@@ -379,55 +389,10 @@ class TestRestAPI(TestCase):
         )
 
 
-class TestRestAPICache(TestRestAPI):
+class LoggingModule:
     def setUp(self):
-        nautilus_cache = RedisCache()
-        app = Flask("Nautilus")
-        self.cache = Cache(config={'CACHE_TYPE': 'simple'})
-        self.nautilus = FlaskNautilus(
-            app=app,
-            resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
-            flask_caching=self.cache,
-            logger=logger
-        )
-        app.debug = True
-        self.cache.init_app(app)
-        self.app = app.test_client()
-        self.parent = HttpCtsRetriever("/cts")
-        self.resolver = HttpCtsResolver(endpoint=self.parent)
-        logassert.setup(self, self.nautilus.logger.name)
-        self.nautilus.logger.disabled = True
-
-        def call(this, parameters={}):
-            """ Call an endpoint given the parameters
-
-            :param parameters: Dictionary of parameters
-            :type parameters: dict
-            :rtype: text
-            """
-
-            parameters = {
-                key: str(parameters[key]) for key in parameters if parameters[key] is not None
-            }
-            if this.inventory is not None and "inv" not in parameters:
-                parameters["inv"] = this.inventory
-
-            request = self.app.get("/cts?{}".format(
-                "&".join(
-                    ["{}={}".format(key, value) for key, value in parameters.items()])
-                )
-            )
-            self.parent.called.append(parameters)
-            return request.data.decode()
-
-        self.parent.called = []
-        self.parent.call = lambda x: call(self.parent, x)
-
-
-class TestNautilusLoggin(TestCase):
-    def setUp(self):
-        TestRestAPI.setUp(self)
-        self.nautilus.resolver.parse()
+        SetupModule.setUp(self)
+        self.nautilus.resolver.parse(["./tests/test_data/latinLit"])
         self.nautilus.logger.setLevel(logging.INFO)
         self.nautilus.logger.disabled = False
         logassert.setup(self, self.nautilus.logger.name)
