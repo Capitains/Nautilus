@@ -76,10 +76,7 @@ class FlaskNautilus(object):
             }
         self.Access_Control_Allow_Origin = access_Control_Allow_Origin
         if not self.Access_Control_Allow_Origin:
-            self.Access_Control_Allow_Origin = {
-                k: v
-                for k, v in FlaskNautilus.Access_Control_Allow_Origin
-            }
+            self.Access_Control_Allow_Origin = FlaskNautilus.Access_Control_Allow_Origin
 
         for api in self.apis:
             api.init_extension(api)
