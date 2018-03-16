@@ -82,6 +82,7 @@ class FlaskNautilus(object):
             }
 
         for api in self.apis:
+            api.init_extension(api)
             self.ROUTES.extend(api.ROUTES)
             self.CACHED.extend(api.CACHED)
             self.Access_Control_Allow_Methods.update(api.Access_Control_Allow_Methods)
