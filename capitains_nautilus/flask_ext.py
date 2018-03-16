@@ -89,7 +89,7 @@ class FlaskNautilus(object):
         if self.name is None:
             self.name = __name__
 
-        if self.app:
+        if app:
             self.init_app(app=app)
 
     @property
