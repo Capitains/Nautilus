@@ -66,7 +66,7 @@ class FlaskNautilus(object):
                 "The parameter apis will need to be set-up explicitely startin 2.0.0",
                 DeprecationWarning
             )
-            self.apis = {CTSApi(self), DTSApi(self)}
+            self.apis = {CTSApi(), DTSApi()}
 
         self.Access_Control_Allow_Methods = access_Control_Allow_Methods
         if not self.Access_Control_Allow_Methods:
