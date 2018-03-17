@@ -50,17 +50,17 @@ class TestClassicCTSResolverRestAPICache(CTSModule, DTSModule, TestCase, Nautilu
     ATTRIB_RESOLVER = False
 
     def setUp(self):
-        app = Flask("Nautilus")
+        self._app = Flask("Nautilus")
         self.cache = Cache(config={'CACHE_TYPE': 'simple'})
         self.nautilus = FlaskNautilus(
-            app=app,
+            app=self._app,
             resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
             flask_caching=self.cache,
             logger=logger
         )
-        app.debug = True
-        self.cache.init_app(app)
-        self.app = app.test_client()
+        self._app.debug = True
+        self.cache.init_app(self._app)
+        self.app = self._app.test_client()
         self.parent = HttpCtsRetriever("/cts")
         self.resolver = HttpCtsResolver(endpoint=self.parent)
         logassert.setup(self, self.nautilus.logger.name)
@@ -90,6 +90,10 @@ class TestClassicCTSResolverRestAPICache(CTSModule, DTSModule, TestCase, Nautilu
         self.parent.called = []
         self.parent.call = lambda x: call(self.parent, x)
 
+    def tearDown(self):
+        del self._app
+        del self.app
+        del self.nautilus
 
 class TestClassicCTSResolverRestAPILogging(NautilusCTSResolverGenerator, LoggingModule, SetupModule, TestCase):
     """ Test the rest API logging system with the legacy resolver that uses full file """

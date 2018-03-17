@@ -1,5 +1,6 @@
 from pkg_resources import resource_filename
 import logging
+from copy import deepcopy
 
 from flask import Blueprint, Response
 
@@ -34,9 +35,6 @@ class FlaskNautilus(object):
 
     :ivar resolver: CapiTainS resolver
     """
-    ROUTES = []
-    CACHED = []
-    Access_Control_Allow_Methods = {}
     Access_Control_Allow_Origin = "*"
     LoggingHandler = logging.StreamHandler
 
@@ -47,6 +45,7 @@ class FlaskNautilus(object):
                  access_Control_Allow_Methods=None,
                  logger=None, apis=None
         ):
+        self._extensions = {}
         self.logger = None
         self.retriever = None
 
@@ -58,6 +57,9 @@ class FlaskNautilus(object):
         self.prefix = prefix
         self.blueprint = None
 
+        self.ROUTES = []
+        self.CACHED = []
+
         self.routes = []
 
         if apis is None:
@@ -66,23 +68,17 @@ class FlaskNautilus(object):
                 "The parameter apis will need to be set-up explicitely startin 2.0.0",
                 DeprecationWarning
             )
-            self.apis = {CTSApi(), DTSApi()}
+            apis = {CTSApi(), DTSApi()}
 
         self.Access_Control_Allow_Methods = access_Control_Allow_Methods
         if not self.Access_Control_Allow_Methods:
-            self.Access_Control_Allow_Methods = {
-                k: v
-                for k, v in FlaskNautilus.Access_Control_Allow_Methods.items()
-            }
+            self.Access_Control_Allow_Methods = {}
         self.Access_Control_Allow_Origin = access_Control_Allow_Origin
         if not self.Access_Control_Allow_Origin:
             self.Access_Control_Allow_Origin = FlaskNautilus.Access_Control_Allow_Origin
 
-        for api in self.apis:
-            api.init_extension(api)
-            self.ROUTES.extend(api.ROUTES)
-            self.CACHED.extend(api.CACHED)
-            self.Access_Control_Allow_Methods.update(api.Access_Control_Allow_Methods)
+        for api in apis:
+            api.init_extension(self)
 
         self.__flask_caching__ = flask_caching
 
@@ -91,6 +87,30 @@ class FlaskNautilus(object):
 
         if app:
             self.init_app(app=app)
+
+    def register(self, extension, extension_name):
+        """ Register an extension into the Nautilus Router
+
+        :param extension: Extension
+        :param extension_name: Name of the Extension
+        :return:
+        """
+        self._extensions[extension_name] = extension
+        self.ROUTES.extend([
+            tuple(list(t) + [extension_name])
+            for t in extension.ROUTES
+        ])
+        self.CACHED.extend([
+            (f_name, extension_name)
+            for f_name in extension.CACHED
+        ])
+
+        # This order allows for user defaults to overwrite extension ones
+        self.Access_Control_Allow_Methods.update({
+            k: v
+            for k, v in extension.Access_Control_Allow_Methods.items()
+            if k not in self.Access_Control_Allow_Methods
+        })
 
     @property
     def flaskcache(self):
@@ -127,9 +147,14 @@ class FlaskNautilus(object):
         self.init_blueprint(app)
 
         if self.flaskcache is not None:
-            for func in self.CACHED:
-                func = getattr(self, func)
-                setattr(self, func.__name__, self.flaskcache.memoize()(func))
+            for func, extension_name in self.CACHED:
+                func = getattr(self._extensions[extension_name], func)
+                setattr(
+                    self._extensions[extension_name],
+                    func.__name__,
+                    self.flaskcache.memoize()(func)
+                )
+
         return self.blueprint
 
     def init_blueprint(self, app):
@@ -146,10 +171,10 @@ class FlaskNautilus(object):
         )
 
         # Register routes
-        for url, name, methods in self.ROUTES:
+        for url, name, methods, extension_name in self.ROUTES:
             self.blueprint.add_url_rule(
                 url,
-                view_func=self.view(name),
+                view_func=self.view(name, extension_name),
                 endpoint=name[2:],
                 methods=methods
             )
@@ -157,10 +182,11 @@ class FlaskNautilus(object):
         app.register_blueprint(self.blueprint)
         return self.blueprint
 
-    def view(self, function_name):
+    def view(self, function_name, extension_name):
         """ Builds response according to a function name
 
         :param function_name: Route name / function name
+        :param extension_name: Name of the extension holding the function
         :return: Function
         """
         if isinstance(self.Access_Control_Allow_Origin, dict):
@@ -175,7 +201,7 @@ class FlaskNautilus(object):
             }
 
         def r(*x, **y):
-            val = getattr(self, function_name)(*x, **y)
+            val = getattr(self._extensions[extension_name], function_name)(*x, **y)
             if isinstance(val, Response):
                 val.headers.extend(d)
                 return val

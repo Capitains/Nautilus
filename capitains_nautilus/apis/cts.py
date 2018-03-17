@@ -8,6 +8,7 @@ from capitains_nautilus.errors import NautilusError, MissingParameter, InvalidUR
 
 
 class CTSApi(AdditionalAPIPrototype):
+    NAME = "CTS"
     ROUTES = [
         ('/cts', "r_cts", ["GET"])
     ]

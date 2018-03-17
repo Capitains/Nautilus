@@ -7,6 +7,7 @@ from capitains_nautilus.errors import NautilusError
 
 
 class DTSApi(AdditionalAPIPrototype):
+    NAME = "DTS"
     ROUTES = [
         ('/dts/collections', "r_dts_collection", ["GET", "OPTIONS"]),
         ('/dts/collections/<objectId>', "r_dts_collections", ["GET", "OPTIONS"])
@@ -27,7 +28,9 @@ class DTSApi(AdditionalAPIPrototype):
         :param message: Message of the Error
         :return: DTS Error Response with information (JSON)
         """
-        self.logger.info("DTS error thrown {} for {} ({})".format(error_name, request.path, message))
+        self.nautilus_extension.logger.info("DTS error thrown {} for {} ({})".format(
+            error_name, request.path, message
+        ))
         j = jsonify({
                 "error": error_name,
                 "message": message
