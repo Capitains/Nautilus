@@ -1,3 +1,26 @@
+from flask import request
+
+
+def query_parameters_as_kwargs(params, mapping=None):
+    """ Default decorator to turn a dictionary of parameters into routes parameters
+    """
+    if not mapping:
+        mapping = {}
+
+    def function_decorator(function):
+        def wrapper(*args):
+            kwargs = {}
+            for argument, default_value in params.items():
+
+                kwargs[mapping.get(argument,  argument)] = \
+                    request.args.get(argument, default_value)
+
+            return function(*args, **kwargs)
+
+        return wrapper
+    return function_decorator
+
+
 class AdditionalAPIPrototype:
     """ Additional APIs classes are used to connect new
     APIs to the Nautilus Flask Extensions

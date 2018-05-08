@@ -11,7 +11,8 @@ from MyCapytain.common.constants import get_graph, \
 from collections import defaultdict
 import json
 
-from capitains_nautilus.apis.base import AdditionalAPIPrototype
+from capitains_nautilus.apis.base import AdditionalAPIPrototype, \
+    query_parameters_as_kwargs
 from capitains_nautilus.errors import NautilusError
 
 
@@ -76,7 +77,7 @@ def _metadata(triples):
     return output
 
 
-def _base_description(collection):
+def _base_description(collection, _external=False):
     j = {
         "@id": collection.id,
         "@type": _resource_type(collection),
@@ -86,8 +87,8 @@ def _base_description(collection):
     if hasattr(collection, "get_description"):
         j["description"] = collection.get_description()
     if collection.readable:
-        j["dts:passage"] = url_for(".dts_document", id=collection.id, _external=True)
-        j["dts:references"] = url_for(".dts_navigation", id=collection.id, _external=True)
+        j["dts:passage"] = url_for(".dts_document", id=collection.id, _external=_external)
+        j["dts:references"] = url_for(".dts_navigation", id=collection.id, _external=_external)
     return j
 
 
@@ -112,6 +113,10 @@ class DTSApi(AdditionalAPIPrototype):
         "r_dts_main"
     ]
 
+    def __init__(self, _external=False):
+        super(DTSApi, self).__init__()
+        self._external = _external
+
     def dts_error(self, error_name, message=None):
         """ Create a DTS Error reply
 
@@ -135,18 +140,23 @@ class DTSApi(AdditionalAPIPrototype):
           "@id": "dts/",
           "@type": "EntryPoint",
 
-          "collections": url_for(".dts_collection", _external=True),
-          "documents": "dts/documents",
-          "navigation": "dts/navigation"
+          "collections": url_for(".dts_collection", _external=self._external),
+          "documents": url_for(".dts_document", _external=self._external),
+          "navigation": url_for(".dts_navigation", _external=self._external)
         })
 
-    def r_dts_collection(self):
+    @query_parameters_as_kwargs(
+        mapping={"id": "objectId", "nav": "direction"},
+        params={
+            "id": None,
+            "nav": "children"
+        }
+    )
+    def r_dts_collection(self, objectId, direction):
         """ DTS Collection Metadata reply for given objectId
 
         :return: JSON Format of DTS Collection
         """
-        objectId = request.args.get("id", None)
-        direction = request.args.get("nav", "children")
 
         try:
             collection = self.resolver.getMetadata(objectId=objectId)
@@ -161,11 +171,11 @@ class DTSApi(AdditionalAPIPrototype):
                     "tei": "http://www.tei-c.org/ns/1.0",
                 },
                 "members": [
-                    _base_description(member)
+                    _base_description(member, _external=self._external)
                     for member in _nav_direction(collection, direction)
                 ]
             }
-            j.update(_base_description(collection))
+            j.update(_base_description(collection, _external=self._external))
             j.update(_dc_dictionary(triples))
             j.update(_metadata(triples))
 
@@ -175,12 +185,17 @@ class DTSApi(AdditionalAPIPrototype):
         j.status_code = 200
         return j
 
-    def r_dts_navigation(self):
-        objectId = request.args.get("id", None)
-        passageId = request.args.get("passage", None)
-        start = request.args.get("start", None)
-        end = request.args.get("end", None)
-        level = request.args.get("level", 1)
+    @query_parameters_as_kwargs(
+        mapping={"id": "objectId", "passage": "passageId"},
+        params={
+            "id": None,
+            "passage": None,
+            "start": None,
+            "end": None,
+            "level": 1
+        }
+    )
+    def r_dts_navigation(self, objectId=None, passageId=None, start=None, end=None, level=1):
         if not objectId:
             raise Exception()
         if start and end:
@@ -201,16 +216,22 @@ class DTSApi(AdditionalAPIPrototype):
             "@context": {
                 "passage": "https://w3id.org/dts/api#passage"
             },
-            "@base": url_for(".dts_document", _external=True),
+            "@base": url_for(".dts_document", _external=self._external),
             "@id": objectId,
             "passage": references
         })
 
-    def r_dts_document(self):
-        objectId = request.args.get("id", None)
-        passageId = request.args.get("passage", None)
-        start = request.args.get("start", None)
-        end = request.args.get("end", None)
+    @query_parameters_as_kwargs(
+        mapping={"id": "objectId", "passage": "passageId"},
+        params={
+            "id": None,
+            "passage": None,
+            "start": None,
+            "end": None
+        }
+    )
+    def r_dts_document(self, objectId=None, passageId=None, start=None, end=None):
+
         if not objectId:
             raise Exception()
         if start and end:
