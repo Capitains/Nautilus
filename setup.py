@@ -15,7 +15,7 @@ setup(
     "Flask>=0.12",
     "Werkzeug>=0.11.3",
     "redis>=2.10.5",
-    "Flask-Caching==1.2.0"
+    "Flask-Caching>=1.4.0,<2.0.0"
   ],
   test_requires=[
     "logassert",
