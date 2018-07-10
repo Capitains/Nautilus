@@ -6,7 +6,7 @@ python:
 
 # command to install dependencies
 install:
-    - apt-get install libdb5.3 libdb-dev
+    - sudo apt-get install -y libdb5.3 libdb-dev
     - pip install -r requirements.txt
     - pip install https://github.com/Capitains/MyCapytain/archive/classmethod-for-parsing.zip --upgrade
     - pip install https://github.com/PonteIneptique/rdflib-sqlalchemy/archive/empty-prefix-fix.zip --upgrade
