@@ -52,6 +52,7 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
             Repository.inventory["urn:cts:farsiLit:hafez.divan"].urn, URN("urn:cts:farsiLit:hafez.divan"),
             "Divan is found"
         )
+
         self.assertEqual(
             len(Repository.inventory["urn:cts:farsiLit:hafez.divan"].texts), 3,
             "Divan has 3 children"

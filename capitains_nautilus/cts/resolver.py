@@ -313,7 +313,7 @@ class NautilusCTSResolver(__BaseNautilusCTSResolver__):
         return self.__cache__.clear()
 
 
-class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
+class _SparqlSharedResolver(__BaseNautilusCTSResolver__):
     RAISE_ON_GENERIC_PARSING_ERROR = False
     CLASSES = {
         "edition": SparqlXmlCtsEditionMetadata,
@@ -326,42 +326,6 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
         "citation": SparqlXmlCitation
     }
 
-    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, graph=None, _workers=None):
-        exceptions = []
-
-        if graph is not None:
-            if isinstance(graph, str):  # Graph is a string : is a SQLAlchemy identifier
-                self.graph, self.graph_identifier, _ = generate_alchemy_graph(graph)
-            elif isinstance(graph, Graph):
-                self.graph = graph
-                self.graph_identifier = graph.identifier
-        else:
-            self.graph, self.graph_identifier, _ = generate_alchemy_graph(graph)
-
-        self._workers = _workers or 1
-
-        if not dispatcher:
-            # Normal init is setting label automatically
-            inventory_collection = type(self).CLASSES["inventory_collection"](identifier="defaultTic")
-            default_tiname = "default"
-            ti = type(self).CLASSES["inventory"](default_tiname)
-            ti.parent = inventory_collection
-            if ti.get_label(lang="eng") is None:
-                ti.set_label("Default collection", "eng")
-            dispatcher = CollectionDispatcher(inventory_collection,
-                                              default_inventory_name=default_tiname)
-
-        super(SparqlAlchemyNautilusCTSResolver, self).__init__(
-            resource=resource,
-            name=name,
-            logger=logger,
-            cache=cache,
-            dispatcher=dispatcher
-        )
-
-        for exception in exceptions:
-            self.logger.warning(exception)
-
     def _dispatch(self, textgroup, directory):
         """ Sparql dispatcher do not need to dispatch works, as the link is DB stored through Textgroup
 
@@ -373,11 +337,11 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
 
     def _parse_work_wrapper(self, args):
         cts_file, textgroup = args
-        return super(SparqlAlchemyNautilusCTSResolver, self)._parse_work_wrapper(cts_file, textgroup)
+        return super(_SparqlSharedResolver, self)._parse_work_wrapper(cts_file, textgroup)
 
     def _parse_text(self, args):
         text, directory = args
-        return super(SparqlAlchemyNautilusCTSResolver, self)._parse_text(text, directory), text
+        return super(_SparqlSharedResolver, self)._parse_text(text, directory), text
 
     def _clean_invalids(self, invalids):
         for removable in invalids:
@@ -467,10 +431,48 @@ class SparqlAlchemyNautilusCTSResolver(__BaseNautilusCTSResolver__):
         """ Deletes the database
         """
         clear_graph(self.graph_identifier)
-        super(SparqlAlchemyNautilusCTSResolver, self).clear()
+        super(_SparqlSharedResolver, self).clear()
 
 
-class SleepyCatCTSResolver(SparqlAlchemyNautilusCTSResolver):
+class SparqlAlchemyNautilusCTSResolver(_SparqlSharedResolver):
+    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, graph=None, _workers=None):
+        exceptions = []
+
+        if graph is not None:
+            if isinstance(graph, str):  # Graph is a string : is a SQLAlchemy identifier
+                self.graph, self.graph_identifier, _ = generate_alchemy_graph(graph)
+            elif isinstance(graph, Graph):
+                self.graph = graph
+                self.graph_identifier = graph.identifier
+        else:
+            self.graph, self.graph_identifier, _ = generate_alchemy_graph(graph)
+
+        self._workers = _workers or 1
+
+        if not dispatcher:
+            # Normal init is setting label automatically
+            inventory_collection = type(self).CLASSES["inventory_collection"](identifier="defaultTic")
+            default_tiname = "default"
+            ti = type(self).CLASSES["inventory"](default_tiname)
+            ti.parent = inventory_collection
+            if ti.get_label(lang="eng") is None:
+                ti.set_label("Default collection", "eng")
+            dispatcher = CollectionDispatcher(inventory_collection,
+                                              default_inventory_name=default_tiname)
+
+        super(SparqlAlchemyNautilusCTSResolver, self).__init__(
+            resource=resource,
+            name=name,
+            logger=logger,
+            cache=cache,
+            dispatcher=dispatcher
+        )
+
+        for exception in exceptions:
+            self.logger.warning(exception)
+
+
+class SleepyCatCTSResolver(_SparqlSharedResolver):
     def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, graph=None, _workers=None):
         exceptions = []
 
@@ -496,7 +498,7 @@ class SleepyCatCTSResolver(SparqlAlchemyNautilusCTSResolver):
             dispatcher = CollectionDispatcher(inventory_collection,
                                               default_inventory_name=default_tiname)
 
-        super(SparqlAlchemyNautilusCTSResolver, self).__init__(
+        super(SleepyCatCTSResolver, self).__init__(
             resource=resource,
             name=name,
             logger=logger,

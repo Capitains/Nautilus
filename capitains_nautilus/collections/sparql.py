@@ -8,7 +8,6 @@ from rdflib.namespace import SKOS
 from warnings import warn
 
 from capitains_nautilus.errors import UnknownCollection
-from capitains_nautilus.utils.performances import STORE
 
 
 def clear_graph(identifier=None):
@@ -143,7 +142,6 @@ class SparqlNavigatedCollection(Collection):
     def decide_class(self, key):
         return type(self)(key)
 
-    @STORE.connect
     def __getitem__(self, item):
         if item in self:
             return self.decide_class(item)
