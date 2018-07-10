@@ -139,18 +139,6 @@ class SparqlXmlCitation(XmlCtsCitation):
                 (self.asNode(), RDF_NAMESPACES.TEI.name, Literal(val))
             )
 
-    @property
-    def members(self):
-        return {}
-
-    @property
-    def descendants(self):
-        return []
-
-    @property
-    def readableDescendants(self):
-        return []
-
 
 class SparqlXmlCtsTranslationMetadata(SparqlXmlCtsTextMetadata, XmlCtsTranslationMetadata):
     TYPE_URI = XmlCtsTranslationMetadata.TYPE_URI
