@@ -156,8 +156,13 @@ class SparqlXmlCtsEditionMetadata(SparqlXmlCtsTextMetadata, XmlCtsEditionMetadat
 
 
 class SparqlXmlCtsWorkMetadata(CTSSparqlNavigatedCollection, XmlCtsWorkMetadata):
-    @staticmethod
-    def children_class(object_id):
+    CLASS_EDITION = SparqlXmlCtsEditionMetadata
+    CLASS_TRANSLATION = SparqlXmlCtsTranslationMetadata
+    CLASS_COMMENTARY = SparqlXmlCtsCommentaryMetadata
+    CLASS_CITATION = SparqlXmlCitation
+
+    @classmethod
+    def children_class(cls, object_id):
         o = list(get_graph().objects(object_id, RDF.type))[0]
 
         if o == SparqlXmlCtsEditionMetadata.TYPE_URI:
@@ -167,8 +172,8 @@ class SparqlXmlCtsWorkMetadata(CTSSparqlNavigatedCollection, XmlCtsWorkMetadata)
         elif o == XmlCtsCommentaryMetadata.TYPE_URI:
             return SparqlXmlCtsCommentaryMetadata(object_id)
 
-    @staticmethod
-    def parent_class(object_id):
+    @classmethod
+    def parent_class(cls, object_id):
         return SparqlXmlCtsTextgroupMetadata(object_id)
 
     @property
@@ -193,12 +198,14 @@ class SparqlXmlCtsWorkMetadata(CTSSparqlNavigatedCollection, XmlCtsWorkMetadata)
 
 
 class SparqlXmlCtsTextgroupMetadata(CTSSparqlNavigatedCollection, XmlCtsTextgroupMetadata):
-    @staticmethod
-    def children_class(object_id):
-        return SparqlXmlCtsWorkMetadata(object_id)
+    CLASS_WORK = SparqlXmlCtsWorkMetadata
 
-    @staticmethod
-    def parent_class(object_id):
+    @classmethod
+    def children_class(cls, object_id):
+        return cls.CLASS_WORK(object_id)
+
+    @classmethod
+    def parent_class(cls, object_id):
         return SparqlXmlCtsTextInventoryMetadata(object_id)
 
     def update(self, other):
@@ -224,12 +231,14 @@ class SparqlXmlCtsTextInventoryMetadata(SparqlNavigatedCollection, XmlCtsTextInv
     """ Collection that does tree traversal based on Sparql queries on the local Graph
 
     """
-    @staticmethod
-    def children_class(object_id):
-        return SparqlXmlCtsTextgroupMetadata(object_id)
+    CLASS_TEXTGROUP = SparqlXmlCtsTextgroupMetadata
 
-    @staticmethod
-    def parent_class(object_id):
+    @classmethod
+    def children_class(cls, object_id):
+        return cls.CLASS_TEXTGROUP(object_id)
+
+    @classmethod
+    def parent_class(cls, object_id):
         return SparqlTextInventoryCollection(object_id)
 
     def decide_class(self, key):
@@ -254,12 +263,12 @@ class SparqlTextInventoryCollection(SparqlNavigatedCollection, CtsTextInventoryC
     def __init__(self, identifier="default"):
         super(SparqlTextInventoryCollection, self).__init__(identifier)
 
-    @staticmethod
-    def children_class(object_id):
+    @classmethod
+    def children_class(cls, object_id):
         return SparqlXmlCtsTextInventoryMetadata(object_id)
 
-    @staticmethod
-    def parent_class(object_id):
+    @classmethod
+    def parent_class(cls, object_id):
         raise NameError("Text Inventory Collection cannot have parents")
 
     def decide_class(self, key):

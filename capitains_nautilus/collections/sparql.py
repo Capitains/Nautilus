@@ -97,13 +97,13 @@ class SparqlNavigatedCollection(Collection):
     def graph(self):
         return get_graph()
 
-    @staticmethod
-    def children_class(object_id):
-        return SparqlNavigatedCollection(object_id)
+    @classmethod
+    def children_class(cls, object_id):
+        return cls(object_id)
 
-    @staticmethod
-    def parent_class(object_id):
-        return SparqlNavigatedCollection(object_id)
+    @classmethod
+    def parent_class(cls, object_id):
+        return cls(object_id)
 
     @property
     def members(self):
