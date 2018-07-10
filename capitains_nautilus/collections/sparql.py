@@ -1,12 +1,14 @@
-from MyCapytain.common.constants import RDF_NAMESPACES, get_graph, set_graph, GRAPH_BINDINGS
+from MyCapytain.common.constants import RDF_NAMESPACES, get_graph, GRAPH_BINDINGS
 from MyCapytain.common.metadata import Metadata
 from MyCapytain.resources.prototypes.metadata import Collection
 from rdflib import Literal, RDFS, RDF, URIRef, Graph, plugin
 from rdflib.store import Store
 from rdflib_sqlalchemy import registerplugins
 from rdflib.namespace import SKOS
-from capitains_nautilus.errors import UnknownCollection
 from warnings import warn
+
+from capitains_nautilus.errors import UnknownCollection
+from capitains_nautilus.utils.performances import STORE
 
 
 def clear_graph(identifier=None):
@@ -44,6 +46,26 @@ def generate_alchemy_graph(alchemy_uri, prefixes=None, identifier="NautilusSparq
         graph.bind(prefix, ns)
 
     return graph, identifier, uri
+
+
+def generate_sleepy_cat_graph(filepath, prefixes=None, identifier="NautilusSparql"):
+    """ Generate a graph and change the global graph to this one
+
+    :param filepath: A Uri for the graph
+    :param prefixes: A dictionary of prefixes and namespaces to bind to the graph
+    :param identifier: An identifier that will identify the Graph root
+    """
+    registerplugins()
+    ident = URIRef(identifier)
+    graph = Graph('Sleepycat', identifier=ident)
+    graph.open(filepath, create=True)
+
+    for prefix, ns in (prefixes or GRAPH_BINDINGS).items():
+        if prefix == "":
+            prefix = "cts"  # Fix until ALchemy Store accepts empty prefixes
+        graph.bind(prefix, ns)
+
+    return graph, identifier, ident
 
 
 def NoneGenerator(object_id):
@@ -121,6 +143,7 @@ class SparqlNavigatedCollection(Collection):
     def decide_class(self, key):
         return type(self)(key)
 
+    @STORE.connect
     def __getitem__(self, item):
         if item in self:
             return self.decide_class(item)

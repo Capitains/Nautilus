@@ -16,7 +16,7 @@ setup(
     "Werkzeug>=0.11.3",
     "redis>=2.10.5",
     "Flask-Caching>=1.4.0,<2.0.0",
-    "rdflib-sqlalchemy==0.3.8"
+    "rdflib-sqlalchemy==0.3.8",
   ],
   test_requires=[
     "logassert",

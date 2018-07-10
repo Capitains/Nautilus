@@ -2,8 +2,9 @@ from tests.cts.test_resolver import TestXMLFolderResolverBehindTheScene, TextXML
 from capitains_nautilus.cts.resolver import SparqlAlchemyNautilusCTSResolver
 from capitains_nautilus.collections.sparql import generate_alchemy_graph, clear_graph
 from MyCapytain.common.constants import set_graph
-from .config import sqlite_address
-from ..sparql_class import Sparql
+from ..config import sqlite_address
+from ...sparql_class import Sparql
+
 
 
 class _Parser(Sparql):

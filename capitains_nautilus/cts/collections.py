@@ -14,6 +14,7 @@ from MyCapytain.common.constants import RDF_NAMESPACES, get_graph
 from capitains_nautilus.collections.sparql import SparqlNavigatedCollection
 from rdflib import BNode, Literal, RDF, URIRef
 from capitains_nautilus.errors import UnknownCollection
+from capitains_nautilus.utils.performances import cached_property, STORE
 
 
 class CTSSparqlNavigatedCollection(PrototypeCtsCollection, SparqlNavigatedCollection):

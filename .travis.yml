@@ -4,9 +4,6 @@ python:
   - "3.5"
   - "3.6"
 
-services:
-  - "redis"
-
 # command to install dependencies
 install:
     - pip install -r requirements.txt
@@ -28,6 +25,7 @@ branches:
     - sparql-collections
     - sparql-collection-multiproc
     - dev
+    - sparql-optimization
 
 
 deploy:
