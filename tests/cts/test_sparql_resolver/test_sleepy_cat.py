@@ -1,14 +1,19 @@
 from tests.cts.test_resolver import TestXMLFolderResolverBehindTheScene, TextXMLFolderResolver, TextXMLFolderResolverDispatcher
 from capitains_nautilus.cts.resolver import SleepyCatCTSResolver
-from capitains_nautilus.collections.sparql import generate_alchemy_graph, clear_graph, \
+from capitains_nautilus.collections.sparql import clear_graph, \
     generate_sleepy_cat_graph
 from MyCapytain.common.constants import set_graph
 from ..config import sleepy_cat_address
 from ...sparql_class import Sparql
+import shutil
 
 
 class _Parser(Sparql):
     RESOLVER_CLASS = SleepyCatCTSResolver
+
+
+def remove_sleepy_cat(address):
+    shutil.rmtree(address, ignore_errors=True)
 
 
 class TestSparqlSleepyCatBasedResolverDispatcher(_Parser, TextXMLFolderResolverDispatcher):
@@ -31,17 +36,14 @@ class TestSparqlSleepyCatBasedResolverDispatcher(_Parser, TextXMLFolderResolverD
             # It can happen on local build that a here.sqlite remained.
             # This allows the test to run
             #  + Added a small security to check that we dealt with a file
-            import shutil
-            try:
-                shutil.rmtree(sleepy_cat_address)
-            except Exception as E:
-                print(E)
+            remove_sleepy_cat(sleepy_cat_address)
         self.graph, self.graph_identifier, self.store_uri = generate_sleepy_cat_graph(
             filepath=sleepy_cat_address
         )
         set_graph(self.graph)
 
     def setUp(self):
+        remove_sleepy_cat(sleepy_cat_address)
         self.generated_graphs = 0
         self.gen_graph()
         self.TEST_RUN += 1
@@ -53,6 +55,7 @@ class TestSparqlSleepyCatBasedResolverDispatcher(_Parser, TextXMLFolderResolverD
 class TextSleepyCatSparqlXMLFolderResolver(_Parser, TextXMLFolderResolver):
     """"""
     def setUp(self):
+        remove_sleepy_cat(sleepy_cat_address)
         self.graph, self.graph_identifier, self.store_uri = generate_sleepy_cat_graph(
             sleepy_cat_address
         )
@@ -60,7 +63,8 @@ class TextSleepyCatSparqlXMLFolderResolver(_Parser, TextXMLFolderResolver):
         self.resolver.parse()
 
     def tearDown(self):
-        clear_graph(self.graph_identifier)
+        remove_sleepy_cat(sleepy_cat_address)
+        self.resolver.clear()
 
 
 class TestSleepyCatSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderResolverBehindTheScene):
@@ -76,6 +80,7 @@ class TestSleepyCatSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderR
         return repository
 
     def setUp(self):
+        remove_sleepy_cat(sleepy_cat_address)
         self.graph, self.graph_identifier, self.store_uri = generate_sleepy_cat_graph(
             sleepy_cat_address
         )
@@ -83,6 +88,7 @@ class TestSleepyCatSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderR
 
     def tearDown(self):
         clear_graph(self.graph)
+        remove_sleepy_cat(sleepy_cat_address)
 
     def test_get_capabilities_nocites(self):
         """ Check Get Capabilities latinLit data"""

@@ -1,4 +1,5 @@
 import os.path
+import shutil
 from werkzeug.contrib.cache import NullCache
 from rdflib import Graph
 from glob import glob
@@ -477,13 +478,13 @@ class SleepyCatCTSResolver(_SparqlSharedResolver):
         exceptions = []
 
         if graph is not None:
-            if isinstance(graph, str):  # Graph is a string : is a SQLAlchemy identifier
-                self.graph, self.graph_identifier, _ = generate_sleepy_cat_graph(graph)
+            if isinstance(graph, str):  # Graph is a string : is a Directory Path identifier
+                self.graph, self.graph_identifier, self._store_path = generate_sleepy_cat_graph(graph)
             elif isinstance(graph, Graph):
                 self.graph = graph
                 self.graph_identifier = graph.identifier
         else:
-            self.graph, self.graph_identifier, _ = generate_sleepy_cat_graph(graph)
+            self.graph, self.graph_identifier, self._store_path = generate_sleepy_cat_graph(graph)
 
         self._workers = _workers or 1
 
@@ -508,3 +509,7 @@ class SleepyCatCTSResolver(_SparqlSharedResolver):
 
         for exception in exceptions:
             self.logger.warning(exception)
+
+    def clear(self):
+        super(SleepyCatCTSResolver, self).clear()
+        shutil.rmtree(str(self.graph.identifier), ignore_errors=True)

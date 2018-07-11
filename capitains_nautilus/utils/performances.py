@@ -19,13 +19,11 @@ class cached_property:
         return value
 
     def __set__(self, obj, value):
-        print("__set__ called", obj, value)
         del obj.__dict__[self.func.__name__]
         self.setter_func(obj, value)
 
     def setter(self, decorated_funtion):
         self.setter_func = decorated_funtion
-        print("Parent called ?", decorated_funtion)
         return self.__set__
 
 
@@ -39,7 +37,6 @@ class Store:
             return True
 
     def __getitem__(self, item):
-        print(self.objects)
         return self.objects[item]
 
     def connect(self, func):

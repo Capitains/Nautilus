@@ -64,7 +64,7 @@ def generate_sleepy_cat_graph(filepath, prefixes=None, identifier="NautilusSparq
             prefix = "cts"  # Fix until ALchemy Store accepts empty prefixes
         graph.bind(prefix, ns)
 
-    return graph, identifier, ident
+    return graph, identifier, filepath
 
 
 def NoneGenerator(object_id):
