@@ -60,17 +60,6 @@ class TextSparqlXMLFolderResolver(_Parser, TextXMLFolderResolver):
         clear_graph(self.graph_identifier)
 
 
-class TextSparqlSleepyCatXMLFolderResolver(_Parser, TextXMLFolderResolver):
-    RESOLVER_CLASS = SleepyCatCTSResolver
-    """"""
-    def setUp(self):
-        self.graph, self.graph_identifier, self.store_uri = generate_sleepy_cat_graph(sleepy_cat_address)
-        self.resolver = self.RESOLVER_CLASS(["./tests/testing_data/latinLit2"], graph=self.graph)
-        self.resolver.parse()
-
-    def tearDown(self):
-        clear_graph(self.graph_identifier)
-
 class TestSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderResolverBehindTheScene):
     """ """
 
