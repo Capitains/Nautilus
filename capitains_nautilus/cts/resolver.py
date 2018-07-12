@@ -453,7 +453,7 @@ class SparqlAlchemyNautilusCTSResolver(_SparqlSharedResolver):
         if not dispatcher:
             # Normal init is setting label automatically
             inventory_collection = type(self).CLASSES["inventory_collection"](identifier="defaultTic")
-            default_tiname = "default"
+            default_tiname = "/default"
             ti = type(self).CLASSES["inventory"](default_tiname)
             ti.parent = inventory_collection
             if ti.get_label(lang="eng") is None:
@@ -491,7 +491,7 @@ class SleepyCatCTSResolver(_SparqlSharedResolver):
         if not dispatcher:
             # Normal init is setting label automatically
             inventory_collection = type(self).CLASSES["inventory_collection"](identifier="defaultTic")
-            default_tiname = "default"
+            default_tiname = "/default"
             ti = type(self).CLASSES["inventory"](default_tiname)
             ti.parent = inventory_collection
             if ti.get_label(lang="eng") is None:
