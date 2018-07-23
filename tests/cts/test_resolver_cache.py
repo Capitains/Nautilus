@@ -2,8 +2,10 @@ from unittest import TestCase
 from subprocess import call
 from sys import executable
 import os
-from capitains_nautilus.cts.resolver import NautilusCTSResolver, \
-    SparqlAlchemyNautilusCTSResolver, SleepyCatCTSResolver
+from capitains_nautilus.cts.resolver import \
+    SleepyCatCtsResolver, \
+    SparqlAlchemyNautilusCtsResolver,\
+    NautilusCtsResolver
 from capitains_nautilus.collections.sparql import clear_graph
 from werkzeug.contrib.cache import FileSystemCache
 from MyCapytain.common.constants import Mimetypes
@@ -22,7 +24,7 @@ class TestCache(TestCase):
             raise Exception("Creating cache failed")
 
         self.cache = FileSystemCache(subprocess_cache_dir)
-        self.resolver = NautilusCTSResolver(resource=subprocess_repository, cache=self.cache)
+        self.resolver = NautilusCtsResolver(resource=subprocess_repository, cache=self.cache)
         self.resolver.logger.disabled = True
 
         def x(*k, **kw):
@@ -84,7 +86,7 @@ class TestSparqlCache(TestCache):
             raise Exception("Creating cache failed")
 
         self.cache = FileSystemCache(subprocess_cache_dir)
-        self.resolver = SparqlAlchemyNautilusCTSResolver(
+        self.resolver = SparqlAlchemyNautilusCtsResolver(
             resource=subprocess_repository,
             cache=self.cache,
             graph=sqlite_address
@@ -112,7 +114,7 @@ class TestSleepyCatSparqlCache(TestCache):
             raise Exception("Creating cache failed")
 
         self.cache = FileSystemCache(subprocess_cache_dir)
-        self.resolver = SleepyCatCTSResolver(
+        self.resolver = SleepyCatCtsResolver(
             resource=subprocess_repository,
             cache=self.cache,
             graph=sleepy_cat_address

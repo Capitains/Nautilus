@@ -10,23 +10,19 @@ from MyCapytain.resources.prototypes.cts.inventory import (
     CtsTextgroupMetadata,
     CtsTextMetadata,
     CtsTranslationMetadata,
-    CtsTextInventoryMetadata,
-    CtsTextInventoryCollection
+    CtsTextInventoryMetadata
 )
 from MyCapytain.resources.prototypes.text import Passage
 from MyCapytain.resolvers.utils import CollectionDispatcher
 from unittest import TestCase
 
-from capitains_nautilus.cts.resolver import NautilusCTSResolver
+from capitains_nautilus.cts.resolver import NautilusCtsResolver
 from capitains_nautilus.errors import UnknownCollection, InvalidURN, UndispatchedTextError
 
-from .config import sqlite_address
-from rdflib import Graph
 
-
-class TestXMLFolderResolverBehindTheScene(TestCase):
+class TestXmlFolderResolverBehindTheScene(TestCase):
     """ Test behind the scene functions of the Resolver """
-    RESOLVER_CLASS = NautilusCTSResolver
+    RESOLVER_CLASS = NautilusCtsResolver
 
     def setUp(self):
         set_graph(bind_graph())
@@ -155,30 +151,30 @@ class TestXMLFolderResolverBehindTheScene(TestCase):
 
     def test_pagination(self):
         self.assertEqual(
-            NautilusCTSResolver.pagination(2, 30, 150), (30, 60, 2, 30),
+            NautilusCtsResolver.pagination(2, 30, 150), (30, 60, 2, 30),
             " Pagination should return Array limits "
         )
         self.assertEqual(
-            NautilusCTSResolver.pagination(4, 40, 150), (120, 150, 4, 30),
+            NautilusCtsResolver.pagination(4, 40, 150), (120, 150, 4, 30),
             " Pagination should return Array limits "
         )
         self.assertEqual(
-            NautilusCTSResolver.pagination(5, 40, 150), (120, 150, 4, 30),
+            NautilusCtsResolver.pagination(5, 40, 150), (120, 150, 4, 30),
             " Pagination should return Array limits "
         )
         self.assertEqual(
-            NautilusCTSResolver.pagination(5, 100, 150), (100, 150, 2, 50),
+            NautilusCtsResolver.pagination(5, 100, 150), (100, 150, 2, 50),
             " Pagination should give corrected page and correct count"
         )
         self.assertEqual(
-            NautilusCTSResolver.pagination(5, 110, 150), (40, 50, 5, 10),
+            NautilusCtsResolver.pagination(5, 110, 150), (40, 50, 5, 10),
             " Pagination should use default limit (10) when getting too much "
         )
 
 
-class TextXMLFolderResolver(TestCase):
+class TextXmlFolderResolver(TestCase):
     """ Ensure working state of resolver """
-    RESOLVER_CLASS = NautilusCTSResolver
+    RESOLVER_CLASS = NautilusCtsResolver
 
     def setUp(self):
         set_graph(bind_graph())
@@ -592,9 +588,9 @@ class TextXMLFolderResolver(TestCase):
         )
 
 
-class TextXMLFolderResolverDispatcher(TestCase):
+class TextXmlFolderResolverDispatcher(TestCase):
     """ Ensure working state of resolver """
-    RESOLVER_CLASS = NautilusCTSResolver
+    RESOLVER_CLASS = NautilusCtsResolver
 
     def setUp(self):
         set_graph(bind_graph())

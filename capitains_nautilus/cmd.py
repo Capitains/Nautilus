@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from capitains_nautilus.flask_ext import FlaskNautilus
-from capitains_nautilus.cts.resolver import NautilusCTSResolver
+from cts.resolver.base import NautilusCtsResolver
 from werkzeug.contrib.cache import FileSystemCache, RedisCache, NullCache
 from flask import Flask
 import argparse
@@ -42,7 +42,7 @@ def _commandline(repositories,
     if debug:
         app.logger.setLevel(logging.INFO)
 
-    resolver = NautilusCTSResolver(resource=repositories)
+    resolver = NautilusCtsResolver(resource=repositories)
     nautilus = FlaskNautilus(
         app=app,
         resolver=resolver

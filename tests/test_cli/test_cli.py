@@ -12,7 +12,7 @@ from tests.test_cli.app import resolver, nautilus_cache, make_dispatcher, app, n
 from flask import Flask
 from flask_caching import Cache
 from werkzeug.contrib.cache import FileSystemCache
-from capitains_nautilus.cts.resolver import NautilusCTSResolver
+from capitains_nautilus.cts.resolver import NautilusCtsResolver
 from capitains_nautilus.flask_ext import FlaskNautilus
 
 
@@ -136,7 +136,7 @@ class TestManagerClickMethod(TestManager):
     def setUp(self):
         # Full creation of app
         self.cache = FileSystemCache(subprocess_cache_dir, default_timeout=0)
-        self.resolver = NautilusCTSResolver(
+        self.resolver = NautilusCtsResolver(
             subprocess_repository,
             dispatcher=make_dispatcher(),
             cache=self.cache

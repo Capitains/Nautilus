@@ -1,35 +1,24 @@
 import os.path
-import shutil
-from werkzeug.contrib.cache import NullCache
-from rdflib import Graph
 from glob import glob
 from multiprocessing.pool import ThreadPool
 
 import MyCapytain.errors
+from MyCapytain.common.constants import set_graph, get_graph
 from MyCapytain.common.reference import URN, Reference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
-from MyCapytain.common.constants import set_graph, get_graph
-from MyCapytain.resolvers.utils import CollectionDispatcher
+from werkzeug.contrib.cache import NullCache
 
 from capitains_nautilus import _cache_key
-from capitains_nautilus.collections.sparql import generate_alchemy_graph, clear_graph, \
-    generate_sleepy_cat_graph
-from capitains_nautilus.errors import *
-from capitains_nautilus.cts.collections import (
-    SparqlXmlCitation,
-    SparqlXmlCtsEditionMetadata,
-    SparqlXmlCtsTextgroupMetadata,
-    SparqlXmlCtsTextInventoryMetadata,
-    SparqlXmlCtsTranslationMetadata,
-    SparqlXmlCtsCommentaryMetadata,
-    SparqlXmlCtsWorkMetadata,
-    SparqlTextInventoryCollection
-)
+from capitains_nautilus.collections.sparql import clear_graph
+from capitains_nautilus.cts.collections import SparqlXmlCtsEditionMetadata, SparqlXmlCtsTranslationMetadata, \
+    SparqlXmlCtsCommentaryMetadata, SparqlXmlCtsWorkMetadata, SparqlXmlCtsTextgroupMetadata, \
+    SparqlXmlCtsTextInventoryMetadata, SparqlTextInventoryCollection, SparqlXmlCitation
+from capitains_nautilus.errors import UnknownCollection, UndispatchedTextError, InvalidURN
 from capitains_nautilus.resolver_prototype import NautilusPrototypeResolver
-from capitains_nautilus.utils.dev import DevPool as ThreadPool
 
-class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver, NautilusPrototypeResolver):
+
+class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResolver):
     TIMEOUT = 0
     REMOVE_EMPTY = True
     CACHE_FULL_TEI = False
@@ -39,7 +28,7 @@ class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver, NautilusPrototypeRe
         """ Initiate the XMLResolver
 
         """
-        super(__BaseNautilusCTSResolver__, self).__init__(
+        super(ProtoNautilusCtsResolver, self).__init__(
             resource=resource, dispatcher=dispatcher, name=name, logger=logger, autoparse=False
         )
 
@@ -65,9 +54,9 @@ class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver, NautilusPrototypeRe
         if self.CACHE_FULL_TEI is True:
             return self.get_or(
                 _cache_key("Nautilus", self.name, "File", "Tree", file.name),
-                super(__BaseNautilusCTSResolver__, self).xmlparse, file
+                super(ProtoNautilusCtsResolver, self).xmlparse, file
             )
-        return super(__BaseNautilusCTSResolver__, self).xmlparse(file)
+        return super(ProtoNautilusCtsResolver, self).xmlparse(file)
 
     def get_or(self, cache_key, callback, *args, **kwargs):
         """ Get or set the cache using callback and arguments
@@ -131,7 +120,7 @@ class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver, NautilusPrototypeRe
         return self.inventory
 
     def _parse(self, resource):
-        return super(__BaseNautilusCTSResolver__, self).parse(resource=resource)
+        return super(ProtoNautilusCtsResolver, self).parse(resource=resource)
 
     def _clean_invalids(self, invalids):
         for removable in invalids:
@@ -154,7 +143,7 @@ class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver, NautilusPrototypeRe
                 del self.dispatcher.collection[removable]
 
     def _dispatch_container(self, textgroup, directory):
-        super(__BaseNautilusCTSResolver__, self)._dispatch_container(textgroup, directory)
+        super(ProtoNautilusCtsResolver, self)._dispatch_container(textgroup, directory)
 
     def __getText__(self, urn):
         """ Returns a PrototypeText object
@@ -208,7 +197,7 @@ class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver, NautilusPrototypeRe
         """
         return self.get_or(
             self.__cache_key_reffs__(textId, level, subreference),
-            super(__BaseNautilusCTSResolver__, self).getReffs, textId, level, subreference
+            super(ProtoNautilusCtsResolver, self).getReffs, textId, level, subreference
         )
 
     def __cache_key_reffs__(self, textId, level, subreference):
@@ -264,7 +253,7 @@ class __BaseNautilusCTSResolver__(CtsCapitainsLocalResolver, NautilusPrototypeRe
         return self.__cache__.clear()
 
 
-class NautilusCTSResolver(__BaseNautilusCTSResolver__):
+class NautilusCtsResolver(ProtoNautilusCtsResolver):
     """ XML Folder Based resolver fully cache oriented (including the inventory)
 
     :param resource: Resource should be a list of folders retaining data as Capitains Guidelines Repositories
@@ -307,14 +296,14 @@ class NautilusCTSResolver(__BaseNautilusCTSResolver__):
         """
         return self.get_or(
             _cache_key("Nautilus", self.name, "GetMetadata", objectId),
-            super(__BaseNautilusCTSResolver__, self).getMetadata, objectId
+            super(ProtoNautilusCtsResolver, self).getMetadata, objectId
         )
 
     def clear(self):
         return self.__cache__.clear()
 
 
-class _SparqlSharedResolver(__BaseNautilusCTSResolver__):
+class _SparqlSharedResolver(ProtoNautilusCtsResolver):
     RAISE_ON_GENERIC_PARSING_ERROR = False
     CLASSES = {
         "edition": SparqlXmlCtsEditionMetadata,
@@ -433,83 +422,3 @@ class _SparqlSharedResolver(__BaseNautilusCTSResolver__):
         """
         clear_graph(self.graph_identifier)
         super(_SparqlSharedResolver, self).clear()
-
-
-class SparqlAlchemyNautilusCTSResolver(_SparqlSharedResolver):
-    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, graph=None, _workers=None):
-        exceptions = []
-
-        if graph is not None:
-            if isinstance(graph, str):  # Graph is a string : is a SQLAlchemy identifier
-                self.graph, self.graph_identifier, _ = generate_alchemy_graph(graph)
-            elif isinstance(graph, Graph):
-                self.graph = graph
-                self.graph_identifier = graph.identifier
-        else:
-            self.graph, self.graph_identifier, _ = generate_alchemy_graph(graph)
-
-        self._workers = _workers or 1
-
-        if not dispatcher:
-            # Normal init is setting label automatically
-            inventory_collection = type(self).CLASSES["inventory_collection"](identifier="defaultTic")
-            default_tiname = "/default"
-            ti = type(self).CLASSES["inventory"](default_tiname)
-            ti.parent = inventory_collection
-            if ti.get_label(lang="eng") is None:
-                ti.set_label("Default collection", "eng")
-            dispatcher = CollectionDispatcher(inventory_collection,
-                                              default_inventory_name=default_tiname)
-
-        super(SparqlAlchemyNautilusCTSResolver, self).__init__(
-            resource=resource,
-            name=name,
-            logger=logger,
-            cache=cache,
-            dispatcher=dispatcher
-        )
-
-        for exception in exceptions:
-            self.logger.warning(exception)
-
-
-class SleepyCatCTSResolver(_SparqlSharedResolver):
-    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, graph=None, _workers=None):
-        exceptions = []
-
-        if graph is not None:
-            if isinstance(graph, str):  # Graph is a string : is a Directory Path identifier
-                self.graph, self.graph_identifier, self._store_path = generate_sleepy_cat_graph(graph)
-            elif isinstance(graph, Graph):
-                self.graph = graph
-                self.graph_identifier = graph.identifier
-        else:
-            self.graph, self.graph_identifier, self._store_path = generate_sleepy_cat_graph(graph)
-
-        self._workers = _workers or 1
-
-        if not dispatcher:
-            # Normal init is setting label automatically
-            inventory_collection = type(self).CLASSES["inventory_collection"](identifier="defaultTic")
-            default_tiname = "/default"
-            ti = type(self).CLASSES["inventory"](default_tiname)
-            ti.parent = inventory_collection
-            if ti.get_label(lang="eng") is None:
-                ti.set_label("Default collection", "eng")
-            dispatcher = CollectionDispatcher(inventory_collection,
-                                              default_inventory_name=default_tiname)
-
-        super(SleepyCatCTSResolver, self).__init__(
-            resource=resource,
-            name=name,
-            logger=logger,
-            cache=cache,
-            dispatcher=dispatcher
-        )
-
-        for exception in exceptions:
-            self.logger.warning(exception)
-
-    def clear(self):
-        super(SleepyCatCTSResolver, self).clear()
-        shutil.rmtree(str(self.graph.identifier), ignore_errors=True)

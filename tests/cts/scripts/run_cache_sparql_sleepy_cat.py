@@ -5,12 +5,12 @@ sys.path.append(
     os.path.join(os.path.dirname(__file__), "..", "..", "..")
 )
 
-from capitains_nautilus.cts.resolver import SleepyCatCTSResolver
+from capitains_nautilus.cts.resolver import SleepyCatCtsResolver
 from werkzeug.contrib.cache import FileSystemCache
 from tests.cts.config import subprocess_repository, subprocess_cache_dir, sleepy_cat_address
 
 cache = FileSystemCache(subprocess_cache_dir)
-resolver = SleepyCatCTSResolver(
+resolver = SleepyCatCtsResolver(
     resource=subprocess_repository,
     cache=cache,
     graph=sleepy_cat_address

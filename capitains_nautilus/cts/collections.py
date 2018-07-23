@@ -17,13 +17,13 @@ from capitains_nautilus.errors import UnknownCollection
 from capitains_nautilus.utils.performances import cached_property, STORE
 
 
-class CTSSparqlNavigatedCollection(PrototypeCtsCollection, SparqlNavigatedCollection):
+class CtsSparqlNavigatedCollection(PrototypeCtsCollection, SparqlNavigatedCollection):
     def _simple_init(self, identifier):
         if isinstance(identifier, URN):
             self.__urn__ = identifier
         else:
             self.__urn__ = URN(str(identifier))
-        super(CTSSparqlNavigatedCollection, self)._simple_init(identifier)
+        super(CtsSparqlNavigatedCollection, self)._simple_init(identifier)
 
     def set_cts_property(self, prop, value, lang=None):
         if not isinstance(value, Literal):
@@ -31,10 +31,10 @@ class CTSSparqlNavigatedCollection(PrototypeCtsCollection, SparqlNavigatedCollec
         _prop = RDF_NAMESPACES.CTS.term(prop)
 
         if not (self.asNode(), _prop, value) in self.graph:
-            super(CTSSparqlNavigatedCollection, self).set_cts_property(prop, value)
+            super(CtsSparqlNavigatedCollection, self).set_cts_property(prop, value)
 
 
-class SparqlXmlCtsTextMetadata(CTSSparqlNavigatedCollection, XmlCtsTextMetadata):
+class SparqlXmlCtsTextMetadata(CtsSparqlNavigatedCollection, XmlCtsTextMetadata):
     @staticmethod
     def children_class(object_id):
         raise NameError("CTS Text cannot have children")
@@ -156,7 +156,7 @@ class SparqlXmlCtsEditionMetadata(SparqlXmlCtsTextMetadata, XmlCtsEditionMetadat
     """ """
 
 
-class SparqlXmlCtsWorkMetadata(CTSSparqlNavigatedCollection, XmlCtsWorkMetadata):
+class SparqlXmlCtsWorkMetadata(CtsSparqlNavigatedCollection, XmlCtsWorkMetadata):
     CLASS_EDITION = SparqlXmlCtsEditionMetadata
     CLASS_TRANSLATION = SparqlXmlCtsTranslationMetadata
     CLASS_COMMENTARY = SparqlXmlCtsCommentaryMetadata
@@ -198,7 +198,7 @@ class SparqlXmlCtsWorkMetadata(CTSSparqlNavigatedCollection, XmlCtsWorkMetadata)
         raise UnknownCollection("%s is not part of this object" % key)
 
 
-class SparqlXmlCtsTextgroupMetadata(CTSSparqlNavigatedCollection, XmlCtsTextgroupMetadata):
+class SparqlXmlCtsTextgroupMetadata(CtsSparqlNavigatedCollection, XmlCtsTextgroupMetadata):
     CLASS_WORK = SparqlXmlCtsWorkMetadata
 
     @classmethod

@@ -1,5 +1,8 @@
-from tests.cts.test_resolver import TestXMLFolderResolverBehindTheScene, TextXMLFolderResolver, TextXMLFolderResolverDispatcher
-from capitains_nautilus.cts.resolver import SleepyCatCTSResolver
+from tests.cts.test_resolver import \
+    TestXmlFolderResolverBehindTheScene, \
+    TextXmlFolderResolver, \
+    TextXmlFolderResolverDispatcher
+from capitains_nautilus.cts.resolver import SleepyCatCtsResolver
 from capitains_nautilus.collections.sparql import clear_graph, \
     generate_sleepy_cat_graph
 from MyCapytain.common.constants import set_graph
@@ -9,14 +12,14 @@ import shutil
 
 
 class _Parser(Sparql):
-    RESOLVER_CLASS = SleepyCatCTSResolver
+    RESOLVER_CLASS = SleepyCatCtsResolver
 
 
 def remove_sleepy_cat(address):
     shutil.rmtree(address, ignore_errors=True)
 
 
-class TestSparqlSleepyCatBasedResolverDispatcher(_Parser, TextXMLFolderResolverDispatcher):
+class TestSparqlSleepyCatBasedResolverDispatcher(_Parser, TextXmlFolderResolverDispatcher):
     """"""
     TEST_RUN = 0
 
@@ -52,7 +55,7 @@ class TestSparqlSleepyCatBasedResolverDispatcher(_Parser, TextXMLFolderResolverD
         clear_graph(self.graph_identifier)
 
 
-class TextSleepyCatSparqlXMLFolderResolver(_Parser, TextXMLFolderResolver):
+class TextSleepyCatSparqlXmlFolderResolver(_Parser, TextXmlFolderResolver):
     """"""
     def setUp(self):
         remove_sleepy_cat(sleepy_cat_address)
@@ -67,7 +70,7 @@ class TextSleepyCatSparqlXMLFolderResolver(_Parser, TextXMLFolderResolver):
         self.resolver.clear()
 
 
-class TestSleepyCatSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderResolverBehindTheScene):
+class TestSleepyCatSparqlXmlFolderResolverBehindTheScene(_Parser, TestXmlFolderResolverBehindTheScene):
     """ """
 
     def generate_repository(self, *args, **kwargs):

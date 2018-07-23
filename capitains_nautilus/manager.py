@@ -1,5 +1,5 @@
 import click
-from capitains_nautilus.cts.resolver import NautilusCTSResolver
+from capitains_nautilus.cts.resolver import NautilusCtsResolver
 from capitains_nautilus.flask_ext import FlaskNautilus
 import logging
 import multiprocessing
@@ -28,7 +28,7 @@ def FlaskNautilusManager(resolver, flask_nautilus):
     """ Provides a manager for flask scripts to perform specific maintenance operations
 
     :param resolver: Nautilus Extension Instance
-    :type resolver: NautilusCTSResolver
+    :type resolver: NautilusCtsResolver
     :param flask_nautilus: Flask Application
     :type flask_nautilus: FlaskNautilus
     :return: CLI

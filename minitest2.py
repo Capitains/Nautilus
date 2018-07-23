@@ -1,11 +1,11 @@
-from capitains_nautilus.cts.resolver import SparqlAlchemyNautilusCTSResolver
-from capitains_nautilus.cts.resolver import NautilusCTSResolver
+from cts.resolver._sql_alchemy import SparqlAlchemyNautilusCtsResolver
+from cts.resolver.base import NautilusCtsResolver
 from MyCapytain.common.constants import Mimetypes
 from time import time
 
 timeit = 100
 
-resolver = NautilusCTSResolver(["./tests/testing_data/latinLit2"])
+resolver = NautilusCtsResolver(["./tests/testing_data/latinLit2"])
 resolver.parse()
 print("Parsed 2")
 
