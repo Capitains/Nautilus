@@ -1,5 +1,5 @@
 from tests.test_flask_ext.base import SetupModule, CTSModule, DTSModule, LoggingModule, logger
-from cts.resolver.base import NautilusCtsResolver
+from capitains_nautilus.cts.resolver.base import NautilusCtsResolver
 from unittest import TestCase
 from MyCapytain.common.constants import set_graph, bind_graph, get_graph
 from flask import Flask

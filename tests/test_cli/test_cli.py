@@ -122,7 +122,7 @@ class TestManager(TestCase):
         output = self.cli("parse")
         output_2 = self.cli("process_reffs")
         self.assertEqual(len(self.resolver.texts), 2, "There should be 2 texts preprocessed")
-        with mock.patch("capitains_nautilus.cts.resolver.CtsCapitainsLocalResolver.getReffs") as getReffs:
+        with mock.patch("capitains_nautilus.cts.resolver.base.CtsCapitainsLocalResolver.getReffs") as getReffs:
             self.assertEqual(
                 self.resolver.getReffs(textId="urn:cts:latinLit:phi1294.phi002.perseus-lat2", level=2)[:5],
                 ['1.pr', '1.1', '1.2', '1.3', '1.4']
