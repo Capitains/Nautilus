@@ -11,12 +11,9 @@ setup(
   packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
   install_requires=[
     "MyCapytain>=2.0.0",
-    "tornado>=4.3",
     "Flask>=0.12",
     "Werkzeug>=0.11.3",
-    "redis>=2.10.5",
-    "Flask-Caching>=1.4.0,<2.0.0",
-    "rdflib-sqlalchemy==0.3.8",
+    "Flask-Caching>=1.4.0,<2.0.0"
   ],
   test_requires=[
     "logassert",

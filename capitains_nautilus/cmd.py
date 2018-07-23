@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from capitains_nautilus.flask_ext import FlaskNautilus
-from cts.resolver.base import NautilusCtsResolver
+from capitains_nautilus.cts.resolver.base import NautilusCtsResolver
 from werkzeug.contrib.cache import FileSystemCache, RedisCache, NullCache
 from flask import Flask
 import argparse
 import logging
-
-from tornado.wsgi import WSGIContainer
-from tornado.httpserver import HTTPServer
-from tornado.ioloop import IOLoop
 
 
 def _commandline(repositories,
@@ -50,14 +46,7 @@ def _commandline(repositories,
         #logger=None
     )
     nautilus.resolver.parse()
-    if debug:
-        app.run(debug=debug, port=port, host=host)
-    else:
-        app.debug = debug
-        http_server = HTTPServer(WSGIContainer(app))
-        http_server.bind(port=port, address=host)
-        http_server.start(0)
-        IOLoop.current().start()
+    app.run(debug=debug, port=port, host=host)
 
 
 def cmd():

@@ -10,8 +10,8 @@ except ImportError as e:
     import_logger.debug("BerkeleyDB is not installed. Its Nautilus SleepyCat implementation is not available")
 
 try:
-    import sqlalchemy
+    import rdflib_sqlalchemy
     from ._sql_alchemy import SparqlAlchemyNautilusCtsResolver
 except ImportError as e:
-    import_logger.debug("SQLAlchemy is not installed. Its Nautilus Sparql implementation is not available")
+    import_logger.debug("rdflib-sqlalchemy is not installed. Its Nautilus Sparql implementation is not available")
 
