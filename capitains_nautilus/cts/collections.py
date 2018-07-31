@@ -14,15 +14,16 @@ from MyCapytain.common.constants import RDF_NAMESPACES, get_graph
 from capitains_nautilus.collections.sparql import SparqlNavigatedCollection
 from rdflib import BNode, Literal, RDF, URIRef
 from capitains_nautilus.errors import UnknownCollection
+from capitains_nautilus.utils.performances import cached_property, STORE
 
 
-class CTSSparqlNavigatedCollection(PrototypeCtsCollection, SparqlNavigatedCollection):
+class CtsSparqlNavigatedCollection(PrototypeCtsCollection, SparqlNavigatedCollection):
     def _simple_init(self, identifier):
         if isinstance(identifier, URN):
             self.__urn__ = identifier
         else:
             self.__urn__ = URN(str(identifier))
-        super(CTSSparqlNavigatedCollection, self)._simple_init(identifier)
+        super(CtsSparqlNavigatedCollection, self)._simple_init(identifier)
 
     def set_cts_property(self, prop, value, lang=None):
         if not isinstance(value, Literal):
@@ -30,10 +31,10 @@ class CTSSparqlNavigatedCollection(PrototypeCtsCollection, SparqlNavigatedCollec
         _prop = RDF_NAMESPACES.CTS.term(prop)
 
         if not (self.asNode(), _prop, value) in self.graph:
-            super(CTSSparqlNavigatedCollection, self).set_cts_property(prop, value)
+            super(CtsSparqlNavigatedCollection, self).set_cts_property(prop, value)
 
 
-class SparqlXmlCtsTextMetadata(CTSSparqlNavigatedCollection, XmlCtsTextMetadata):
+class SparqlXmlCtsTextMetadata(CtsSparqlNavigatedCollection, XmlCtsTextMetadata):
     @staticmethod
     def children_class(object_id):
         raise NameError("CTS Text cannot have children")
@@ -139,18 +140,6 @@ class SparqlXmlCitation(XmlCtsCitation):
                 (self.asNode(), RDF_NAMESPACES.TEI.name, Literal(val))
             )
 
-    @property
-    def members(self):
-        return {}
-
-    @property
-    def descendants(self):
-        return []
-
-    @property
-    def readableDescendants(self):
-        return []
-
 
 class SparqlXmlCtsTranslationMetadata(SparqlXmlCtsTextMetadata, XmlCtsTranslationMetadata):
     TYPE_URI = XmlCtsTranslationMetadata.TYPE_URI
@@ -167,9 +156,14 @@ class SparqlXmlCtsEditionMetadata(SparqlXmlCtsTextMetadata, XmlCtsEditionMetadat
     """ """
 
 
-class SparqlXmlCtsWorkMetadata(CTSSparqlNavigatedCollection, XmlCtsWorkMetadata):
-    @staticmethod
-    def children_class(object_id):
+class SparqlXmlCtsWorkMetadata(CtsSparqlNavigatedCollection, XmlCtsWorkMetadata):
+    CLASS_EDITION = SparqlXmlCtsEditionMetadata
+    CLASS_TRANSLATION = SparqlXmlCtsTranslationMetadata
+    CLASS_COMMENTARY = SparqlXmlCtsCommentaryMetadata
+    CLASS_CITATION = SparqlXmlCitation
+
+    @classmethod
+    def children_class(cls, object_id):
         o = list(get_graph().objects(object_id, RDF.type))[0]
 
         if o == SparqlXmlCtsEditionMetadata.TYPE_URI:
@@ -179,8 +173,8 @@ class SparqlXmlCtsWorkMetadata(CTSSparqlNavigatedCollection, XmlCtsWorkMetadata)
         elif o == XmlCtsCommentaryMetadata.TYPE_URI:
             return SparqlXmlCtsCommentaryMetadata(object_id)
 
-    @staticmethod
-    def parent_class(object_id):
+    @classmethod
+    def parent_class(cls, object_id):
         return SparqlXmlCtsTextgroupMetadata(object_id)
 
     @property
@@ -204,13 +198,15 @@ class SparqlXmlCtsWorkMetadata(CTSSparqlNavigatedCollection, XmlCtsWorkMetadata)
         raise UnknownCollection("%s is not part of this object" % key)
 
 
-class SparqlXmlCtsTextgroupMetadata(CTSSparqlNavigatedCollection, XmlCtsTextgroupMetadata):
-    @staticmethod
-    def children_class(object_id):
-        return SparqlXmlCtsWorkMetadata(object_id)
+class SparqlXmlCtsTextgroupMetadata(CtsSparqlNavigatedCollection, XmlCtsTextgroupMetadata):
+    CLASS_WORK = SparqlXmlCtsWorkMetadata
 
-    @staticmethod
-    def parent_class(object_id):
+    @classmethod
+    def children_class(cls, object_id):
+        return cls.CLASS_WORK(object_id)
+
+    @classmethod
+    def parent_class(cls, object_id):
         return SparqlXmlCtsTextInventoryMetadata(object_id)
 
     def update(self, other):
@@ -236,12 +232,14 @@ class SparqlXmlCtsTextInventoryMetadata(SparqlNavigatedCollection, XmlCtsTextInv
     """ Collection that does tree traversal based on Sparql queries on the local Graph
 
     """
-    @staticmethod
-    def children_class(object_id):
-        return SparqlXmlCtsTextgroupMetadata(object_id)
+    CLASS_TEXTGROUP = SparqlXmlCtsTextgroupMetadata
 
-    @staticmethod
-    def parent_class(object_id):
+    @classmethod
+    def children_class(cls, object_id):
+        return cls.CLASS_TEXTGROUP(object_id)
+
+    @classmethod
+    def parent_class(cls, object_id):
         return SparqlTextInventoryCollection(object_id)
 
     def decide_class(self, key):
@@ -266,12 +264,12 @@ class SparqlTextInventoryCollection(SparqlNavigatedCollection, CtsTextInventoryC
     def __init__(self, identifier="default"):
         super(SparqlTextInventoryCollection, self).__init__(identifier)
 
-    @staticmethod
-    def children_class(object_id):
+    @classmethod
+    def children_class(cls, object_id):
         return SparqlXmlCtsTextInventoryMetadata(object_id)
 
-    @staticmethod
-    def parent_class(object_id):
+    @classmethod
+    def parent_class(cls, object_id):
         raise NameError("Text Inventory Collection cannot have parents")
 
     def decide_class(self, key):

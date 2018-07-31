@@ -7,7 +7,7 @@ from werkzeug.contrib.cache import FileSystemCache
 from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection as TextInventoryCollection
 
 from capitains_nautilus.flask_ext import FlaskNautilus
-from capitains_nautilus.cts.resolver import NautilusCTSResolver
+from capitains_nautilus.cts.resolver import NautilusCtsResolver
 from capitains_nautilus.manager import FlaskNautilusManager
 
 # Clean up noise...
@@ -22,7 +22,7 @@ class TestManager(TestCase):
         """ Set up a dummy application with a manager """
         nautilus_cache = FileSystemCache("cache_dir")
         app = Flask("Nautilus")
-        resolver = NautilusCTSResolver(["./tests/test_data/latinLit"], cache=nautilus_cache, logger=logger)
+        resolver = NautilusCtsResolver(["./tests/test_data/latinLit"], cache=nautilus_cache, logger=logger)
         resolver.clear()
         flask_nautilus = FlaskNautilus(
             app=app,

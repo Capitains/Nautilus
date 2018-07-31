@@ -1,16 +1,16 @@
-from tests.cts.test_resolver import TestXMLFolderResolverBehindTheScene, TextXMLFolderResolver, TextXMLFolderResolverDispatcher
-from capitains_nautilus.cts.resolver import SparqlAlchemyNautilusCTSResolver
+from tests.cts.test_resolver import TestXmlFolderResolverBehindTheScene, TextXmlFolderResolver, TextXmlFolderResolverDispatcher
+from capitains_nautilus.cts.resolver import SparqlAlchemyNautilusCtsResolver
 from capitains_nautilus.collections.sparql import generate_alchemy_graph, clear_graph
 from MyCapytain.common.constants import set_graph
-from .config import sqlite_address
-from ..sparql_class import Sparql
+from ..config import sqlite_address
+from ...sparql_class import Sparql
 
 
 class _Parser(Sparql):
-    RESOLVER_CLASS = SparqlAlchemyNautilusCTSResolver
+    RESOLVER_CLASS = SparqlAlchemyNautilusCtsResolver
 
 
-class TestSparqlBasedResolverDispatcher(_Parser, TextXMLFolderResolverDispatcher):
+class TestSparqlBasedResolverDispatcher(_Parser, TextXmlFolderResolverDispatcher):
     """"""
     TEST_RUN = 0
 
@@ -47,7 +47,7 @@ class TestSparqlBasedResolverDispatcher(_Parser, TextXMLFolderResolverDispatcher
         clear_graph(self.graph_identifier)
 
 
-class TextSparqlXMLFolderResolver(_Parser, TextXMLFolderResolver):
+class TextSparqlXmlFolderResolver(_Parser, TextXmlFolderResolver):
     """"""
     def setUp(self):
         self.graph, self.graph_identifier, self.store_uri = generate_alchemy_graph(alchemy_uri=sqlite_address)
@@ -58,7 +58,7 @@ class TextSparqlXMLFolderResolver(_Parser, TextXMLFolderResolver):
         clear_graph(self.graph_identifier)
 
 
-class TestSparqlXMLFolderResolverBehindTheScene(_Parser, TestXMLFolderResolverBehindTheScene):
+class TestSparqlXmlFolderResolverBehindTheScene(_Parser, TestXmlFolderResolverBehindTheScene):
     """ """
 
     def generate_repository(self, *args, **kwargs):

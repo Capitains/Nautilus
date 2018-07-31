@@ -8,7 +8,7 @@ from tests.test_cli.config import subprocess_repository, subprocess_cache_dir, h
 
 from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection, CtsTextInventoryMetadata
 from MyCapytain.resolvers.utils import CollectionDispatcher
-from capitains_nautilus.cts.resolver import NautilusCTSResolver
+from capitains_nautilus.cts.resolver import NautilusCtsResolver
 
 from capitains_nautilus.flask_ext import FlaskNautilus
 
@@ -31,7 +31,7 @@ def make_dispatcher():
 
 nautilus_cache = FileSystemCache(subprocess_cache_dir, default_timeout=0)
 
-resolver = NautilusCTSResolver(
+resolver = NautilusCtsResolver(
     subprocess_repository,
     dispatcher=make_dispatcher(),
     cache=nautilus_cache
