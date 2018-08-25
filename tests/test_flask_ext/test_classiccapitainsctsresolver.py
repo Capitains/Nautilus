@@ -1,5 +1,5 @@
 from tests.test_flask_ext.base import SetupModule, CTSModule, DTSModule, LoggingModule, logger
-from capitains_nautilus.cts.resolver import NautilusCTSResolver
+from capitains_nautilus.cts.resolver.base import NautilusCtsResolver
 from unittest import TestCase
 from MyCapytain.common.constants import set_graph, bind_graph, get_graph
 from flask import Flask
@@ -28,13 +28,13 @@ class NautilusCTSResolverGenerator:
             # If we did not already create the resolver
             if not self.__resolver__:
                 set_graph(bind_graph())
-                self.__resolver__ = NautilusCTSResolver(directories)
+                self.__resolver__ = NautilusCtsResolver(directories)
                 self.__resolver__.parse()
 
             return self.__resolver__
 
         set_graph(bind_graph())
-        return NautilusCTSResolver(directories)
+        return NautilusCtsResolver(directories)
 
     def clear(self):
         g = get_graph()
@@ -54,7 +54,7 @@ class TestClassicCTSResolverRestAPICache(CTSModule, DTSModule, TestCase, Nautilu
         self.cache = Cache(config={'CACHE_TYPE': 'simple'})
         self.nautilus = FlaskNautilus(
             app=self._app,
-            resolver=NautilusCTSResolver(["./tests/test_data/latinLit"]),
+            resolver=NautilusCtsResolver(["./tests/test_data/latinLit"]),
             flask_caching=self.cache,
             logger=logger
         )

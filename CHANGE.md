@@ -1,6 +1,12 @@
 Change logs
 ===
 
+## 1.0.3 - 23/05/2017
+
+By @ponteineptique
+
+- Updated Flask-Caching dependency to be in sync with Nemo
+
 ## 1.0.2 - 15/01/2017
 
 By @ponteineptique

@@ -12,7 +12,7 @@ from tests.test_cli.app import resolver, nautilus_cache, make_dispatcher, app, n
 from flask import Flask
 from flask_caching import Cache
 from werkzeug.contrib.cache import FileSystemCache
-from capitains_nautilus.cts.resolver import NautilusCTSResolver
+from capitains_nautilus.cts.resolver import NautilusCtsResolver
 from capitains_nautilus.flask_ext import FlaskNautilus
 
 
@@ -122,7 +122,7 @@ class TestManager(TestCase):
         output = self.cli("parse")
         output_2 = self.cli("process_reffs")
         self.assertEqual(len(self.resolver.texts), 2, "There should be 2 texts preprocessed")
-        with mock.patch("capitains_nautilus.cts.resolver.CtsCapitainsLocalResolver.getReffs") as getReffs:
+        with mock.patch("capitains_nautilus.cts.resolver.base.CtsCapitainsLocalResolver.getReffs") as getReffs:
             self.assertEqual(
                 self.resolver.getReffs(textId="urn:cts:latinLit:phi1294.phi002.perseus-lat2", level=2)[:5],
                 ['1.pr', '1.1', '1.2', '1.3', '1.4']
@@ -136,7 +136,7 @@ class TestManagerClickMethod(TestManager):
     def setUp(self):
         # Full creation of app
         self.cache = FileSystemCache(subprocess_cache_dir, default_timeout=0)
-        self.resolver = NautilusCTSResolver(
+        self.resolver = NautilusCtsResolver(
             subprocess_repository,
             dispatcher=make_dispatcher(),
             cache=self.cache
