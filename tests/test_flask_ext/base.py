@@ -11,10 +11,8 @@ from MyCapytain.resources.collections.cts import XmlCtsTextInventoryMetadata as 
 from MyCapytain.resources.texts.remote.cts import CtsText as Text
 from MyCapytain.retrievers.cts5 import HttpCtsRetriever
 from flask import Flask
-from flask_caching import Cache
 from logassert import logassert
 from lxml.etree import tostring
-from werkzeug.contrib.cache import SimpleCache
 
 from capitains_nautilus.flask_ext import FlaskNautilus
 import logging
@@ -84,8 +82,10 @@ class CTSModule:
         FlaskNautilus(
             app=app,
             resolver=self.generate_resolver(["./tests/test_data/latinLit"]),
-            access_Control_Allow_Methods={"r_cts": "OPTIONS", "r_dts_collection": "OPTIONS", "r_dts_collections": "OPTIONS"},
-            access_Control_Allow_Origin={"r_cts": "foo.bar", "r_dts_collection":"*", "r_dts_collections":"*"}
+            access_Control_Allow_Methods={"r_cts": "OPTIONS", "r_dts_collection": "OPTIONS",
+                                          "r_dts_collections": "OPTIONS"},
+            access_Control_Allow_Origin={"r_cts": "foo.bar", "r_dts_collection": "*",
+                                         "r_dts_collections": "*"}
         )
         _app = app.test_client()
         self.assertEqual(_app.get("/cts?request=GetCapabilities").headers["Access-Control-Allow-Origin"], "foo.bar")
@@ -371,7 +371,7 @@ class DTSModule:
 
     def test_dts_collection_target_route(self):
         """ Check that DTS Main collection works """
-        response = self.app.get("/dts/collections/urn:cts:latinLit:phi1294")
+        response = self.app.get("/dts/collections?id=urn:cts:latinLit:phi1294")
         data = json.loads(response.data.decode())
         compared_to = self.resolver.getMetadata(objectId="urn:cts:latinLit:phi1294").export(Mimetypes.JSON.DTS.Std)
         self.maxDiff = None

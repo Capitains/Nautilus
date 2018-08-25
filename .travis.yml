@@ -6,7 +6,7 @@ python:
 
 # command to install dependencies
 install:
-    - sudo apt-get install -y libdb5.3 libdb-dev
+    - sudo apt-get install -y libdb5.3 libdb-dev # Required for BerkeleyDB
     - pip install -r requirements.txt
     - pip install https://github.com/Capitains/MyCapytain/archive/classmethod-for-parsing.zip --upgrade
     - pip install https://github.com/PonteIneptique/rdflib-sqlalchemy/archive/empty-prefix-fix.zip --upgrade
@@ -23,10 +23,8 @@ branches:
   only:
     - master
     - documentation
-    - sparql-collections
-    - sparql-collection-multiproc
     - dev
-    - sparql-optimization
+    - dts-draft-1
 
 
 deploy:
