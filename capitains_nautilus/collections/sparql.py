@@ -112,7 +112,7 @@ class SparqlNavigatedCollection(Collection):
     def _simple_init(self, identifier):
         self.__node__ = URIRef(identifier)
         self.__metadata__ = Metadata(node=self.asNode())
-        self.__capabilities__ = Metadata.getOr(self.asNode(), RDF_NAMESPACES.DTS.capabilities)
+        self.__capabilities__ = Metadata.getOr(self.asNode(), RDF_NAMESPACES.CAPITAINS.capabilities)
 
     @property
     def graph(self):
@@ -135,7 +135,7 @@ class SparqlNavigatedCollection(Collection):
         return list(
             [
                 self.children_class(child)
-                for child in self.graph.subjects(RDF_NAMESPACES.DTS.parent, self.asNode())
+                for child in self.graph.subjects(RDF_NAMESPACES.CAPITAINS.parent, self.asNode())
             ]
         )
 
@@ -156,7 +156,7 @@ class SparqlNavigatedCollection(Collection):
                     """
                     select ?desc
                     where {
-                      ?desc <"""+RDF_NAMESPACES.DTS.parent+""">+ <"""+self.id+"""> .
+                      ?desc <"""+RDF_NAMESPACES.CAPITAINS.parent+""">+ <"""+self.id+"""> .
                     }"""
                 )
             ]
@@ -174,7 +174,7 @@ class SparqlNavigatedCollection(Collection):
                 """
                 SELECT ?type
                 where {
-                  <""" + item + """> <""" + RDF_NAMESPACES.DTS.parent + """>+ <""" + self.id + """> .
+                  <""" + item + """> <""" + RDF_NAMESPACES.CAPITAINS.parent + """>+ <""" + self.id + """> .
                   <""" + item + """> a ?type
                 }
                 LIMIT 1
@@ -188,7 +188,7 @@ class SparqlNavigatedCollection(Collection):
 
         :rtype: Collection
         """
-        parent = list(self.graph.objects(self.asNode(), RDF_NAMESPACES.DTS.parent))
+        parent = list(self.graph.objects(self.asNode(), RDF_NAMESPACES.CAPITAINS.parent))
         if parent:
             return self.parent_class(parent[0])
         return None
@@ -196,7 +196,7 @@ class SparqlNavigatedCollection(Collection):
     @parent.setter
     def parent(self, parent):
         self.graph.set(
-            (self.asNode(), RDF_NAMESPACES.DTS.parent, parent.asNode())
+            (self.asNode(), RDF_NAMESPACES.CAPITAINS.parent, parent.asNode())
         )
 
     @property
