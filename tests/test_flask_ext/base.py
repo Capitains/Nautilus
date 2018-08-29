@@ -422,19 +422,20 @@ class LoggingModule:
     def test_dts_UnknownCollection_request(self):
         """Check get Label"""
         # Need to parse with Citation and parse individually or simply check for some equality
-        data = json.loads(self.app.get("/dts/collections/urn:cts:latinLit:phi1295").data.decode())
+        data = json.loads(self.app.get("/dts/collections?id=urn:cts:latinLit:phi1295").data.decode())
         self.assertIn(
             "Resource requested is not found", data["message"], "Error message should be displayed"
         )
         self.assertIn(
             "UnknownCollection", data["error"], "Error name should be displayed"
         )
-        data = json.loads(self.app.get("/dts/collections/urn:cts:latinLit:phi1294.phi003").data.decode())
+        data = json.loads(self.app.get("/dts/collections?id=urn:cts:latinLit:phi1294.phi003").data.decode())
         self.assertIn(
             "Resource requested is not found", data["message"], "Error message should be displayed"
         )
         self.assertIn(
             "UnknownCollection", data["error"], "Error name should be displayed"
         )
-        self.assertLogged("DTS error thrown UnknownCollection for /dts/collections/urn:cts:latinLit:phi1295 "
-                          "( Resource requested is not found )")
+        self.assertLogged("DTS error thrown UnknownCollection for /dts/collections "
+                          "( Resource requested is not found ) "
+                          "(Debug : Resource urn:cts:latinLit:phi1294.phi003 not found)")

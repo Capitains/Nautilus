@@ -1,10 +1,10 @@
 # For test purposes
 from capitains_nautilus.flask_ext import FlaskNautilus
-from capitains_nautilus.cts.resolver import NautilusCTSResolver
+from capitains_nautilus.cts.resolver import NautilusCtsResolver
 from flask import Flask
 
 
-resolver = NautilusCTSResolver(["./tests/testing_data/latinLit2"])
+resolver = NautilusCtsResolver(["./tests/testing_data/latinLit2"])
 resolver.parse()
 
 app = Flask("Nautilus")
