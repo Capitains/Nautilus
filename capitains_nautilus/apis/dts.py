@@ -321,10 +321,10 @@ class DTSApi(AdditionalAPIPrototype):
         return j
 
     @query_parameters_as_kwargs(
-        mapping={"id": "objectId", "passage": "passageId"},
+        mapping={"id": "objectId", "ref": "passageId"},
         params={
             "id": None,
-            "passage": None,
+            "ref": None,
             "start": None,
             "end": None,
             "level": 1
@@ -336,11 +336,12 @@ class DTSApi(AdditionalAPIPrototype):
         if start and end:
             # Currently hacked to work only with CTS Identifier
             # See https://github.com/Capitains/MyCapytain/issues/161
-            references = self.resolver.getReffs(
-                textId=objectId,
-                subreference="-".join([start, end]),
-                level=level
-            )
+            if objectId.startswith("urn:cts"):
+                references = self.resolver.getReffs(
+                    textId=objectId,
+                    subreference="-".join([start, end]),
+                    level=level
+                )
         else:
             references = self.resolver.getReffs(
                 textId=objectId,

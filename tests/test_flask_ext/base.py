@@ -14,7 +14,11 @@ from flask import Flask
 from logassert import logassert
 from lxml.etree import tostring
 
-from .mockups import dts as dts_mockups
+
+from .mockups.dts import (
+    coll as dts_coll_mockups,
+    refs as dts_refs_mockups
+)
 
 from capitains_nautilus.flask_ext import FlaskNautilus
 import logging
@@ -362,7 +366,7 @@ class DTSModule:
 
         self.maxDiff = None
         self.assertCountEqual(
-            data, dts_mockups.response_defaultTic, "Main Collection should export as JSON DTS STD"
+            data, dts_coll_mockups.response_defaultTic, "Main Collection should export as JSON DTS STD"
         )
         self.assertEqual(
             response.status_code, 200, "Answer code should be correct"
@@ -378,7 +382,7 @@ class DTSModule:
 
         self.maxDiff = None
         self.assertCountEqual(
-            data, dts_mockups.response_phi1294, "Main Collection should export as JSON DTS STD"
+            data, dts_coll_mockups.response_phi1294, "Main Collection should export as JSON DTS STD"
         )
         self.assertEqual(
             response.status_code, 200, "Answer code should be correct"
@@ -396,7 +400,7 @@ class DTSModule:
 
         self.maxDiff = None
         self.assertCountEqual(
-            data, dts_mockups.response_phi1294_phi002_parent, "Main Collection should export as JSON DTS STD"
+            data, dts_coll_mockups.response_phi1294_phi002_parent, "Main Collection should export as JSON DTS STD"
         )
         self.assertEqual(
             response.status_code, 200, "Answer code should be correct"
@@ -405,6 +409,20 @@ class DTSModule:
             response.headers["Access-Control-Allow-Origin"], "*"
         )
 
+    def test_dts_navigation_simple(self):
+        response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002&nav=parent")
+        data = json.loads(response.data.decode())
+
+        self.maxDiff = None
+        self.assertCountEqual(
+            data, dts_coll_mockups.response_phi1294_phi002_parent, "Main Collection should export as JSON DTS STD"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Answer code should be correct"
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"], "*"
+        )
 
 class LoggingModule:
     def setUp(self):

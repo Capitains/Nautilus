@@ -13,7 +13,6 @@ response_phi1294 = {
         {'title': 'Epigrammata', 'totalItems': 1, '@type': 'Collection', '@id': 'urn:cts:latinLit:phi1294.phi002'}
     ]
 }
-
 response_defaultTic = {
     '@type': 'Collection',
     '@context': {'@vocab': 'https://www.w3.org/ns/hydra/core#'},
@@ -28,7 +27,6 @@ response_defaultTic = {
         }
     ]
 }
-
 response_phi1294_phi002_parent = {
     '@type': 'Collection',
     '@id': 'urn:cts:latinLit:phi1294.phi002',
