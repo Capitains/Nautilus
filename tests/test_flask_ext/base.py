@@ -14,6 +14,8 @@ from flask import Flask
 from logassert import logassert
 from lxml.etree import tostring
 
+from .mockups import dts as dts_mockups
+
 from capitains_nautilus.flask_ext import FlaskNautilus
 import logging
 
@@ -357,10 +359,10 @@ class DTSModule:
         """ Check that DTS Main collection works """
         response = self.app.get("/dts/collections")
         data = json.loads(response.data.decode())
-        compared_to = self.resolver.getMetadata().export(Mimetypes.JSON.DTS.Std)
+
         self.maxDiff = None
         self.assertCountEqual(
-            data, compared_to, "Main Collection should export as JSON DTS STD"
+            data, dts_mockups.response_defaultTic, "Main Collection should export as JSON DTS STD"
         )
         self.assertEqual(
             response.status_code, 200, "Answer code should be correct"
@@ -373,10 +375,10 @@ class DTSModule:
         """ Check that DTS Main collection works """
         response = self.app.get("/dts/collections?id=urn:cts:latinLit:phi1294")
         data = json.loads(response.data.decode())
-        compared_to = self.resolver.getMetadata(objectId="urn:cts:latinLit:phi1294").export(Mimetypes.JSON.DTS.Std)
+
         self.maxDiff = None
         self.assertCountEqual(
-            data, compared_to, "Main Collection should export as JSON DTS STD"
+            data, dts_mockups.response_phi1294, "Main Collection should export as JSON DTS STD"
         )
         self.assertEqual(
             response.status_code, 200, "Answer code should be correct"
@@ -386,6 +388,21 @@ class DTSModule:
         )
         self.assertEqual(
             "urn:cts:latinLit:phi1294", data["@id"], "Label should be there"
+        )
+
+    def test_dts_collection_parent(self):
+        response = self.app.get("/dts/collections?id=urn:cts:latinLit:phi1294.phi002&nav=parent")
+        data = json.loads(response.data.decode())
+
+        self.maxDiff = None
+        self.assertCountEqual(
+            data, dts_mockups.response_phi1294_phi002_parent, "Main Collection should export as JSON DTS STD"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Answer code should be correct"
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"], "*"
         )
 
 

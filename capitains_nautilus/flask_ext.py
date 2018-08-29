@@ -69,7 +69,7 @@ class FlaskNautilus(object):
         if apis is None:
             from warnings import warn
             warn(
-                "The parameter `apis` will need to be set-up explicitely starting 2.0.0",
+                "The parameter `apis` will need to be set-up explicitly starting 2.0.0",
                 DeprecationWarning
             )
             apis = {CTSApi(), DTSApi()}
