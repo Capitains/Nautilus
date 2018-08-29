@@ -100,7 +100,7 @@ def _hydra_dts_predicates(graph: Graph, collection: Collection, nsm: NamespaceMa
     :param _external: Optionnaly builds external for url_for
     :return: Base dictionary representation of the item
 
-    .. todo:: Evalute how much hardcoding prefix terms such as title and so on
+    .. todo:: Evaluate how much hardcoding prefix terms improve perfs
     """
     j = {
         "@id": collection.id,
@@ -127,13 +127,15 @@ def _hydra_dts_predicates(graph: Graph, collection: Collection, nsm: NamespaceMa
 
     # If the system handles citation structure
     if hasattr(collection, "citation") and \
-            isinstance(collection.citation, BaseCitationSet) and \
-            not collection.citation.is_empty():
-        j["dts:citeStructure"] = collection.citation.export(
-            Mimetypes.JSON.DTS.Std,
-            context=False,
-            namespace_manager=nsm
-        )
+            isinstance(collection.citation, BaseCitationSet):
+        if collection.readable:
+            j["dts:citeDepth"] = collection.citation.depth
+        if not collection.citation.is_empty():
+            j["dts:citeStructure"] = collection.citation.export(
+                Mimetypes.JSON.DTS.Std,
+                context=False,
+                namespace_manager=nsm
+            )
 
     return j
 

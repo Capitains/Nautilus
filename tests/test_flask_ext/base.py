@@ -385,7 +385,7 @@ class DTSModule:
             response.headers["Access-Control-Allow-Origin"], "*"
         )
         self.assertEqual(
-            "urn:cts:latinLit:phi1294", data["@graph"]["@id"], "Label should be there"
+            "urn:cts:latinLit:phi1294", data["@id"], "Label should be there"
         )
 
 

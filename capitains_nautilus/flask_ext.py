@@ -1,6 +1,7 @@
 from pkg_resources import resource_filename
 import logging
 from copy import deepcopy
+from collections import defaultdict
 
 from flask import Blueprint, Response
 
@@ -8,6 +9,9 @@ from flask import Blueprint, Response
 from capitains_nautilus.apis.cts import CTSApi
 from capitains_nautilus.apis.dts import DTSApi
 
+
+def _all_origins():
+    return "*"
 
 class FlaskNautilus(object):
     """ HTTP API Interfaces for MyCapytains resolvers
@@ -73,8 +77,11 @@ class FlaskNautilus(object):
         self.Access_Control_Allow_Methods = access_Control_Allow_Methods
         if not self.Access_Control_Allow_Methods:
             self.Access_Control_Allow_Methods = {}
-        self.Access_Control_Allow_Origin = access_Control_Allow_Origin
-        if not self.Access_Control_Allow_Origin:
+
+        if access_Control_Allow_Origin:
+            self.Access_Control_Allow_Origin = defaultdict(_all_origins)
+            self.Access_Control_Allow_Origin.update(access_Control_Allow_Origin)
+        else:
             self.Access_Control_Allow_Origin = FlaskNautilus.Access_Control_Allow_Origin
 
         for api in apis:
