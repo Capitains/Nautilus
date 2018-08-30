@@ -1,4 +1,5 @@
 from flask import request
+from capitains_nautilus.errors import UnknownParameter
 
 
 def query_parameters_as_kwargs(params, mapping=None):
@@ -7,15 +8,14 @@ def query_parameters_as_kwargs(params, mapping=None):
     if not mapping:
         mapping = {}
 
-    def function_decorator(function):
+    def function_decorator(fn):
         def wrapper(*args):
             kwargs = {}
             for argument, default_value in params.items():
-
                 kwargs[mapping.get(argument,  argument)] = \
                     request.args.get(argument, default_value)
 
-            return function(*args, **kwargs)
+            return fn(*args, **kwargs)
 
         return wrapper
     return function_decorator

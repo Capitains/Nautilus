@@ -4,7 +4,7 @@ from multiprocessing.pool import ThreadPool
 
 import MyCapytain.errors
 from MyCapytain.common.constants import set_graph, get_graph
-from MyCapytain.common.reference import URN, Reference
+from MyCapytain.common.reference import URN, CtsReference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
 from werkzeug.contrib.cache import NullCache
@@ -223,7 +223,7 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
             return o
         text, text_metadata = self.__getText__(textId)
         if subreference is not None:
-            subreference = Reference(subreference)
+            subreference = CtsReference(subreference)
 
         passage = text.getTextualNode(subreference)
         passage.set_metadata_from_collection(text_metadata)

@@ -3,7 +3,7 @@ import re
 from abc import abstractmethod
 
 from MyCapytain.common.constants import Mimetypes, XPATH_NAMESPACES
-from MyCapytain.common.reference import Reference
+from MyCapytain.common.reference import CtsReference
 from MyCapytain.common.utils import xmlparser
 from MyCapytain.resolvers.cts.api import HttpCtsResolver
 from MyCapytain.resources.collections.cts import XmlCtsTextInventoryMetadata as TextInventory, \
@@ -244,7 +244,7 @@ class CTSModule:
     def test_get_prevnext_urn(self):
         """ Check the GetPrevNext request """
         text = Text(urn="urn:cts:latinLit:phi1294.phi002.perseus-lat2", retriever=self.parent)
-        p, n = text.getPrevNextUrn(Reference("1.pr.1"))
+        p, n = text.getPrevNextUrn(CtsReference("1.pr.1"))
         self.assertEqual(
             p, None
         )
@@ -252,7 +252,7 @@ class CTSModule:
             n, "1.pr.2"
         )
 
-        response = text.getPassagePlus(Reference("1.pr.10"))
+        response = text.getPassagePlus(CtsReference("1.pr.10"))
         self.assertEqual(
             str(response.prev.reference), "1.pr.9",
             "Check Range works on normal middle GetPassage"
@@ -261,7 +261,7 @@ class CTSModule:
             str(response.next.reference), "1.pr.11"
         )
 
-        response = text.getPassagePlus(Reference("1.pr.10-1.pr.11"))
+        response = text.getPassagePlus(CtsReference("1.pr.10-1.pr.11"))
         self.assertEqual(
             str(response.prev.reference), "1.pr.8-1.pr.9",
             "Check Range works on GetPassagePlus and compute right prev"
@@ -410,7 +410,8 @@ class DTSModule:
         )
 
     def test_dts_navigation_simple(self):
-        response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002&nav=parent")
+        self.app.debug = True
+        response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2")
         data = json.loads(response.data.decode())
 
         self.maxDiff = None

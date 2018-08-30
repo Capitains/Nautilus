@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from MyCapytain.common.constants import XPATH_NAMESPACES, Mimetypes, RDF_NAMESPACES, get_graph, set_graph, bind_graph
-from MyCapytain.common.reference import URN, Reference
+from MyCapytain.common.reference import URN, CtsReference
 from MyCapytain.resources.prototypes.metadata import Collection
 from MyCapytain.resources.collections.cts import XmlCtsTextInventoryMetadata
 from MyCapytain.resources.prototypes.cts.inventory import (
@@ -63,7 +63,7 @@ class TestXmlFolderResolverBehindTheScene(TestCase):
             "Object has a citation property of length 4"
         )
         self.assertEqual(
-            text.getTextualNode(Reference("1.1.1.1")).export(output=Mimetypes.PLAINTEXT),
+            text.getTextualNode(CtsReference("1.1.1.1")).export(output=Mimetypes.PLAINTEXT),
             "Ho ! Saki, pass around and offer the bowl (of love for God) : ### ",
             "It should be possible to retrieve text"
         )
@@ -189,11 +189,11 @@ class TextXmlFolderResolver(TestCase):
             "GetPassage should always return passages objects"
         )
 
-        children = list(passage.getReffs())
+        children = passage.getReffs()
 
         # We check the passage is able to perform further requests and is well instantiated
         self.assertEqual(
-            children[0], '1',
+            children[0], CtsReference('1'),
             "Resource should be string identifiers"
         )
 
@@ -234,10 +234,10 @@ class TextXmlFolderResolver(TestCase):
             "GetPassage should always return passages objects"
         )
 
-        children = list(passage.getReffs())
+        children = passage.getReffs()
 
         self.assertEqual(
-            children[0], '1.1.1',
+            children[0], CtsReference('1.1.1'),
             "Resource should be string identifiers"
         )
 
@@ -288,14 +288,14 @@ class TextXmlFolderResolver(TestCase):
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
-            len(passage.citation), 3,
+            passage.citation.depth, 3,
             "Local Inventory Files should be parsed and aggregated correctly"
         )
 
-        children = list(passage.getReffs(level=3))
+        children = passage.getReffs(level=3)
         # We check the passage is able to perform further requests and is well instantiated
         self.assertEqual(
-            children[0], '1.pr.1',
+            children[0], CtsReference('1.pr.1'),
             "Resource should be string identifiers"
         )
 
@@ -325,15 +325,15 @@ class TextXmlFolderResolver(TestCase):
             "GetPassage should always return passages objects"
         )
         self.assertEqual(
-            passage.prevId, "1.pr",
+            passage.prevId, CtsReference("1.pr"),
             "Previous Passage ID should be parsed"
         )
         self.assertEqual(
-            passage.nextId, "1.2",
+            passage.nextId, CtsReference("1.2"),
             "Next Passage ID should be parsed"
         )
 
-        children = list(passage.getReffs())
+        children = passage.getReffs()
         # Ensure navigability
         self.assertIn(
             "verentia ludant; quae adeo antiquis auctoribus defuit, ut",
@@ -348,7 +348,7 @@ class TextXmlFolderResolver(TestCase):
 
         # We check the passage is able to perform further requests and is well instantiated
         self.assertEqual(
-            children[0], '1.1.1',
+            children[0], CtsReference('1.1.1'),
             "Resource should be string identifiers"
         )
 
@@ -394,18 +394,18 @@ class TextXmlFolderResolver(TestCase):
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
-            len(passage.citation), 3,
+            passage.citation.depth, 3,
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
-            passage.prevId, "1.pr",
+            passage.prevId, CtsReference("1.pr"),
             "Previous Passage ID should be parsed"
         )
         self.assertEqual(
-            passage.nextId, "1.2",
+            passage.nextId, CtsReference("1.2"),
             "Next Passage ID should be parsed"
         )
-        children = list(passage.getReffs())
+        children = passage.getReffs()
         # Ensure navigability
         self.assertIn(
             "verentia ludant; quae adeo antiquis auctoribus defuit, ut",
@@ -420,7 +420,7 @@ class TextXmlFolderResolver(TestCase):
 
         # We check the passage is able to perform further requests and is well instantiated
         self.assertEqual(
-            children[0], '1.1.1',
+            children[0], CtsReference('1.1.1'),
             "Resource should be string identifiers"
         )
 
@@ -518,11 +518,11 @@ class TextXmlFolderResolver(TestCase):
             textId="urn:cts:latinLit:phi1294.phi002.perseus-lat2", subreference="1.1"
         )
         self.assertEqual(
-            previous, "1.pr",
+            previous, CtsReference("1.pr"),
             "Previous should be well computed"
         )
         self.assertEqual(
-            nextious, "1.2",
+            nextious, CtsReference("1.2"),
             "Previous should be well computed"
         )
 
@@ -536,7 +536,7 @@ class TextXmlFolderResolver(TestCase):
             "Previous Should not exist"
         )
         self.assertEqual(
-            nextious, "1.1",
+            nextious, CtsReference("1.1"),
             "Next should be well computed"
         )
 
@@ -546,7 +546,7 @@ class TextXmlFolderResolver(TestCase):
             textId="urn:cts:latinLit:phi1294.phi002.perseus-lat2", subreference="14.223"
         )
         self.assertEqual(
-            previous, "14.222",
+            previous, CtsReference("14.222"),
             "Previous should be well computed"
         )
         self.assertEqual(
@@ -562,7 +562,7 @@ class TextXmlFolderResolver(TestCase):
             "There should be 14 books"
         )
         self.assertEqual(
-            reffs[0], "1"
+            reffs[0], CtsReference("1")
         )
 
         reffs = self.resolver.getReffs(textId="urn:cts:latinLit:phi1294.phi002.perseus-lat2", level=2)
@@ -571,7 +571,7 @@ class TextXmlFolderResolver(TestCase):
             "There should be 1527 poems"
         )
         self.assertEqual(
-            reffs[0], "1.pr"
+            reffs[0], CtsReference("1.pr")
         )
 
         reffs = self.resolver.getReffs(
@@ -584,7 +584,7 @@ class TextXmlFolderResolver(TestCase):
             "There should be 6 references"
         )
         self.assertEqual(
-            reffs[0], "1.1.1"
+            reffs[0], CtsReference("1.1.1")
         )
 
 

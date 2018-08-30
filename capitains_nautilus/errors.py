@@ -43,3 +43,7 @@ class UnknownCollection(MyCapytain.errors.UnknownCollection, CTSError):
 class UndispatchedTextError(CTSError, MyCapytain.errors.UndispatchedTextError):
     """ A Text has not been dispatched """
     CODE = 7
+
+
+class UnknownParameter(NautilusError):
+    """ A parameter is unknown to the API """

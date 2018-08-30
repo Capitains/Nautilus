@@ -19,7 +19,7 @@ def read_levels(text):
     :return:
     """
     x = []
-    for i in range(0, len(NAUTILUSRESOLVER.getMetadata(text).citation)):
+    for i in range(0, NAUTILUSRESOLVER.getMetadata(text).citation.depth):
         x.append(NAUTILUSRESOLVER.getReffs(text, level=i))
     return x
 
@@ -94,7 +94,8 @@ def FlaskNautilusManager(resolver, flask_nautilus):
             threads = THREADS
         texts = list(resolver.getMetadata().readableDescendants)
         click.echo("Using {} processes to parse references of {} texts".format(threads, len(texts)))
-        with Pool(processes=threads) as executor:
+        from capitains_nautilus.utils.dev import DevPool
+        with DevPool(processes=threads) as executor:
             for future in executor.imap_unordered(read_levels, [t.id for t in texts]):
                 del future
         click.echo("References parsed")

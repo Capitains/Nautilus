@@ -16,7 +16,7 @@ import json
 from capitains_nautilus.apis.base import AdditionalAPIPrototype, \
     query_parameters_as_kwargs
 from capitains_nautilus.errors import NautilusError, UnknownCollection
-
+from MyCapytain.resources.collections.cts import XmlCtsTextMetadata
 
 _ns_hydra_str = str(RDF_NAMESPACES.HYDRA)
 _ns_cts_str = str(RDF_NAMESPACES.CTS)
@@ -246,8 +246,8 @@ class DTSApi(AdditionalAPIPrototype):
     CACHED = [
         #  DTS
         "r_dts_collection",
-        "dts_error",
-        "r_dts_main"
+        "r_dts_main",
+        "get_citation"
     ]
 
     def __init__(self, expand_readable: bool=True, _external: bool=False):
@@ -272,6 +272,9 @@ class DTSApi(AdditionalAPIPrototype):
             })
         j.status_code = 404
         return j
+
+    def get_citation(self, objectId: Collection) -> BaseCitationSet:
+        return self.resolver.getMetadata(objectId).citation
 
     def r_dts_main(self):
         return jsonify({
@@ -333,6 +336,17 @@ class DTSApi(AdditionalAPIPrototype):
     def r_dts_navigation(self, objectId=None, passageId=None, start=None, end=None, level=1):
         if not objectId:
             raise Exception()
+        params = {
+            k: v
+            for k, v in {
+                "id": objectId,
+                "ref": passageId,
+                "start": start,
+                "end": end,
+                "level": level
+            }.items()
+            if v
+        }
         if start and end:
             # Currently hacked to work only with CTS Identifier
             # See https://github.com/Capitains/MyCapytain/issues/161
@@ -348,13 +362,18 @@ class DTSApi(AdditionalAPIPrototype):
                 subreference=passageId,
                 level=level
             )
+
+        obj_metadata = self.get_citation(objectId)
+
         return jsonify({
             "@context": {
                 "passage": "https://w3id.org/dts/api#passage"
             },
+            "dts:citeDepth": 2,
+            "dts:level": 1,
             "@base": url_for(".dts_document", _external=self._external),
-            "@id": objectId,
-            "passage": references
+            "@id": url_for(".dts_navigation", **params),
+            "passage": [{"ref": ref} for ref in references]
         })
 
     @query_parameters_as_kwargs(

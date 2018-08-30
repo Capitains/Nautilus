@@ -13,6 +13,7 @@ from capitains_nautilus.apis.dts import DTSApi
 def _all_origins():
     return "*"
 
+
 class FlaskNautilus(object):
     """ HTTP API Interfaces for MyCapytains resolvers
 
