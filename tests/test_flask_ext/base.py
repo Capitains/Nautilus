@@ -350,6 +350,7 @@ class CTSModule:
         """Check get Label"""
         # Need to parse with Citation and parse individually or simply check for some equality
         data = self.app.get("/cts?request=GetFirstUrn&urn=urn:cts:latinLit:phi1294.phi002.perseus-lat2:1").data.decode()
+
         self.assertIn(
             "<urn>urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr</urn>", data, "First URN is displayed"
         )
@@ -416,7 +417,7 @@ class DTSModule:
 
         self.maxDiff = None
         self.assertCountEqual(
-            data, dts_coll_mockups.response_phi1294_phi002_parent, "Main Collection should export as JSON DTS STD"
+            data, dts_refs_mockups.phi1294_response, "Main Collection should export as JSON DTS STD"
         )
         self.assertEqual(
             response.status_code, 200, "Answer code should be correct"
@@ -460,17 +461,17 @@ class LoggingModule:
         # Need to parse with Citation and parse individually or simply check for some equality
         data = json.loads(self.app.get("/dts/collections?id=urn:cts:latinLit:phi1295").data.decode())
         self.assertIn(
-            "Resource requested is not found", data["message"], "Error message should be displayed"
+            "Resource requested is not found", data["description"], "Error message should be displayed"
         )
         self.assertIn(
-            "UnknownCollection", data["error"], "Error name should be displayed"
+            "UnknownCollection", data["title"], "Error name should be displayed"
         )
         data = json.loads(self.app.get("/dts/collections?id=urn:cts:latinLit:phi1294.phi003").data.decode())
         self.assertIn(
-            "Resource requested is not found", data["message"], "Error message should be displayed"
+            "Resource requested is not found", data["description"], "Error message should be displayed"
         )
         self.assertIn(
-            "UnknownCollection", data["error"], "Error name should be displayed"
+            "UnknownCollection", data["title"], "Error name should be displayed"
         )
         self.assertLogged("DTS error thrown UnknownCollection for /dts/collections "
                           "( Resource requested is not found ) "

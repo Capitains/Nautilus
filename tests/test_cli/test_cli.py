@@ -16,7 +16,7 @@ from capitains_nautilus.cts.resolver import NautilusCtsResolver
 from capitains_nautilus.flask_ext import FlaskNautilus
 
 
-from MyCapytain.common.reference import CtsReference
+from MyCapytain.common.reference import CtsReference, CtsReferenceSet
 
 
 cwd = os.getcwd()
@@ -128,8 +128,8 @@ class TestManager(TestCase):
         with mock.patch("capitains_nautilus.cts.resolver.base.CtsCapitainsLocalResolver.getReffs") as getReffs:
             self.assertEqual(
                 self.resolver.getReffs(textId="urn:cts:latinLit:phi1294.phi002.perseus-lat2", level=2)[:5],
-                [CtsReference('1.pr'), CtsReference('1.1'), CtsReference('1.2'), CtsReference('1.3'),
-                 CtsReference('1.4')]
+                CtsReferenceSet([CtsReference('1.pr'), CtsReference('1.1'), CtsReference('1.2'), CtsReference('1.3'),
+                 CtsReference('1.4')])
             )
             getReffs.assert_not_called()
 

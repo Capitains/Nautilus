@@ -4,13 +4,13 @@ from lxml import etree
 from MyCapytain.common.constants import RDF_NAMESPACES, \
     Mimetypes, \
     XPATH_NAMESPACES
-from MyCapytain.common.reference import BaseCitationSet
+from MyCapytain.common.reference import BaseCitationSet, BaseReference, BaseReferenceSet, URN, CtsReference
 from MyCapytain.common.utils import Subgraph, literal_to_dict
 from MyCapytain.resources.prototypes.metadata import Collection
 from typing import Callable
 from rdflib import URIRef, RDF, RDFS, Graph
 from rdflib.namespace import DCTERMS, NamespaceManager, DC
-
+from collections import OrderedDict
 import json
 
 from capitains_nautilus.apis.base import AdditionalAPIPrototype, \
@@ -183,6 +183,45 @@ def _export_subcollection(
     return o
 
 
+def _single_ref_or_diff_reff(start: BaseReference, end: BaseReference):
+    start = str(start.start)
+    if end.is_range():
+        end = str(end.end)
+    else:
+        end = str(end.start)
+
+    if start == end:
+        return start, None
+    else:
+        return start, end
+
+
+def _cts_reference_grouper(cls, group_by: int, level: int, reffs: BaseReferenceSet):
+    """ Alternative to level_chunker: groups levels together at the latest level
+
+    Probably need to build something that could avoid this issue of "."
+    """
+    _refs = OrderedDict()
+
+    for single_reff in reffs:
+        for part_of_reff in single_reff:
+            if part_of_reff:
+                k = ".".join(part_of_reff.list[:level-1])
+                if k not in _refs:
+                    _refs[k] = []
+                _refs[k].append(single_reff)
+                del k
+
+    return [
+        cls(_single_ref_or_diff_reff(ref[0], ref[-1]))
+        for sublist in _refs.values()
+        for ref in [
+            sublist[i:i+group_by]
+            for i in range(0, len(sublist), group_by)
+        ]
+    ]
+
+
 def _export_collection_dts(
         collection: Collection, members: list,
         namespace_manager: NamespaceManager= None,
@@ -229,6 +268,12 @@ def _export_collection_dts(
     return o
 
 
+def _ref_to_dict(ref: BaseReference) -> dict:
+    if ref.is_range():
+        return {"start": ref.start, "end": ref.end}
+    return {"ref": ref.start}
+
+
 class DTSApi(AdditionalAPIPrototype):
     NAME = "DTS"
     ROUTES = [
@@ -246,8 +291,7 @@ class DTSApi(AdditionalAPIPrototype):
     CACHED = [
         #  DTS
         "r_dts_collection",
-        "r_dts_main",
-        "get_citation"
+        "r_dts_main"
     ]
 
     def __init__(self, expand_readable: bool=True, _external: bool=False):
@@ -266,15 +310,19 @@ class DTSApi(AdditionalAPIPrototype):
         self.nautilus_extension.logger.info("DTS error thrown {} for {} ({}) (Debug : {})".format(
             error_name, request.path, message, debug
         ))
-        j = jsonify({
-                "error": error_name,
-                "message": message
-            })
-        j.status_code = 404
-        return j
 
-    def get_citation(self, objectId: Collection) -> BaseCitationSet:
-        return self.resolver.getMetadata(objectId).citation
+        code = 404
+        j = jsonify(
+            {
+                "@context": "http://www.w3.org/ns/hydra/context.jsonld",
+                "@type": "Status",
+                "statusCode": code,
+                "title": error_name,
+                "description": message
+            }
+        )
+        j.status_code = code
+        return j
 
     def r_dts_main(self):
         return jsonify({
@@ -324,16 +372,21 @@ class DTSApi(AdditionalAPIPrototype):
         return j
 
     @query_parameters_as_kwargs(
-        mapping={"id": "objectId", "ref": "passageId"},
+        mapping={"id": "objectId", "ref": "passageId", "groupBy": "group_by"},
         params={
             "id": None,
             "ref": None,
             "start": None,
             "end": None,
-            "level": 1
+            "level": 1,
+            "groupBy": 1
+        },
+        typing={
+            "level": int,
+            "groupBy": int
         }
     )
-    def r_dts_navigation(self, objectId=None, passageId=None, start=None, end=None, level=1):
+    def r_dts_navigation(self, objectId=None, passageId=None, start=None, end=None, level=1, group_by=1):
         if not objectId:
             raise Exception()
         params = {
@@ -347,34 +400,54 @@ class DTSApi(AdditionalAPIPrototype):
             }.items()
             if v
         }
-        if start and end:
-            # Currently hacked to work only with CTS Identifier
-            # See https://github.com/Capitains/MyCapytain/issues/161
-            if objectId.startswith("urn:cts"):
-                references = self.resolver.getReffs(
-                    textId=objectId,
-                    subreference="-".join([start, end]),
-                    level=level
+        refClass = BaseReference
+        if objectId.startswith("urn:cts:"):
+            urn = URN(objectId)
+            objectId = urn.upTo(urn.NO_PASSAGE)
+            if urn.reference and urn.reference.start is not None:
+                passageId = urn.reference
+            else:
+                refClass = CtsReference
+
+        if not isinstance(passageId, BaseReference):
+            if start and end:
+                passageId = refClass(start, end)
+            elif passageId:
+                passageId = refClass(passageId)
+
+        references = self.resolver.getReffs(
+            textId=objectId,
+            subreference=passageId,
+            level=level
+        )
+
+        group_by = int(group_by)
+        if group_by > 1:
+            references = type(references)(
+                _cts_reference_grouper(
+                    cls=type(references[0]),
+                    group_by=group_by,
+                    reffs=references,
+                    level=references.level
                 )
-        else:
-            references = self.resolver.getReffs(
-                textId=objectId,
-                subreference=passageId,
-                level=level
             )
 
-        obj_metadata = self.get_citation(objectId)
-
-        return jsonify({
+        response = {
             "@context": {
-                "passage": "https://w3id.org/dts/api#passage"
+                "@vocab": "https://www.w3.org/ns/hydra/core#",
+                "dts": "https://w3id.org/dts/api#"
             },
-            "dts:citeDepth": 2,
-            "dts:level": 1,
-            "@base": url_for(".dts_document", _external=self._external),
+            "dts:level": references.level,
+            "dts:passage": url_for(".dts_document", _external=self._external),
             "@id": url_for(".dts_navigation", **params),
-            "passage": [{"ref": ref} for ref in references]
-        })
+            "member": [_ref_to_dict(ref) for ref in references]
+        }
+        if references.citation:
+            response["dts:citeDepth"] = references.citation.depth
+            if references.citation.name:
+                response["dts:citeType"] = references.citation.name
+
+        return jsonify(response)
 
     @query_parameters_as_kwargs(
         mapping={"id": "objectId", "passage": "passageId"},
