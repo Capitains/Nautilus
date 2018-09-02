@@ -33,7 +33,7 @@ response_phi1294_phi002_parent = {
     'title': 'Epigrammata',
     'totalItems': 1,
     'dts:extensions': {
-        'ns2:prefLabel': [{'@language': 'eng', '@value': 'Epigrammata'}],
+        'ns1:prefLabel': [{'@language': 'eng', '@value': 'Epigrammata'}],
         'cts:title': [{'@language': 'eng', '@value': 'Epigrammata'}]
     },
     'member': [
@@ -46,7 +46,7 @@ response_phi1294_phi002_parent = {
     ],
     '@context': {
         'cts': 'http://chs.harvard.edu/xmlns/cts/',
-        'ns2': 'http://www.w3.org/2004/02/skos/core#',
+        'ns1': 'http://www.w3.org/2004/02/skos/core#',
         'dts': 'https://w3id.org/dts/api#',
         '@vocab': 'https://www.w3.org/ns/hydra/core#'
     }

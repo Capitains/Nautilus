@@ -13,15 +13,18 @@ from MyCapytain.retrievers.cts5 import HttpCtsRetriever
 from flask import Flask
 from logassert import logassert
 from lxml.etree import tostring
-
+from pyld.jsonld import expand
 
 from .mockups.dts import (
     coll as dts_coll_mockups,
     refs as dts_refs_mockups
 )
+from .util import normalize_uri_key
 
 from capitains_nautilus.flask_ext import FlaskNautilus
 import logging
+
+
 
 
 logging.basicConfig(level=logging.CRITICAL)
@@ -360,13 +363,16 @@ class CTSModule:
 
 
 class DTSModule:
+    def assertJsonLdEqual(self, expected, actual, message=None):
+        self.assertEqual(expand(expected), expand(actual), message)
+
     def test_dts_collection_route(self):
         """ Check that DTS Main collection works """
         response = self.app.get("/dts/collections")
         data = json.loads(response.data.decode())
 
         self.maxDiff = None
-        self.assertCountEqual(
+        self.assertJsonLdEqual(
             data, dts_coll_mockups.response_defaultTic, "Main Collection should export as JSON DTS STD"
         )
         self.assertEqual(
@@ -382,7 +388,7 @@ class DTSModule:
         data = json.loads(response.data.decode())
 
         self.maxDiff = None
-        self.assertCountEqual(
+        self.assertJsonLdEqual(
             data, dts_coll_mockups.response_phi1294, "Main Collection should export as JSON DTS STD"
         )
         self.assertEqual(
@@ -400,7 +406,7 @@ class DTSModule:
         data = json.loads(response.data.decode())
 
         self.maxDiff = None
-        self.assertCountEqual(
+        self.assertJsonLdEqual(
             data, dts_coll_mockups.response_phi1294_phi002_parent, "Main Collection should export as JSON DTS STD"
         )
         self.assertEqual(
@@ -411,13 +417,16 @@ class DTSModule:
         )
 
     def test_dts_navigation_simple(self):
-        self.app.debug = True
         response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2")
+
         data = json.loads(response.data.decode())
+        normalize_uri_key(data, "dts:passage")
+        normalize_uri_key(data, "@id")
 
         self.maxDiff = None
-        self.assertCountEqual(
-            data, dts_refs_mockups.phi1294_response, "Main Collection should export as JSON DTS STD"
+
+        self.assertJsonLdEqual(
+            dts_refs_mockups.phi1294_response, data, "Main Collection should export as JSON DTS STD"
         )
         self.assertEqual(
             response.status_code, 200, "Answer code should be correct"
@@ -425,6 +434,69 @@ class DTSModule:
         self.assertEqual(
             response.headers["Access-Control-Allow-Origin"], "*"
         )
+
+    def test_dts_navigation_group_by(self):
+        """ Ensure that groupBy works in DTS Navigation Route"""
+        response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2&groupBy=2")
+        data = json.loads(response.data.decode())
+        normalize_uri_key(data, "dts:passage")
+        normalize_uri_key(data, "@id")
+
+        self.maxDiff = None
+        self.assertJsonLdEqual(
+            dts_refs_mockups.phi1294_group_by_response, data, "Main Collection should export as JSON DTS STD"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Answer code should be correct"
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"], "*"
+        )
+
+    def test_dts_navigation_group_by_with_start_end(self):
+        """ Ensure that groupBy works and level is influenced by the level of the ref in DTS Navigation Route"""
+        response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
+                                "&groupBy=100"
+                                "&start=1&end=2")
+        data = json.loads(response.data.decode())
+
+        normalize_uri_key(data, "dts:passage")
+        normalize_uri_key(data, "@id")
+
+        self.maxDiff = None
+        self.assertJsonLdEqual(
+            dts_refs_mockups.phi1294_group_by_response_start_end, data, "Main Collection should export as JSON DTS STD"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Answer code should be correct"
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"], "*"
+        )
+
+    def test_dts_navigation_group_by_with_level(self):
+        """ Ensure that groupBy works and level is influenced by the level of the ref in DTS Navigation Route"""
+        response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
+                                "&groupBy=100"
+                                "&ref=1"
+                                "&level=2")
+        data = json.loads(response.data.decode())
+
+        normalize_uri_key(data, "dts:passage")
+        normalize_uri_key(data, "@id")
+
+        self.maxDiff = None
+        self.assertJsonLdEqual(
+            dts_refs_mockups.phi1294_group_by_response_ref_level_2, data,
+            "Main Collection should export as JSON DTS STD"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Answer code should be correct"
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"], "*"
+        )
+
 
 class LoggingModule:
     def setUp(self):

@@ -14,11 +14,14 @@ setup(
     "Flask>=0.12",
     "Werkzeug>=0.11.3",
     "Flask-Caching>=1.4.0,<2.0.0"
+    "typing",
   ],
   test_requires=[
     "logassert",
     "mock",
-    "nose"
+    "nose",
+    "typing",
+    "urltools==0.3.2"
   ],
   extra_requires={
     "Berkeley": ["bsddb3==6.2.6"],

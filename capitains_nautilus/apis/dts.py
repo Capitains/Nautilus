@@ -7,7 +7,7 @@ from MyCapytain.common.constants import RDF_NAMESPACES, \
 from MyCapytain.common.reference import BaseCitationSet, BaseReference, BaseReferenceSet, URN, CtsReference
 from MyCapytain.common.utils import Subgraph, literal_to_dict
 from MyCapytain.resources.prototypes.metadata import Collection
-from typing import Callable
+from typing import Callable, Tuple
 from rdflib import URIRef, RDF, RDFS, Graph
 from rdflib.namespace import DCTERMS, NamespaceManager, DC
 from collections import OrderedDict
@@ -274,6 +274,24 @@ def _ref_to_dict(ref: BaseReference) -> dict:
     return {"ref": ref.start}
 
 
+def _define_passage_id_from_params(objectId: str, passageId: str, start: str, end: str) -> Tuple[BaseReference, str]:
+    refClass = BaseReference
+    if objectId.startswith("urn:cts:"):
+        urn = URN(objectId)
+        objectId = urn.upTo(urn.NO_PASSAGE)
+        if urn.reference and urn.reference.start is not None:
+            passageId = urn.reference, str(objectId)
+        else:
+            refClass = CtsReference
+
+    if not isinstance(passageId, BaseReference):
+        if start and end:
+            passageId = refClass(start, end)
+        elif passageId:
+            passageId = refClass(passageId)
+    return passageId, objectId
+
+
 class DTSApi(AdditionalAPIPrototype):
     NAME = "DTS"
     ROUTES = [
@@ -389,6 +407,9 @@ class DTSApi(AdditionalAPIPrototype):
     def r_dts_navigation(self, objectId=None, passageId=None, start=None, end=None, level=1, group_by=1):
         if not objectId:
             raise Exception()
+
+        passageId, objectId = _define_passage_id_from_params(objectId, passageId, start, end)
+
         params = {
             k: v
             for k, v in {
@@ -396,24 +417,13 @@ class DTSApi(AdditionalAPIPrototype):
                 "ref": passageId,
                 "start": start,
                 "end": end,
-                "level": level
+                "level": level,
+                "groupBy": group_by
             }.items()
             if v
         }
-        refClass = BaseReference
-        if objectId.startswith("urn:cts:"):
-            urn = URN(objectId)
-            objectId = urn.upTo(urn.NO_PASSAGE)
-            if urn.reference and urn.reference.start is not None:
-                passageId = urn.reference
-            else:
-                refClass = CtsReference
-
-        if not isinstance(passageId, BaseReference):
-            if start and end:
-                passageId = refClass(start, end)
-            elif passageId:
-                passageId = refClass(passageId)
+        if start and end:
+            del params["ref"]
 
         references = self.resolver.getReffs(
             textId=objectId,
@@ -429,7 +439,9 @@ class DTSApi(AdditionalAPIPrototype):
                     group_by=group_by,
                     reffs=references,
                     level=references.level
-                )
+                ),
+                citation=references.citation,
+                level=references.level
             )
 
         response = {
@@ -438,12 +450,12 @@ class DTSApi(AdditionalAPIPrototype):
                 "dts": "https://w3id.org/dts/api#"
             },
             "dts:level": references.level,
-            "dts:passage": url_for(".dts_document", _external=self._external),
+            "dts:passage": url_for(".dts_document", id=objectId, _external=self._external)+"{&ref}{&start}{&end}",
             "@id": url_for(".dts_navigation", **params),
             "member": [_ref_to_dict(ref) for ref in references]
         }
         if references.citation:
-            response["dts:citeDepth"] = references.citation.depth
+            response["dts:citeDepth"] = references.citation.root.depth
             if references.citation.name:
                 response["dts:citeType"] = references.citation.name
 
