@@ -14,8 +14,12 @@ from capitains_nautilus.collections.sparql import clear_graph
 from capitains_nautilus.cts.collections import SparqlXmlCtsEditionMetadata, SparqlXmlCtsTranslationMetadata, \
     SparqlXmlCtsCommentaryMetadata, SparqlXmlCtsWorkMetadata, SparqlXmlCtsTextgroupMetadata, \
     SparqlXmlCtsTextInventoryMetadata, SparqlTextInventoryCollection, SparqlXmlCitation
-from capitains_nautilus.errors import UnknownCollection, UndispatchedTextError, InvalidURN
+from capitains_nautilus.errors import CtsUnknownCollection, CtsUndispatchedTextError, CtsInvalidURN
 from capitains_nautilus.resolver_prototype import NautilusPrototypeResolver
+import re
+
+
+_re_catch_urn = re.compile("(urn:cts:[\S]+)")
 
 
 class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResolver):
@@ -74,7 +78,11 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
             try:
                 output = callback(*args, **kwargs)
             except MyCapytain.errors.UnknownCollection as E:
-                raise UnknownCollection(str(E))
+                match = _re_catch_urn.findall(str(E))
+                if len(match):
+                    raise CtsUnknownCollection(match[0] + " is not part of this inventory")
+                else:
+                    raise CtsUnknownCollection(str(E))
             except Exception as E:
                 raise E
             self.cache.set(cache_key, output, self.TIMEOUT)
@@ -114,7 +122,7 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
             self._parse(resource)
         except MyCapytain.errors.UndispatchedTextError as E:
             if self.RAISE_ON_UNDISPATCHED is True:
-                raise UndispatchedTextError(E)
+                raise CtsUndispatchedTextError(E)
 
         self.inventory = self.dispatcher.collection
         return self.inventory
@@ -165,21 +173,21 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
                 if len(urn) > 0:
                     urn = URN(urn[0])
                 else:
-                    raise UnknownCollection
+                    raise CtsUnknownCollection(str(urn) + " is not part of this inventory")
             else:
-                raise InvalidURN
+                raise CtsInvalidURN()
 
         try:
             text = self.inventory[str(urn)]
         except MyCapytain.errors.UnknownCollection as E:
-            raise UnknownCollection(str(E))
+            raise CtsUnknownCollection(str(urn) +  " is not part of this inventory")
         except Exception as E:
             raise E
 
         if os.path.isfile(text.path):
             resource = self.read(identifier=urn, path=text.path)
         else:
-            raise UnknownCollection("File matching %s does not exist" % text.path)
+            raise CtsUnknownCollection("File matching %s does not exist" % text.path)
 
         return resource, text
 

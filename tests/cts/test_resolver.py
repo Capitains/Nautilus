@@ -17,7 +17,7 @@ from MyCapytain.resolvers.utils import CollectionDispatcher
 from unittest import TestCase
 
 from capitains_nautilus.cts.resolver import NautilusCtsResolver
-from capitains_nautilus.errors import UnknownCollection, InvalidURN, UndispatchedTextError
+from capitains_nautilus.errors import CtsUnknownCollection, CtsInvalidURN, CtsUndispatchedTextError
 
 
 class TestXmlFolderResolverBehindTheScene(TestCase):
@@ -71,7 +71,7 @@ class TestXmlFolderResolverBehindTheScene(TestCase):
     def test_missing_text_resource(self):
         """ Test to make sure an UnknownCollection error is raised when a text is missing """
         Repository = self.generate_repository(["./tests/test_data/missing_text"])
-        with self.assertRaises(UnknownCollection):
+        with self.assertRaises(CtsUnknownCollection):
             text, metadata = Repository.__getText__("urn:cts:farsiLit:hafez.divan.missing_text")
 
     def test_get_capabilities(self):
@@ -219,9 +219,9 @@ class TextXmlFolderResolver(TestCase):
             passage.export(Mimetypes.PLAINTEXT), "Omne fuit Musae carmen inerme meae; ",
             "Passage should resolve if directly asked"
         )
-        with self.assertRaises(UnknownCollection):
+        with self.assertRaises(CtsUnknownCollection):
             passage = self.resolver.getTextualNode("urn:cts:latinLit:phi0959.phi010", "2")
-        with self.assertRaises(InvalidURN):
+        with self.assertRaises(CtsInvalidURN):
             passage = self.resolver.getTextualNode("urn:cts:latinLit:phi0959", "2")
 
     def test_getPassage_subreference(self):
@@ -398,7 +398,7 @@ class TextXmlFolderResolver(TestCase):
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
-            passage.citation.rootgit .depth, 3,
+            passage.citation.root.depth, 3,
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
@@ -695,7 +695,7 @@ class TextXmlFolderResolverDispatcher(TestCase):
                 dispatcher=dispatcher,
                 remove_empty=False
             )
-        except UndispatchedTextError as E:
+        except CtsUndispatchedTextError as E:
             self.fail("UndispatchedTextError should not have been raised")
 
     def test_dispatching_output(self):

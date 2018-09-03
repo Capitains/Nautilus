@@ -336,14 +336,14 @@ class CTSModule:
         # Need to parse with Citation and parse individually or simply check for some equality
         data = self.app.get("/cts?request=GetPassage&urn=urn:cts:latinLit:phi1295").data.decode()
         self.assertIn(
-            "Syntactically valid URN refers in invalid value ", data, "Error message should be displayed"
+            "Syntactically valid URN refers to an invalid level of collection for this request", data, "Error message should be displayed"
         )
         self.assertIn(
             "InvalidURN", data, "Error name should be displayed"
         )
         data = self.app.get("/cts?request=GetPassagePlus&urn=urn:cts:latinLit:phi1294").data.decode()
         self.assertIn(
-            "Syntactically valid URN refers in invalid value ", data, "Error message should be displayed"
+            "Syntactically valid URN refers to an invalid level of collection for this request", data, "Error message should be displayed"
         )
         self.assertIn(
             "InvalidURN", data, "Error name should be displayed"
@@ -508,21 +508,23 @@ class LoggingModule:
 
     def test_UnknownCollection_request(self):
         """Check get Label"""
+        self.app.debug = True
         # Need to parse with Citation and parse individually or simply check for some equality
         data = self.app.get("/cts?request=GetCapabilities&urn=urn:cts:latinLit:phi1295").data.decode()
         self.assertIn(
-            "Resource requested is not found", data, "Error message should be displayed"
+            "urn:cts:latinLit:phi1295 is not part of this inventory", data, "Error message should be displayed"
         )
         self.assertIn(
             "UnknownCollection", data, "Error name should be displayed"
         )
 
         self.assertLogged("CTS error thrown UnknownCollection for "
-                          "request=GetCapabilities&urn=urn:cts:latinLit:phi1295 ( Resource requested is not found )")
+                          "request=GetCapabilities&urn=urn:cts:latinLit:phi1295 "
+                          "(urn:cts:latinLit:phi1295 is not part of this inventory)")
 
         data = self.app.get("/cts?request=GetPassage&urn=urn:cts:latinLit:phi1294.phi003").data.decode()
         self.assertIn(
-            "Resource requested is not found", data, "Error message should be displayed"
+            "urn:cts:latinLit:phi1294.phi003 is not part of this inventory", data, "Error message should be displayed"
         )
         self.assertIn(
             "UnknownCollection", data, "Error name should be displayed"

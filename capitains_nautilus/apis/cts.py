@@ -4,7 +4,7 @@ from MyCapytain.common.reference import URN
 from MyCapytain.common.constants import Mimetypes, RDF_NAMESPACES
 
 from capitains_nautilus.apis.base import AdditionalAPIPrototype
-from capitains_nautilus.errors import NautilusError, MissingParameter, InvalidURN
+from capitains_nautilus.errors import NautilusError, CtsMissingParameter, CtsInvalidURN
 
 
 class CTSApi(AdditionalAPIPrototype):
@@ -60,8 +60,8 @@ class CTSApi(AdditionalAPIPrototype):
                         level=request.args.get("level", 1, type=int)
                     )
             except NautilusError as E:
-                return self.cts_error(error_name=E.__class__.__name__, message=E.__doc__)
-        return self.cts_error(MissingParameter.__name__, message=MissingParameter.__doc__)
+                return self.cts_error(error_name=E.title, message=E.description)
+        return self.cts_error(CtsMissingParameter.__name__, message=CtsMissingParameter.__doc__)
 
     def cts_error(self, error_name, message=None):
         """ Create a CTS Error reply
@@ -108,7 +108,7 @@ class CTSApi(AdditionalAPIPrototype):
         urn = URN(urn)
         subreference = None
         if len(urn) < 4:
-            raise InvalidURN
+            raise CtsInvalidURN()
         if urn.reference is not None:
             subreference = str(urn.reference)
         node = self.resolver.getTextualNode(textId=urn.upTo(URN.NO_PASSAGE), subreference=subreference)
@@ -131,7 +131,7 @@ class CTSApi(AdditionalAPIPrototype):
         urn = URN(urn)
         subreference = None
         if len(urn) < 4:
-            raise InvalidURN
+            raise CtsInvalidURN()
         if urn.reference is not None:
             subreference = str(urn.reference)
         node = self.resolver.getTextualNode(textId=urn.upTo(URN.NO_PASSAGE), subreference=subreference)

@@ -15,8 +15,8 @@ import json
 
 from capitains_nautilus.apis.base import AdditionalAPIPrototype, \
     query_parameters_as_kwargs
-from capitains_nautilus.errors import NautilusError, UnknownCollection
-from MyCapytain.resources.collections.cts import XmlCtsTextMetadata
+from capitains_nautilus.errors import NautilusError, CtsUnknownCollection, CtsMissingParameter
+
 
 _ns_hydra_str = str(RDF_NAMESPACES.HYDRA)
 _ns_cts_str = str(RDF_NAMESPACES.CTS)
@@ -374,7 +374,7 @@ class DTSApi(AdditionalAPIPrototype):
                 expand_members=lambda obj: self._expand_readable and obj.readable
             )
 
-        except UnknownCollection as E:
+        except CtsUnknownCollection as E:
             return self.dts_error(
                 error_name="UnknownCollection",
                 message=E.__doc__,
@@ -382,8 +382,8 @@ class DTSApi(AdditionalAPIPrototype):
             )
         except NautilusError as E:
             return self.dts_error(
-                error_name=E.__class__.__name__,
-                message=E.__doc__
+                error_name=E.title,
+                message=E.description,
             )
         j = jsonify(j)
         j.status_code = 200
@@ -471,21 +471,14 @@ class DTSApi(AdditionalAPIPrototype):
         }
     )
     def r_dts_document(self, objectId=None, passageId=None, start=None, end=None):
-
         if not objectId:
-            raise Exception()
-        if start and end:
-            # Currently hacked to work only with CTS Identifier
-            # See https://github.com/Capitains/MyCapytain/issues/161
-            passage = self.resolver.getTextualNode(
-                textId=objectId,
-                subreference="-".join([start, end])
-            )
-        else:
-            passage = self.resolver.getTextualNode(
-                textId=objectId,
-                subreference=passageId
-            )
+            raise CtsMissingParameter("A document 'id' is required")
+
+        passageId, objectId = _define_passage_id_from_params(objectId, passageId, start, end)
+        passage = self.resolver.getTextualNode(
+            textId=objectId,
+            subreference=passageId
+        )
 
         if passageId:
             inputXML = passage.export(Mimetypes.PYTHON.ETREE)
@@ -497,6 +490,8 @@ class DTSApi(AdditionalAPIPrototype):
             outputXML = etree.tostring(inputXML, encoding=str)
         else:
             outputXML = passage.export(Mimetypes.XML.TEI)
+
+        # toDo : add navigation
 
         return Response(
             outputXML,

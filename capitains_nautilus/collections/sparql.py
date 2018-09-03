@@ -7,7 +7,7 @@ from rdflib_sqlalchemy import registerplugins
 from rdflib.namespace import SKOS
 from warnings import warn
 
-from capitains_nautilus.errors import UnknownCollection
+from capitains_nautilus.errors import CtsUnknownCollection
 
 
 def clear_graph(identifier=None):
@@ -145,7 +145,7 @@ class SparqlNavigatedCollection(Collection):
     def __getitem__(self, item):
         if item in self:
             return self.decide_class(item)
-        raise UnknownCollection("%s does not contain %s" % (self, item))
+        raise CtsUnknownCollection("%s does not contain %s" % (self, item))
 
     @property
     def descendants(self):
