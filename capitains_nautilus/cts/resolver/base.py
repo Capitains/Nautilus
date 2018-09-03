@@ -14,7 +14,7 @@ from capitains_nautilus.collections.sparql import clear_graph
 from capitains_nautilus.cts.collections import SparqlXmlCtsEditionMetadata, SparqlXmlCtsTranslationMetadata, \
     SparqlXmlCtsCommentaryMetadata, SparqlXmlCtsWorkMetadata, SparqlXmlCtsTextgroupMetadata, \
     SparqlXmlCtsTextInventoryMetadata, SparqlTextInventoryCollection, SparqlXmlCitation
-from capitains_nautilus.errors import CtsUnknownCollection, CtsUndispatchedTextError, CtsInvalidURN
+from capitains_nautilus.errors import CtsUnknownCollection, CtsUndispatchedTextError, CtsInvalidURN, NautilusError
 from capitains_nautilus.resolver_prototype import NautilusPrototypeResolver
 import re
 
@@ -77,6 +77,8 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
         else:
             try:
                 output = callback(*args, **kwargs)
+            except NautilusError as E:
+                raise E
             except MyCapytain.errors.UnknownCollection as E:
                 match = _re_catch_urn.findall(str(E))
                 if len(match):
@@ -165,13 +167,13 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
         if len(urn) != 5:
             if len(urn) == 4:
                 urn, reference = urn.upTo(URN.WORK), str(urn.reference)
-                urn = [
+                texts = [
                     t.id
                     for t in self.texts
                     if t.id.startswith(str(urn)) and isinstance(t, self.classes["edition"])
                 ]
-                if len(urn) > 0:
-                    urn = URN(urn[0])
+                if len(texts) > 0:
+                    urn = URN(texts[0])
                 else:
                     raise CtsUnknownCollection(str(urn) + " is not part of this inventory")
             else:
@@ -180,7 +182,7 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
         try:
             text = self.inventory[str(urn)]
         except MyCapytain.errors.UnknownCollection as E:
-            raise CtsUnknownCollection(str(urn) +  " is not part of this inventory")
+            raise CtsUnknownCollection(str(urn) + " is not part of this inventory")
         except Exception as E:
             raise E
 
