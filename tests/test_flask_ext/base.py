@@ -548,6 +548,38 @@ class DTSModule:
             ]
         )
 
+    def test_dts_document_start_end(self):
+
+        response = self.app.get("/dts/document?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
+                                "&start=1.1.3&end=1.1.4")
+        data = response.data.decode()
+        headers = response.headers
+        xml = xmlparser(data)
+        self.assertEqual(
+            [
+                "Argutis epigrammaton libellis:",
+                "Cui, lector studiose, quod dedisti",
+            ],
+            [
+                x.strip()
+                for x in xml.xpath(".//tei:l/text()", namespaces=XPATH_NAMESPACES)
+                if x.strip()
+            ],  # Stripping for equality and removing empty line
+            "The text of lines should match"
+        )
+
+        self.maxDiff = None
+        self.assertHeadersEqual(
+            headers["Link"],
+            [
+                ['/dts/document?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&start=1.1.5&end=1.1.6', [['rel', 'next']]],
+                ['/dts/document?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&ref=1.1', [['rel', 'up']]],
+                ['/dts/navigation?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&start=1.1.3&end=1.1.4', [['rel', 'contents']]],
+                ['/dts/document?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&start=1.1.1&end=1.1.2', [['rel', 'prev']]],
+                ['/dts/collections?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2', [['rel', 'collection']]]
+            ]
+        )
+
 
 class LoggingModule:
     def setUp(self):
