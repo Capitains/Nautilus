@@ -23,7 +23,8 @@ from .util import normalize_uri_key
 
 from capitains_nautilus.flask_ext import FlaskNautilus
 import logging
-
+import link_header
+import urltools
 
 
 
@@ -366,6 +367,21 @@ class DTSModule:
     def assertJsonLdEqual(self, expected, actual, message=None):
         self.assertEqual(expand(expected), expand(actual), message)
 
+    def assertHeadersEqual(self, expected, actual, message=None):
+        expected = link_header.parse(expected).to_py()
+
+        def sort_key(it):
+            return "-".join(it[1][0])
+
+        expected = [(urltools.normalize(link[0]), link[1]) for link in expected]
+        actual = [(urltools.normalize(link[0]), link[1]) for link in actual]
+
+        self.assertEqual(
+            sorted(expected, key=sort_key),
+            sorted(actual, key=sort_key),
+            message
+        )
+
     def test_dts_collection_route(self):
         """ Check that DTS Main collection works """
         response = self.app.get("/dts/collections")
@@ -495,6 +511,41 @@ class DTSModule:
         )
         self.assertEqual(
             response.headers["Access-Control-Allow-Origin"], "*"
+        )
+
+    def test_dts_document(self):
+
+        response = self.app.get("/dts/document?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
+                                "&ref=1.1")
+        data = response.data.decode()
+        headers = response.headers
+        xml = xmlparser(data)
+        self.assertEqual(
+            [
+                "Hic est quem legis ille, quem requiris,",
+                "Toto notus in orbe Martialis",
+                "Argutis epigrammaton libellis:",
+                "Cui, lector studiose, quod dedisti",
+                "Viventi decus atque sentienti,",
+                "Rari post cineres habent poetae."
+            ],
+            [
+                x.strip()
+                for x in xml.xpath(".//tei:l/text()", namespaces=XPATH_NAMESPACES)
+                if x.strip()
+            ],  # Stripping for equality and removing empty line
+            "The text of lines should match"
+        )
+
+        self.assertHeadersEqual(
+            headers["Link"],
+            [
+                ['/dts/document?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&ref=1.2', [['rel', 'next']]],
+                ['/dts/document?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&ref=1', [['rel', 'up']]],
+                ['/dts/navigation?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&ref=1.1', [['rel', 'contents']]],
+                ['/dts/document?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&ref=1.pr', [['rel', 'prev']]],
+                ['/dts/collections?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2', [['rel', 'collection']]]
+            ]
         )
 
 

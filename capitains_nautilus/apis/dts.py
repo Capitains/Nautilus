@@ -12,6 +12,7 @@ from rdflib import URIRef, RDF, RDFS, Graph
 from rdflib.namespace import DCTERMS, NamespaceManager, DC
 from collections import OrderedDict
 import json
+from link_header import LinkHeader, Link
 
 from capitains_nautilus.apis.base import AdditionalAPIPrototype, \
     query_parameters_as_kwargs
@@ -462,10 +463,10 @@ class DTSApi(AdditionalAPIPrototype):
         return jsonify(response)
 
     @query_parameters_as_kwargs(
-        mapping={"id": "objectId", "passage": "passageId"},
+        mapping={"id": "objectId", "ref": "passageId"},
         params={
             "id": None,
-            "passage": None,
+            "ref": None,
             "start": None,
             "end": None
         }
@@ -475,11 +476,11 @@ class DTSApi(AdditionalAPIPrototype):
             raise CtsMissingParameter("A document 'id' is required")
 
         passageId, objectId = _define_passage_id_from_params(objectId, passageId, start, end)
+
         passage = self.resolver.getTextualNode(
             textId=objectId,
             subreference=passageId
         )
-
         if passageId:
             inputXML = passage.export(Mimetypes.PYTHON.ETREE)
             wrapper = etree.fromstring("<dts:fragment xmlns:dts='https://w3id.org/dts/api#' />")
@@ -492,10 +493,29 @@ class DTSApi(AdditionalAPIPrototype):
             outputXML = passage.export(Mimetypes.XML.TEI)
 
         # toDo : add navigation
+        links = {
+            "collection": url_for(".dts_collection", id=objectId)
+        }
+        if passageId:
+            _prev, _next = self.resolver.getSiblings(objectId, passageId)
+            links["contents"] = url_for(".dts_navigation", id=objectId, **_ref_to_dict(passageId))
+            if _prev:
+                links["prev"] = url_for(".dts_document", id=objectId, **_ref_to_dict(_prev))
+            if _next:
+                links["next"] = url_for(".dts_document", id=objectId, **_ref_to_dict(_next))
+            if isinstance(passageId, CtsReference):
+                if passageId.parent:
+                    links["up"] = url_for(".dts_document", id=objectId, **_ref_to_dict(passageId.parent))
+
+        else:
+            links["contents"] = url_for(".dts_navigation", id=objectId)
+
+        link_header = LinkHeader([Link(link, rel=rel) for rel, link in links.items()])
 
         return Response(
             outputXML,
             headers={
-                "Content-Type": "application/tei+xml"
+                "Content-Type": "application/xml",
+                "Link": str(link_header)
             }
         )

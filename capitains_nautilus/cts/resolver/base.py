@@ -233,7 +233,8 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
             return o
         text, text_metadata = self.__getText__(textId)
         if subreference is not None:
-            subreference = CtsReference(subreference)
+            if not isinstance(subreference, CtsReference):
+                subreference = CtsReference(subreference)
 
         passage = text.getTextualNode(subreference)
         passage.set_metadata_from_collection(text_metadata)

@@ -1,6 +1,6 @@
 from flask import request
 from capitains_nautilus.errors import UnknownParameter
-
+from capitains_nautilus.resolver_prototype import NautilusPrototypeResolver
 
 def _none_or_string(var):
     if var is not None:
@@ -52,5 +52,5 @@ class AdditionalAPIPrototype:
         nautilus_extension.register(self, self.NAME)
 
     @property
-    def resolver(self):
+    def resolver(self) -> NautilusPrototypeResolver:
         return self.nautilus_extension.resolver
