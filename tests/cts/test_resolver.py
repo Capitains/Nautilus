@@ -390,11 +390,15 @@ class TextXmlFolderResolver(TestCase):
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
-            passage.citation.name, "book",
+            passage.citation.root.name, "book",
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
-            passage.citation.depth, 3,
+            passage.citation.name, "poem",
+            "Local Inventory Files should be parsed and aggregated correctly"
+        )
+        self.assertEqual(
+            passage.citation.rootgit .depth, 3,
             "Local Inventory Files should be parsed and aggregated correctly"
         )
         self.assertEqual(
