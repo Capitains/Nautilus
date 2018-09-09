@@ -418,7 +418,7 @@ class DTSModule:
         )
 
     def test_dts_collection_parent(self):
-        response = self.app.get("/dts/collections?id=urn:cts:latinLit:phi1294.phi002&nav=parent")
+        response = self.app.get("/dts/collections?id=urn:cts:latinLit:phi1294.phi002&nav=parents")
         data = json.loads(response.data.decode())
 
         self.maxDiff = None
@@ -436,7 +436,7 @@ class DTSModule:
         response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2")
 
         data = json.loads(response.data.decode())
-        normalize_uri_key(data, "dts:passage")
+        normalize_uri_key(data, "passage")
         normalize_uri_key(data, "@id")
 
         self.maxDiff = None
@@ -455,7 +455,7 @@ class DTSModule:
         """ Ensure that groupBy works in DTS Navigation Route"""
         response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2&groupBy=2")
         data = json.loads(response.data.decode())
-        normalize_uri_key(data, "dts:passage")
+        normalize_uri_key(data, "passage")
         normalize_uri_key(data, "@id")
 
         self.maxDiff = None
@@ -476,7 +476,7 @@ class DTSModule:
                                 "&start=1&end=2")
         data = json.loads(response.data.decode())
 
-        normalize_uri_key(data, "dts:passage")
+        normalize_uri_key(data, "passage")
         normalize_uri_key(data, "@id")
 
         self.maxDiff = None
@@ -498,7 +498,7 @@ class DTSModule:
                                 "&level=2")
         data = json.loads(response.data.decode())
 
-        normalize_uri_key(data, "dts:passage")
+        normalize_uri_key(data, "passage")
         normalize_uri_key(data, "@id")
 
         self.maxDiff = None

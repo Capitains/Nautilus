@@ -28,6 +28,7 @@ _ns_rdf_str = str(RDF)
 _ns_rdfs_str = str(RDFS)
 _ignore_ns_for_bindings = [_ns_cap_str, _ns_hydra_str, _ns_rdf_str, _ns_rdfs_str]
 
+
 def jsonify(response):
     return Response(json.dumps(response), headers={
         "Content-Type": "application/ld+json"
@@ -43,7 +44,7 @@ def _collection_type(collection: Collection) -> str:
 def _nav_direction(collection, direction):
     if direction == "children":
         return collection.members
-    if direction == "parent":
+    if direction == "parents":
         return [collection.parent]
 
 
@@ -447,18 +448,18 @@ class DTSApi(AdditionalAPIPrototype):
 
         response = {
             "@context": {
-                "@vocab": "https://www.w3.org/ns/hydra/core#",
-                "dts": "https://w3id.org/dts/api#"
+                "hydra": "https://www.w3.org/ns/hydra/core#",
+                "@vocab": "https://w3id.org/dts/api#"
             },
-            "dts:level": references.level,
-            "dts:passage": url_for(".dts_document", id=objectId, _external=self._external)+"{&ref}{&start}{&end}",
+            "level": references.level,
+            "passage": url_for(".dts_document", id=objectId, _external=self._external)+"{&ref}{&start}{&end}",
             "@id": url_for(".dts_navigation", **params),
-            "member": [_ref_to_dict(ref) for ref in references]
+            "hydra:member": [_ref_to_dict(ref) for ref in references]
         }
         if references.citation:
-            response["dts:citeDepth"] = references.citation.root.depth
+            response["citeDepth"] = references.citation.root.depth
             if references.citation.name:
-                response["dts:citeType"] = references.citation.name
+                response["citeType"] = references.citation.name
 
         return jsonify(response)
 

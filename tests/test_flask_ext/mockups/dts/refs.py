@@ -2,14 +2,14 @@ from ...util import normalize_uri_string
 
 phi1294_response = {
     "@context": {
-        "@vocab": "https://www.w3.org/ns/hydra/core#",
-        "dts": "https://w3id.org/dts/api#",
+        "hydra": "https://www.w3.org/ns/hydra/core#",
+        "@vocab": "https://w3id.org/dts/api#",
     },
     "@id": normalize_uri_string("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2&groupBy=1&level=1"),
-    "dts:citeDepth": 3,
-    "dts:level": 1,
-    "dts:citeType": "book",
-    "member": [
+    "citeDepth": 3,
+    "level": 1,
+    "citeType": "book",
+    "hydra:member": [
         {"ref": "1"},
         {"ref": "2"},
         {"ref": "3"},
@@ -25,64 +25,64 @@ phi1294_response = {
         {"ref": "13"},
         {"ref": "14"}
     ],
-    "dts:passage": normalize_uri_string("/dts/document"
+    "passage": normalize_uri_string("/dts/document"
                                         "?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2{&ref}{&start}{&end}")
 }
 
 phi1294_group_by_response = {
     "@context": {
-        "@vocab": "https://www.w3.org/ns/hydra/core#",
-        "dts": "https://w3id.org/dts/api#",
+        "hydra": "https://www.w3.org/ns/hydra/core#",
+        "@vocab": "https://w3id.org/dts/api#",
     },
     "@id": normalize_uri_string("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2&groupBy=2&level=1"),
-    "dts:citeDepth": 3,
-    "dts:level": 1,
-    "dts:citeType": "book",
-    "member": [{'end': '2', 'start': '1'},
+    "citeDepth": 3,
+    "level": 1,
+    "citeType": "book",
+    "hydra:member": [{'end': '2', 'start': '1'},
                {'end': '4', 'start': '3'},
                {'end': '6', 'start': '5'},
                {'end': '8', 'start': '7'},
                {'end': '10', 'start': '9'},
                {'end': '12', 'start': '11'},
                {'end': '14', 'start': '13'}],
-    "dts:passage": normalize_uri_string("/dts/document"
+    "passage": normalize_uri_string("/dts/document"
                                         "?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2{&ref}{&start}{&end}")
 }
 
 phi1294_group_by_response_start_end = {
     "@context": {
-        "@vocab": "https://www.w3.org/ns/hydra/core#",
-        "dts": "https://w3id.org/dts/api#",
+        "hydra": "https://www.w3.org/ns/hydra/core#",
+        "@vocab": "https://w3id.org/dts/api#",
     },
     "@id": normalize_uri_string("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
                                 "&groupBy=100"
                                 "&level=1"
                                 "&start=1&end=2"),
-    "dts:citeDepth": 3,
-    "dts:level": 2,
-    "dts:citeType": "poem",
-    "member": [
+    "citeDepth": 3,
+    "level": 2,
+    "citeType": "poem",
+    "hydra:member": [
         {'end': '1.99', 'start': '1.pr'},
         {'end': '1.118', 'start': '1.100'},
         {'end': '2.93', 'start': '2.pr'}
     ],
-    "dts:passage": normalize_uri_string("/dts/document"
+    "passage": normalize_uri_string("/dts/document"
                                         "?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2{&ref}{&start}{&end}")
 }
 
 phi1294_group_by_response_ref_level_2 = {
     "@context": {
-        "@vocab": "https://www.w3.org/ns/hydra/core#",
-        "dts": "https://w3id.org/dts/api#",
+        "hydra": "https://www.w3.org/ns/hydra/core#",
+        "@vocab": "https://w3id.org/dts/api#",
     },
     "@id": normalize_uri_string("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
                                 "&groupBy=100"
                                 "&level=2"
                                 "&ref=1"),
-    "dts:citeDepth": 3,
-    "dts:level": 3,
-    "dts:citeType": "line",
-    "member": [{'start': '1.pr.1', 'end': '1.pr.22'}, {'start': '1.1.1', 'end': '1.1.6'},
+    "citeDepth": 3,
+    "level": 3,
+    "citeType": "line",
+    "hydra:member": [{'start': '1.pr.1', 'end': '1.pr.22'}, {'start': '1.1.1', 'end': '1.1.6'},
                {'start': '1.2.1', 'end': '1.2.8'}, {'start': '1.3.1', 'end': '1.3.12'},
                {'start': '1.4.1', 'end': '1.4.8'}, {'start': '1.5.1', 'end': '1.5.2'},
                {'start': '1.6.1', 'end': '1.6.6'}, {'start': '1.7.1', 'end': '1.7.5'},
@@ -142,6 +142,6 @@ phi1294_group_by_response_ref_level_2 = {
                {'start': '1.114.1', 'end': '1.114.6'}, {'start': '1.115.1', 'end': '1.115.7'},
                {'start': '1.116.1', 'end': '1.116.6'}, {'start': '1.117.1', 'end': '1.117.18'},
                {'start': '1.118.1', 'end': '1.118.2'}],
-    "dts:passage": normalize_uri_string("/dts/document"
+    "passage": normalize_uri_string("/dts/document"
                                         "?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2{&ref}{&start}{&end}")
 }
