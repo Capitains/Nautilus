@@ -14,7 +14,8 @@ from capitains_nautilus.collections.sparql import clear_graph
 from capitains_nautilus.cts.collections import SparqlXmlCtsEditionMetadata, SparqlXmlCtsTranslationMetadata, \
     SparqlXmlCtsCommentaryMetadata, SparqlXmlCtsWorkMetadata, SparqlXmlCtsTextgroupMetadata, \
     SparqlXmlCtsTextInventoryMetadata, SparqlTextInventoryCollection, SparqlXmlCitation
-from capitains_nautilus.errors import CtsUnknownCollection, CtsUndispatchedTextError, CtsInvalidURN, NautilusError
+from capitains_nautilus.errors import CtsUnknownCollection, CtsUndispatchedTextError, \
+    CtsInvalidURN, NautilusError, CtsInvalidLevel
 from capitains_nautilus.resolver_prototype import NautilusPrototypeResolver
 import re
 
@@ -205,10 +206,13 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
         :return: List of references
         :rtype: [str]
         """
-        return self.get_or(
-            self.__cache_key_reffs__(textId, level, subreference),
-            super(ProtoNautilusCtsResolver, self).getReffs, textId, level, subreference
-        )
+        try:
+            return self.get_or(
+                self.__cache_key_reffs__(textId, level, subreference),
+                super(ProtoNautilusCtsResolver, self).getReffs, textId, level, subreference
+            )
+        except MyCapytain.errors.CitationDepthError:
+            raise CtsInvalidLevel()
 
     def __cache_key_reffs__(self, textId, level, subreference):
         return _cache_key("Nautilus", self.name, "getReffs", textId, level, subreference)

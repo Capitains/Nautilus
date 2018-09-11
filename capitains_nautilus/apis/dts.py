@@ -319,7 +319,7 @@ class DTSApi(AdditionalAPIPrototype):
         self._external = _external
         self._expand_readable = expand_readable
 
-    def dts_error(self, error_name, message=None, debug=""):
+    def dts_error(self, error_name, message=None, debug="", http_code=404):
         """ Create a DTS Error reply
 
         :param error_name: Name of the error
@@ -331,14 +331,20 @@ class DTSApi(AdditionalAPIPrototype):
             error_name, request.path, message, debug
         ))
 
-        code = 404
+        code = http_code
         j = jsonify(
             {
                 "@context": "http://www.w3.org/ns/hydra/context.jsonld",
                 "@type": "Status",
                 "statusCode": code,
                 "title": error_name,
-                "description": message
+                "description": message.replace(
+                    "GetValidReff", "Navigation Endpoint"
+                ).replace(
+                    "GetPassagePlus", "Document Endpoint"
+                ).replace(
+                    "GetPassage", "Document Endpoint"
+                )
             }
         )
         j.status_code = code
@@ -427,24 +433,34 @@ class DTSApi(AdditionalAPIPrototype):
         if start and end:
             del params["ref"]
 
-        references = self.resolver.getReffs(
-            textId=objectId,
-            subreference=passageId,
-            level=level
-        )
+        try:
+            references = self.resolver.getReffs(
+                textId=objectId,
+                subreference=passageId,
+                level=level
+            )
+        except NautilusError as E:
+            return self.dts_error(
+                error_name=E.title,
+                message=E.description,
+            )
 
         group_by = int(group_by)
         if group_by > 1:
-            references = type(references)(
-                _cts_reference_grouper(
-                    cls=type(references[0]),
-                    group_by=group_by,
-                    reffs=references,
+            try:
+                references = type(references)(
+                    _cts_reference_grouper(
+                        cls=type(references[0]),
+                        group_by=group_by,
+                        reffs=references,
+                        level=references.level
+                    ),
+                    citation=references.citation,
                     level=references.level
-                ),
-                citation=references.citation,
-                level=references.level
-            )
+                )
+            except Exception:
+                return self.dts_error("GroupingReffsError",
+                                      "Grouping of reference failed", http_code=500)
 
         response = {
             "@context": {

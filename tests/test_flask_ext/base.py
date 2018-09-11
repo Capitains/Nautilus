@@ -513,6 +513,20 @@ class DTSModule:
             response.headers["Access-Control-Allow-Origin"], "*"
         )
 
+    def test_dts_navigation_errors(self):
+        """ Ensure that errors are returned correctly """
+        self.maxDiff = 50000
+        response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
+                                "&ref=1.pr.1")
+
+        data = json.loads(response.data.decode())
+        self.assertJsonLdEqual(
+            {'@type': 'Status', 'statusCode': 404, '@context': 'http://www.w3.org/ns/hydra/context.jsonld',
+             'title': 'InvalidLevel', 'description': ' Invalid value for level parameter in Navigation Endpoint request '},
+            data,
+            "Information should be shown about the error"
+        )
+
     def test_dts_document(self):
 
         response = self.app.get("/dts/document?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
