@@ -600,6 +600,7 @@ class TextXMLFolderResolverDispatcher(TestCase):
         gc.set_label("Grec Ancien", "fre")
 
         dispatcher = CollectionDispatcher(tic)
+        filter = lambda t: True
 
         @dispatcher.inventory("urn:perseus:latinLit")
         def dispatchLatinLit(collection, path=None, **kwargs):
@@ -621,7 +622,8 @@ class TextXMLFolderResolverDispatcher(TestCase):
 
         resolver = NautilusCTSResolver(
             ["./tests/testing_data/latinLit2"],
-            dispatcher=dispatcher
+            dispatcher=dispatcher,
+            filter = filter
         )
         resolver.logger.disabled = True
         resolver.REMOVE_EMPTY = False

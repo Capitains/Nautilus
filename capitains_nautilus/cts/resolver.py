@@ -46,7 +46,7 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
     REMOVE_EMPTY = True
     CACHE_FULL_TEI = False
 
-    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None):
+    def __init__(self, resource, name=None, logger=None, cache=None, dispatcher=None, filter=None):
         """ Initiate the XMLResolver
 
         """
@@ -58,6 +58,11 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
             self.dispatcher = CollectionDispatcher(inventory_collection)
         else:
             self.dispatcher = dispatcher
+
+        if filter is None:
+            self.filter = lambda t: True
+        else:
+            self.filter = filter
 
         self.__inventory__ = None
         self.__texts__ = []
@@ -222,6 +227,10 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
                                     if __text__.citation.isEmpty() is True:
                                         removing.append(__textkey__)
                                         self.logger.error("%s has no passages", __text__.path)
+                                    elif not self.filter(__text__):
+                                        removing.append(__textkey__)
+                                        self.logger.error("Filtering %s",str( __text__.__dict__))
+
                                 except Exception as E:
                                     removing.append(__textkey__)
                                     self.logger.error(
@@ -232,6 +241,7 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
                                 removing.append(__textkey__)
                                 self.logger.error("%s is not present", __text__.path)
                 except MyCapytain.errors.UndispatchedTextError as E:
+                    raise E
                     self.logger.error("Error dispatching %s ", __cts__)
                     if self.RAISE_ON_UNDISPATCHED is True:
                         raise UndispatchedTextError(E)
