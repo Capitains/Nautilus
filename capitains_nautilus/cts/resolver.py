@@ -229,7 +229,6 @@ class NautilusCTSResolver(CtsCapitainsLocalResolver):
                                         self.logger.error("%s has no passages", __text__.path)
                                     elif not self.filter(__text__):
                                         removing.append(__textkey__)
-                                        self.logger.error("Filtering %s",str( __text__.__dict__))
 
                                 except Exception as E:
                                     removing.append(__textkey__)
