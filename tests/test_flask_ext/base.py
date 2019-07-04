@@ -4,7 +4,7 @@ from abc import abstractmethod
 
 from MyCapytain.common.constants import Mimetypes, XPATH_NAMESPACES
 from MyCapytain.common.reference import CtsReference
-from MyCapytain.common.utils import xmlparser
+from MyCapytain.common.utils.xml import xmlparser
 from MyCapytain.resolvers.cts.api import HttpCtsResolver
 from MyCapytain.resources.collections.cts import XmlCtsTextInventoryMetadata as TextInventory, \
     XmlCtsCitation as Citation
@@ -495,7 +495,7 @@ class DTSModule:
         response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
                                 "&groupBy=100"
                                 "&ref=1"
-                                "&level=2")
+                                "&level=3")
         data = json.loads(response.data.decode())
 
         normalize_uri_key(data, "passage")

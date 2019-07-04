@@ -77,7 +77,7 @@ phi1294_group_by_response_ref_level_2 = {
     },
     "@id": normalize_uri_string("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
                                 "&groupBy=100"
-                                "&level=2"
+                                "&level=3"
                                 "&ref=1"),
     "citeDepth": 3,
     "level": 3,

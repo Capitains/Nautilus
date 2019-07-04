@@ -110,9 +110,8 @@ class SparqlNavigatedCollection(Collection):
         return len(query) > 0
 
     def _simple_init(self, identifier):
-        self.__node__ = URIRef(identifier)
-        self.__metadata__ = Metadata(node=self.asNode())
-        self.__capabilities__ = Metadata.getOr(self.asNode(), RDF_NAMESPACES.CAPITAINS.capabilities)
+        self._node = URIRef(identifier)
+        self._metadata = Metadata(node=self.asNode())
 
     @property
     def graph(self):
