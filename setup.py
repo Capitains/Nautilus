@@ -16,14 +16,14 @@ setup(
     "Flask-Caching>=1.4.0,<2.0.0"
     "typing",
   ],
-  test_requires=[
+  tests_require=[
     "logassert",
     "mock",
     "nose",
     "typing",
     "urltools==0.3.2"
   ],
-  extra_requires={
+  extras_require={
     "Berkeley": ["bsddb3==6.2.6"],
     "SQLAlchemy": ["rdflib-sqlalchemy>=0.3.8"]
   },
