@@ -1,13 +1,16 @@
 # For test purposes
-from capitains_nautilus.flask_ext import WerkzeugCacheWrapper, FlaskNautilus
+from capitains_nautilus.flask_ext import FlaskNautilus
+from capitains_nautilus.cts.resolver import NautilusCtsResolver
 from flask import Flask
-from werkzeug.contrib.cache import NullCache
-nautilus_cache = WerkzeugCacheWrapper(NullCache())
+
+
+resolver = NautilusCtsResolver(["./tests/testing_data/latinLit2"])
+resolver.parse()
+
 app = Flask("Nautilus")
 nautilus = FlaskNautilus(
     app=app,
-    resources=["./tests/test_data/latinLit"],
-    parser_cache=nautilus_cache
+    resolver=resolver
 )
 
 app.debug = True

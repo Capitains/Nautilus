@@ -9,6 +9,10 @@ class DevPool:
         for kwarg in kwargs:
             yield func(kwarg)
 
+    def imap_unordered(self, func, kwargs):
+        for kwarg in kwargs:
+            yield func(kwarg)
+
     def close(self):
         pass
 

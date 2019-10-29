@@ -4,7 +4,7 @@ from multiprocessing.pool import ThreadPool
 
 import MyCapytain.errors
 from MyCapytain.common.constants import set_graph, get_graph
-from MyCapytain.common.reference import URN, Reference
+from MyCapytain.common.reference import URN, CtsReference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
 from werkzeug.contrib.cache import NullCache
@@ -14,8 +14,13 @@ from capitains_nautilus.collections.sparql import clear_graph
 from capitains_nautilus.cts.collections import SparqlXmlCtsEditionMetadata, SparqlXmlCtsTranslationMetadata, \
     SparqlXmlCtsCommentaryMetadata, SparqlXmlCtsWorkMetadata, SparqlXmlCtsTextgroupMetadata, \
     SparqlXmlCtsTextInventoryMetadata, SparqlTextInventoryCollection, SparqlXmlCitation
-from capitains_nautilus.errors import UnknownCollection, UndispatchedTextError, InvalidURN
+from capitains_nautilus.errors import CtsUnknownCollection, CtsUndispatchedTextError, \
+    CtsInvalidURN, NautilusError, CtsInvalidLevel
 from capitains_nautilus.resolver_prototype import NautilusPrototypeResolver
+import re
+
+
+_re_catch_urn = re.compile("(urn:cts:[\S]+)")
 
 
 class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResolver):
@@ -73,8 +78,14 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
         else:
             try:
                 output = callback(*args, **kwargs)
+            except NautilusError as E:
+                raise E
             except MyCapytain.errors.UnknownCollection as E:
-                raise UnknownCollection(str(E))
+                match = _re_catch_urn.findall(str(E))
+                if len(match):
+                    raise CtsUnknownCollection(match[0] + " is not part of this inventory")
+                else:
+                    raise CtsUnknownCollection(str(E))
             except Exception as E:
                 raise E
             self.cache.set(cache_key, output, self.TIMEOUT)
@@ -114,7 +125,7 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
             self._parse(resource)
         except MyCapytain.errors.UndispatchedTextError as E:
             if self.RAISE_ON_UNDISPATCHED is True:
-                raise UndispatchedTextError(E)
+                raise CtsUndispatchedTextError(E)
 
         self.inventory = self.dispatcher.collection
         return self.inventory
@@ -157,29 +168,29 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
         if len(urn) != 5:
             if len(urn) == 4:
                 urn, reference = urn.upTo(URN.WORK), str(urn.reference)
-                urn = [
+                texts = [
                     t.id
                     for t in self.texts
                     if t.id.startswith(str(urn)) and isinstance(t, self.classes["edition"])
                 ]
-                if len(urn) > 0:
-                    urn = URN(urn[0])
+                if len(texts) > 0:
+                    urn = URN(texts[0])
                 else:
-                    raise UnknownCollection
+                    raise CtsUnknownCollection(str(urn) + " is not part of this inventory")
             else:
-                raise InvalidURN
+                raise CtsInvalidURN()
 
         try:
             text = self.inventory[str(urn)]
         except MyCapytain.errors.UnknownCollection as E:
-            raise UnknownCollection(str(E))
+            raise CtsUnknownCollection(str(urn) + " is not part of this inventory")
         except Exception as E:
             raise E
 
         if os.path.isfile(text.path):
             resource = self.read(identifier=urn, path=text.path)
         else:
-            raise UnknownCollection("File matching %s does not exist" % text.path)
+            raise CtsUnknownCollection("File matching %s does not exist" % text.path)
 
         return resource, text
 
@@ -195,10 +206,13 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
         :return: List of references
         :rtype: [str]
         """
-        return self.get_or(
-            self.__cache_key_reffs__(textId, level, subreference),
-            super(ProtoNautilusCtsResolver, self).getReffs, textId, level, subreference
-        )
+        try:
+            return self.get_or(
+                self.__cache_key_reffs__(textId, level, subreference),
+                super(ProtoNautilusCtsResolver, self).getReffs, textId, level, subreference
+            )
+        except MyCapytain.errors.CitationDepthError:
+            raise CtsInvalidLevel()
 
     def __cache_key_reffs__(self, textId, level, subreference):
         return _cache_key("Nautilus", self.name, "getReffs", textId, level, subreference)
@@ -223,7 +237,8 @@ class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResol
             return o
         text, text_metadata = self.__getText__(textId)
         if subreference is not None:
-            subreference = Reference(subreference)
+            if not isinstance(subreference, CtsReference):
+                subreference = CtsReference(subreference)
 
         passage = text.getTextualNode(subreference)
         passage.set_metadata_from_collection(text_metadata)

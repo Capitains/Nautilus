@@ -3,21 +3,29 @@ import re
 from abc import abstractmethod
 
 from MyCapytain.common.constants import Mimetypes, XPATH_NAMESPACES
-from MyCapytain.common.reference import Reference
-from MyCapytain.common.utils import xmlparser
+from MyCapytain.common.reference import CtsReference
+from MyCapytain.common.utils.xml import xmlparser
 from MyCapytain.resolvers.cts.api import HttpCtsResolver
 from MyCapytain.resources.collections.cts import XmlCtsTextInventoryMetadata as TextInventory, \
     XmlCtsCitation as Citation
 from MyCapytain.resources.texts.remote.cts import CtsText as Text
 from MyCapytain.retrievers.cts5 import HttpCtsRetriever
 from flask import Flask
-from flask_caching import Cache
 from logassert import logassert
 from lxml.etree import tostring
-from werkzeug.contrib.cache import SimpleCache
+from pyld.jsonld import expand
+
+from .mockups.dts import (
+    coll as dts_coll_mockups,
+    refs as dts_refs_mockups
+)
+from .util import normalize_uri_key
 
 from capitains_nautilus.flask_ext import FlaskNautilus
 import logging
+import link_header
+import urltools
+
 
 
 logging.basicConfig(level=logging.CRITICAL)
@@ -84,8 +92,10 @@ class CTSModule:
         FlaskNautilus(
             app=app,
             resolver=self.generate_resolver(["./tests/test_data/latinLit"]),
-            access_Control_Allow_Methods={"r_cts": "OPTIONS", "r_dts_collection": "OPTIONS", "r_dts_collections": "OPTIONS"},
-            access_Control_Allow_Origin={"r_cts": "foo.bar", "r_dts_collection":"*", "r_dts_collections":"*"}
+            access_Control_Allow_Methods={"r_cts": "OPTIONS", "r_dts_collection": "OPTIONS",
+                                          "r_dts_collections": "OPTIONS"},
+            access_Control_Allow_Origin={"r_cts": "foo.bar", "r_dts_collection": "*",
+                                         "r_dts_collections": "*"}
         )
         _app = app.test_client()
         self.assertEqual(_app.get("/cts?request=GetCapabilities").headers["Access-Control-Allow-Origin"], "foo.bar")
@@ -238,7 +248,7 @@ class CTSModule:
     def test_get_prevnext_urn(self):
         """ Check the GetPrevNext request """
         text = Text(urn="urn:cts:latinLit:phi1294.phi002.perseus-lat2", retriever=self.parent)
-        p, n = text.getPrevNextUrn(Reference("1.pr.1"))
+        p, n = text.getPrevNextUrn(CtsReference("1.pr.1"))
         self.assertEqual(
             p, None
         )
@@ -246,7 +256,7 @@ class CTSModule:
             n, "1.pr.2"
         )
 
-        response = text.getPassagePlus(Reference("1.pr.10"))
+        response = text.getPassagePlus(CtsReference("1.pr.10"))
         self.assertEqual(
             str(response.prev.reference), "1.pr.9",
             "Check Range works on normal middle GetPassage"
@@ -255,7 +265,7 @@ class CTSModule:
             str(response.next.reference), "1.pr.11"
         )
 
-        response = text.getPassagePlus(Reference("1.pr.10-1.pr.11"))
+        response = text.getPassagePlus(CtsReference("1.pr.10-1.pr.11"))
         self.assertEqual(
             str(response.prev.reference), "1.pr.8-1.pr.9",
             "Check Range works on GetPassagePlus and compute right prev"
@@ -327,14 +337,14 @@ class CTSModule:
         # Need to parse with Citation and parse individually or simply check for some equality
         data = self.app.get("/cts?request=GetPassage&urn=urn:cts:latinLit:phi1295").data.decode()
         self.assertIn(
-            "Syntactically valid URN refers in invalid value ", data, "Error message should be displayed"
+            "Syntactically valid URN refers to an invalid level of collection for this request", data, "Error message should be displayed"
         )
         self.assertIn(
             "InvalidURN", data, "Error name should be displayed"
         )
         data = self.app.get("/cts?request=GetPassagePlus&urn=urn:cts:latinLit:phi1294").data.decode()
         self.assertIn(
-            "Syntactically valid URN refers in invalid value ", data, "Error message should be displayed"
+            "Syntactically valid URN refers to an invalid level of collection for this request", data, "Error message should be displayed"
         )
         self.assertIn(
             "InvalidURN", data, "Error name should be displayed"
@@ -344,6 +354,7 @@ class CTSModule:
         """Check get Label"""
         # Need to parse with Citation and parse individually or simply check for some equality
         data = self.app.get("/cts?request=GetFirstUrn&urn=urn:cts:latinLit:phi1294.phi002.perseus-lat2:1").data.decode()
+
         self.assertIn(
             "<urn>urn:cts:latinLit:phi1294.phi002.perseus-lat2:1.pr</urn>", data, "First URN is displayed"
         )
@@ -353,14 +364,32 @@ class CTSModule:
 
 
 class DTSModule:
+    def assertJsonLdEqual(self, expected, actual, message=None):
+        self.assertEqual(expand(expected), expand(actual), message)
+
+    def assertHeadersEqual(self, expected, actual, message=None):
+        expected = link_header.parse(expected).to_py()
+
+        def sort_key(it):
+            return "-".join(it[1][0])
+
+        expected = [(urltools.normalize(link[0]), link[1]) for link in expected]
+        actual = [(urltools.normalize(link[0]), link[1]) for link in actual]
+
+        self.assertEqual(
+            sorted(expected, key=sort_key),
+            sorted(actual, key=sort_key),
+            message
+        )
+
     def test_dts_collection_route(self):
         """ Check that DTS Main collection works """
         response = self.app.get("/dts/collections")
         data = json.loads(response.data.decode())
-        compared_to = self.resolver.getMetadata().export(Mimetypes.JSON.DTS.Std)
+
         self.maxDiff = None
-        self.assertCountEqual(
-            data, compared_to, "Main Collection should export as JSON DTS STD"
+        self.assertJsonLdEqual(
+            data, dts_coll_mockups.response_defaultTic, "Main Collection should export as JSON DTS STD"
         )
         self.assertEqual(
             response.status_code, 200, "Answer code should be correct"
@@ -371,12 +400,12 @@ class DTSModule:
 
     def test_dts_collection_target_route(self):
         """ Check that DTS Main collection works """
-        response = self.app.get("/dts/collections/urn:cts:latinLit:phi1294")
+        response = self.app.get("/dts/collections?id=urn:cts:latinLit:phi1294")
         data = json.loads(response.data.decode())
-        compared_to = self.resolver.getMetadata(objectId="urn:cts:latinLit:phi1294").export(Mimetypes.JSON.DTS.Std)
+
         self.maxDiff = None
-        self.assertCountEqual(
-            data, compared_to, "Main Collection should export as JSON DTS STD"
+        self.assertJsonLdEqual(
+            data, dts_coll_mockups.response_phi1294, "Main Collection should export as JSON DTS STD"
         )
         self.assertEqual(
             response.status_code, 200, "Answer code should be correct"
@@ -385,7 +414,184 @@ class DTSModule:
             response.headers["Access-Control-Allow-Origin"], "*"
         )
         self.assertEqual(
-            "urn:cts:latinLit:phi1294", data["@graph"]["@id"], "Label should be there"
+            "urn:cts:latinLit:phi1294", data["@id"], "Label should be there"
+        )
+
+    def test_dts_collection_parent(self):
+        response = self.app.get("/dts/collections?id=urn:cts:latinLit:phi1294.phi002&nav=parents")
+        data = json.loads(response.data.decode())
+
+        self.maxDiff = None
+        self.assertJsonLdEqual(
+            data, dts_coll_mockups.response_phi1294_phi002_parent, "Main Collection should export as JSON DTS STD"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Answer code should be correct"
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"], "*"
+        )
+
+    def test_dts_navigation_simple(self):
+        response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2")
+
+        data = json.loads(response.data.decode())
+        normalize_uri_key(data, "passage")
+        normalize_uri_key(data, "@id")
+
+        self.maxDiff = None
+
+        self.assertJsonLdEqual(
+            dts_refs_mockups.phi1294_response, data, "Main Collection should export as JSON DTS STD"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Answer code should be correct"
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"], "*"
+        )
+
+    def test_dts_navigation_group_by(self):
+        """ Ensure that groupBy works in DTS Navigation Route"""
+        response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2&groupBy=2")
+        data = json.loads(response.data.decode())
+        normalize_uri_key(data, "passage")
+        normalize_uri_key(data, "@id")
+
+        self.maxDiff = None
+        self.assertJsonLdEqual(
+            dts_refs_mockups.phi1294_group_by_response, data, "Main Collection should export as JSON DTS STD"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Answer code should be correct"
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"], "*"
+        )
+
+    def test_dts_navigation_group_by_with_start_end(self):
+        """ Ensure that groupBy works and level is influenced by the level of the ref in DTS Navigation Route"""
+        response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
+                                "&groupBy=100"
+                                "&start=1&end=2")
+        data = json.loads(response.data.decode())
+
+        normalize_uri_key(data, "passage")
+        normalize_uri_key(data, "@id")
+
+        self.maxDiff = None
+        self.assertJsonLdEqual(
+            dts_refs_mockups.phi1294_group_by_response_start_end, data, "Main Collection should export as JSON DTS STD"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Answer code should be correct"
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"], "*"
+        )
+
+    def test_dts_navigation_group_by_with_level(self):
+        """ Ensure that groupBy works and level is influenced by the level of the ref in DTS Navigation Route"""
+        response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
+                                "&groupBy=100"
+                                "&ref=1"
+                                "&level=3")
+        data = json.loads(response.data.decode())
+
+        normalize_uri_key(data, "passage")
+        normalize_uri_key(data, "@id")
+
+        self.maxDiff = None
+        self.assertJsonLdEqual(
+            dts_refs_mockups.phi1294_group_by_response_ref_level_2, data,
+            "Main Collection should export as JSON DTS STD"
+        )
+        self.assertEqual(
+            response.status_code, 200, "Answer code should be correct"
+        )
+        self.assertEqual(
+            response.headers["Access-Control-Allow-Origin"], "*"
+        )
+
+    def test_dts_navigation_errors(self):
+        """ Ensure that errors are returned correctly """
+        self.maxDiff = 50000
+        response = self.app.get("/dts/navigation?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
+                                "&ref=1.pr.1")
+
+        data = json.loads(response.data.decode())
+        self.assertJsonLdEqual(
+            {'@type': 'Status', 'statusCode': 404, '@context': 'http://www.w3.org/ns/hydra/context.jsonld',
+             'title': 'InvalidLevel', 'description': ' Invalid value for level parameter in Navigation Endpoint request '},
+            data,
+            "Information should be shown about the error"
+        )
+
+    def test_dts_document(self):
+
+        response = self.app.get("/dts/document?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
+                                "&ref=1.1")
+        data = response.data.decode()
+        headers = response.headers
+        xml = xmlparser(data)
+        self.assertEqual(
+            [
+                "Hic est quem legis ille, quem requiris,",
+                "Toto notus in orbe Martialis",
+                "Argutis epigrammaton libellis:",
+                "Cui, lector studiose, quod dedisti",
+                "Viventi decus atque sentienti,",
+                "Rari post cineres habent poetae."
+            ],
+            [
+                x.strip()
+                for x in xml.xpath(".//tei:l/text()", namespaces=XPATH_NAMESPACES)
+                if x.strip()
+            ],  # Stripping for equality and removing empty line
+            "The text of lines should match"
+        )
+
+        self.assertHeadersEqual(
+            headers["Link"],
+            [
+                ['/dts/document?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&ref=1.2', [['rel', 'next']]],
+                ['/dts/document?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&ref=1', [['rel', 'up']]],
+                ['/dts/navigation?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&ref=1.1', [['rel', 'contents']]],
+                ['/dts/document?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&ref=1.pr', [['rel', 'prev']]],
+                ['/dts/collections?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2', [['rel', 'collection']]]
+            ]
+        )
+
+    def test_dts_document_start_end(self):
+
+        response = self.app.get("/dts/document?id=urn:cts:latinLit:phi1294.phi002.perseus-lat2"
+                                "&start=1.1.3&end=1.1.4")
+        data = response.data.decode()
+        headers = response.headers
+        xml = xmlparser(data)
+        self.assertEqual(
+            [
+                "Argutis epigrammaton libellis:",
+                "Cui, lector studiose, quod dedisti",
+            ],
+            [
+                x.strip()
+                for x in xml.xpath(".//tei:l/text()", namespaces=XPATH_NAMESPACES)
+                if x.strip()
+            ],  # Stripping for equality and removing empty line
+            "The text of lines should match"
+        )
+
+        self.maxDiff = None
+        self.assertHeadersEqual(
+            headers["Link"],
+            [
+                ['/dts/document?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&start=1.1.5&end=1.1.6', [['rel', 'next']]],
+                ['/dts/document?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&ref=1.1', [['rel', 'up']]],
+                ['/dts/navigation?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&start=1.1.3&end=1.1.4', [['rel', 'contents']]],
+                ['/dts/document?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2&start=1.1.1&end=1.1.2', [['rel', 'prev']]],
+                ['/dts/collections?id=urn%3Acts%3AlatinLit%3Aphi1294.phi002.perseus-lat2', [['rel', 'collection']]]
+            ]
         )
 
 
@@ -399,21 +605,23 @@ class LoggingModule:
 
     def test_UnknownCollection_request(self):
         """Check get Label"""
+        self.app.debug = True
         # Need to parse with Citation and parse individually or simply check for some equality
         data = self.app.get("/cts?request=GetCapabilities&urn=urn:cts:latinLit:phi1295").data.decode()
         self.assertIn(
-            "Resource requested is not found", data, "Error message should be displayed"
+            "urn:cts:latinLit:phi1295 is not part of this inventory", data, "Error message should be displayed"
         )
         self.assertIn(
             "UnknownCollection", data, "Error name should be displayed"
         )
 
         self.assertLogged("CTS error thrown UnknownCollection for "
-                          "request=GetCapabilities&urn=urn:cts:latinLit:phi1295 ( Resource requested is not found )")
+                          "request=GetCapabilities&urn=urn:cts:latinLit:phi1295 "
+                          "(urn:cts:latinLit:phi1295 is not part of this inventory)")
 
         data = self.app.get("/cts?request=GetPassage&urn=urn:cts:latinLit:phi1294.phi003").data.decode()
         self.assertIn(
-            "Resource requested is not found", data, "Error message should be displayed"
+            "urn:cts:latinLit:phi1294.phi003 is not part of this inventory", data, "Error message should be displayed"
         )
         self.assertIn(
             "UnknownCollection", data, "Error name should be displayed"
@@ -422,19 +630,20 @@ class LoggingModule:
     def test_dts_UnknownCollection_request(self):
         """Check get Label"""
         # Need to parse with Citation and parse individually or simply check for some equality
-        data = json.loads(self.app.get("/dts/collections/urn:cts:latinLit:phi1295").data.decode())
+        data = json.loads(self.app.get("/dts/collections?id=urn:cts:latinLit:phi1295").data.decode())
         self.assertIn(
-            "Resource requested is not found", data["message"], "Error message should be displayed"
+            "Resource requested is not found", data["description"], "Error message should be displayed"
         )
         self.assertIn(
-            "UnknownCollection", data["error"], "Error name should be displayed"
+            "UnknownCollection", data["title"], "Error name should be displayed"
         )
-        data = json.loads(self.app.get("/dts/collections/urn:cts:latinLit:phi1294.phi003").data.decode())
+        data = json.loads(self.app.get("/dts/collections?id=urn:cts:latinLit:phi1294.phi003").data.decode())
         self.assertIn(
-            "Resource requested is not found", data["message"], "Error message should be displayed"
+            "Resource requested is not found", data["description"], "Error message should be displayed"
         )
         self.assertIn(
-            "UnknownCollection", data["error"], "Error name should be displayed"
+            "UnknownCollection", data["title"], "Error name should be displayed"
         )
-        self.assertLogged("DTS error thrown UnknownCollection for /dts/collections/urn:cts:latinLit:phi1295 "
-                          "( Resource requested is not found )")
+        self.assertLogged("DTS error thrown UnknownCollection for /dts/collections "
+                          "( Resource requested is not found ) "
+                          "(Debug : Resource urn:cts:latinLit:phi1294.phi003 not found)")

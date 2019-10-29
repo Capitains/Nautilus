@@ -13,7 +13,7 @@ from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollec
 from MyCapytain.common.constants import RDF_NAMESPACES, get_graph
 from capitains_nautilus.collections.sparql import SparqlNavigatedCollection
 from rdflib import BNode, Literal, RDF, URIRef
-from capitains_nautilus.errors import UnknownCollection
+from capitains_nautilus.errors import CtsUnknownCollection
 from capitains_nautilus.utils.performances import cached_property, STORE
 
 
@@ -195,7 +195,7 @@ class SparqlXmlCtsWorkMetadata(CtsSparqlNavigatedCollection, XmlCtsWorkMetadata)
                 return SparqlXmlCtsTranslationMetadata(key)
             elif o == XmlCtsCommentaryMetadata.TYPE_URI:
                 return SparqlXmlCtsCommentaryMetadata(key)
-        raise UnknownCollection("%s is not part of this object" % key)
+        raise CtsUnknownCollection("%s is not part of this object" % key)
 
 
 class SparqlXmlCtsTextgroupMetadata(CtsSparqlNavigatedCollection, XmlCtsTextgroupMetadata):
@@ -225,7 +225,7 @@ class SparqlXmlCtsTextgroupMetadata(CtsSparqlNavigatedCollection, XmlCtsTextgrou
                 return SparqlXmlCtsCommentaryMetadata(key)
             elif o == SparqlXmlCtsWorkMetadata.TYPE_URI:
                 return SparqlXmlCtsWorkMetadata(key)
-        raise UnknownCollection("%s is not part of this object" % key)
+        raise CtsUnknownCollection("%s is not part of this object" % key)
 
 
 class SparqlXmlCtsTextInventoryMetadata(SparqlNavigatedCollection, XmlCtsTextInventoryMetadata):
@@ -257,7 +257,7 @@ class SparqlXmlCtsTextInventoryMetadata(SparqlNavigatedCollection, XmlCtsTextInv
                 return SparqlXmlCtsWorkMetadata(key)
             elif o == SparqlXmlCtsTextgroupMetadata.TYPE_URI:
                 return SparqlXmlCtsTextgroupMetadata(key)
-        raise UnknownCollection("%s is not part of this object" % key)
+        raise CtsUnknownCollection("%s is not part of this object" % key)
 
 
 class SparqlTextInventoryCollection(SparqlNavigatedCollection, CtsTextInventoryCollection):
@@ -289,5 +289,5 @@ class SparqlTextInventoryCollection(SparqlNavigatedCollection, CtsTextInventoryC
                 return SparqlXmlCtsTextgroupMetadata(key)
             elif o == SparqlXmlCtsTextInventoryMetadata.TYPE_URI:
                 return SparqlXmlCtsTextInventoryMetadata(key)
-        raise UnknownCollection("%s is not part of this object %s" % (key, self))
+        raise CtsUnknownCollection("%s is not part of this object %s" % (key, self))
 
