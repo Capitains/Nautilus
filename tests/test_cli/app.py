@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask
-from werkzeug.contrib.cache import FileSystemCache
+from cachelib import FileSystemCache
 from flask_caching import Cache
 from tests.test_cli.config import subprocess_repository, subprocess_cache_dir, http_cache_dir
 

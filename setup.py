@@ -12,7 +12,7 @@ setup(
   install_requires=[
     "MyCapytain>=2.0.0",
     "Flask>=0.12",
-    "Werkzeug>=0.11.3,<1.0.0",
+    "cachelib>=0.1.0",
     "Flask-Caching>=1.4.0,<2.0.0"
     "typing",
   ],

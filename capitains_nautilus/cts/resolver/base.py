@@ -7,7 +7,7 @@ from MyCapytain.common.constants import set_graph, get_graph
 from MyCapytain.common.reference import URN, CtsReference
 from MyCapytain.resolvers.cts.local import CtsCapitainsLocalResolver
 from MyCapytain.resources.texts.local.capitains.cts import CapitainsCtsText as Text
-from werkzeug.contrib.cache import NullCache
+from cachelib import NullCache
 
 from capitains_nautilus import _cache_key
 from capitains_nautilus.collections.sparql import clear_graph

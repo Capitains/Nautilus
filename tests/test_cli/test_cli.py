@@ -11,7 +11,7 @@ from tests.test_cli.config import subprocess_cache_dir, http_cache_dir, subproce
 from tests.test_cli.app import resolver, nautilus_cache, make_dispatcher, app, nautilus
 from flask import Flask
 from flask_caching import Cache
-from werkzeug.contrib.cache import FileSystemCache
+from cachelib import FileSystemCache
 from capitains_nautilus.cts.resolver import NautilusCtsResolver
 from capitains_nautilus.flask_ext import FlaskNautilus
 
@@ -27,7 +27,7 @@ python = executable
 class TestManager(TestCase):
     """ Test the manager ability to preprocess and cache some resources
 
-    .. note:: Werkzeug File System Cache leaves a cache file to indicate the number of other cache files . More in
+    .. note:: FileSystemCache leaves a cache file to indicate the number of other cache files . More in
     https://github.com/Capitains/Nautilus/issues/62 and https://github.com/pallets/werkzeug/blob/8393ee88aaacf7bcd3a0b1d604511f70c222df25/werkzeug/contrib/cache.py#L773-L781
     """
 

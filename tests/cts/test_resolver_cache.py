@@ -7,7 +7,7 @@ from capitains_nautilus.cts.resolver import \
     SparqlAlchemyNautilusCtsResolver,\
     NautilusCtsResolver
 from capitains_nautilus.collections.sparql import clear_graph
-from werkzeug.contrib.cache import FileSystemCache
+from cachelib import FileSystemCache
 from MyCapytain.common.constants import Mimetypes
 from tests.cts.config import subprocess_cache_dir, subprocess_repository, sqlite_address, \
     sleepy_cat_address
