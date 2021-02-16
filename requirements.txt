@@ -8,4 +8,4 @@ mock==2.0.0
 rdflib-sqlalchemy>=0.3.8
 bsddb3==6.2.6
 typing
-urltools==0.3.2
+urltools>=0.3.2

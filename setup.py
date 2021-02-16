@@ -21,7 +21,7 @@ setup(
     "mock",
     "nose",
     "typing",
-    "urltools==0.3.2"
+    "urltools>=0.3.2"
   ],
   extras_require={
     "Berkeley": ["bsddb3==6.2.6"],
