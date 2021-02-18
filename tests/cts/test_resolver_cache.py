@@ -2,10 +2,7 @@ from unittest import TestCase
 from subprocess import call
 from sys import executable
 import os
-from capitains_nautilus.cts.resolver import \
-    SleepyCatCtsResolver, \
-    SparqlAlchemyNautilusCtsResolver,\
-    NautilusCtsResolver
+from capitains_nautilus.cts.resolver import NautilusCtsResolver
 from capitains_nautilus.collections.sparql import clear_graph
 from cachelib import FileSystemCache
 from MyCapytain.common.constants import Mimetypes
@@ -72,60 +69,3 @@ class TestCache(TestCase):
         self.assertEqual(
             len(inventory.readableDescendants), 3
         )
-
-
-class TestSparqlCache(TestCache):
-    def setUp(self):
-        try:
-            clear_graph(sqlite_address)
-        except:
-            print("Unable to clear graph")
-
-        output = call([python, "./tests/cts/scripts/run_cache_sparql.py"], cwd=cwd)
-        if output != 0:
-            raise Exception("Creating cache failed")
-
-        self.cache = FileSystemCache(subprocess_cache_dir)
-        self.resolver = SparqlAlchemyNautilusCtsResolver(
-            resource=subprocess_repository,
-            cache=self.cache,
-            graph=sqlite_address
-        )
-        self.resolver.logger.disabled = True
-
-        def x(*k, **kw):
-            raise Exception("Parse should not be called")
-        self.resolver.parse = x
-
-    def tearDown(self):
-        self.cache.clear()
-        self.resolver.clear()
-
-
-class TestSleepyCatSparqlCache(TestCache):
-    def setUp(self):
-        try:
-            clear_graph(sleepy_cat_address)
-        except:
-            print("Unable to clear graph")
-
-        output = call([python, "./tests/cts/scripts/run_cache_sparql_sleepy_cat.py"], cwd=cwd)
-        if output != 0:
-            raise Exception("Creating cache failed")
-
-        self.cache = FileSystemCache(subprocess_cache_dir)
-        self.resolver = SleepyCatCtsResolver(
-            resource=subprocess_repository,
-            cache=self.cache,
-            graph=sleepy_cat_address
-        )
-        self.resolver.logger.disabled = True
-
-        def x(*k, **kw):
-            raise Exception("Parse should not be called")
-
-        self.resolver.parse = x
-
-    def tearDown(self):
-        self.cache.clear()
-        self.resolver.clear()

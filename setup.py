@@ -23,10 +23,6 @@ setup(
     "typing",
     "urltools>=0.3.2"
   ],
-  extras_require={
-    "Berkeley": ["bsddb3==6.2.6"],
-    "SQLAlchemy": ["rdflib-sqlalchemy>=0.3.8"]
-  },
   entry_points={
       'console_scripts': ['capitains-nautilus=capitains_nautilus.cmd:cmd'],
   },

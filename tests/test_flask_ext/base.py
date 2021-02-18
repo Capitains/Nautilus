@@ -24,7 +24,7 @@ from .util import normalize_uri_key
 from capitains_nautilus.flask_ext import FlaskNautilus
 import logging
 import link_header
-import urltools
+import urltools.urltools as urltools
 
 
 
