@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from flask import Flask
-from werkzeug.contrib.cache import FileSystemCache
+from cachelib import FileSystemCache
 from flask_caching import Cache
 from tests.test_cli.config import subprocess_repository, subprocess_cache_dir, http_cache_dir
 
@@ -57,5 +57,5 @@ nautilus = FlaskNautilus(
 #http_cache.init_app(app)
 app.debug = True
 
-if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+#if __name__ == "__main__":
+#    app.run(debug=True, host='0.0.0.0')

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
   name='capitains_nautilus',
-  version="1.0.3",
+  version="2.0.0",
   description='Resolver for Capitains Guidelines Repository',
   url='http://github.com/Capitains/nautilus',
   author='Thibault Clerice',
@@ -12,7 +12,7 @@ setup(
   install_requires=[
     "MyCapytain>=2.0.0",
     "Flask>=0.12",
-    "Werkzeug>=0.11.3",
+    "cachelib>=0.1.0",
     "Flask-Caching>=1.4.0,<2.0.0"
     "typing",
   ],
@@ -21,12 +21,8 @@ setup(
     "mock",
     "nose",
     "typing",
-    "urltools==0.3.2"
+    "urltools>=0.3.2"
   ],
-  extras_require={
-    "Berkeley": ["bsddb3==6.2.6"],
-    "SQLAlchemy": ["rdflib-sqlalchemy>=0.3.8"]
-  },
   entry_points={
       'console_scripts': ['capitains-nautilus=capitains_nautilus.cmd:cmd'],
   },

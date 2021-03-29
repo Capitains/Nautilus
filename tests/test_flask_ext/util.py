@@ -1,4 +1,4 @@
-import urltools
+import urltools.urltools as urltools
 
 
 def normalize_uri_string(uri: str) -> str:

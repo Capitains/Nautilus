@@ -56,13 +56,13 @@ def FlaskNautilusManager(resolver, flask_nautilus):
         click.echo("Command Line Interface of Flask")
         resolver.logger.disabled = not verbose
 
-    @CLI.command()
+    @CLI.command("flush_resolver")
     def flush_resolver():
         """ Flush the resolver cache system """
         if resolver.clear() is True:
             click.echo("Caching of Resolver Cleared")
 
-    @CLI.command()
+    @CLI.command("flush_http_cache")
     def flush_http_cache():
         """ Flush the http cache
 
@@ -70,7 +70,7 @@ def FlaskNautilusManager(resolver, flask_nautilus):
         """
         flask_nautilus.flaskcache.clear()
 
-    @CLI.command()
+    @CLI.command("flush_both")
     def flush_both():
         """ Flush all caches
 
@@ -80,13 +80,13 @@ def FlaskNautilusManager(resolver, flask_nautilus):
         if flask_nautilus.flaskcache.clear() is True:
             click.echo("Caching of HTTP Cleared")
 
-    @CLI.command()
+    @CLI.command("parse")
     def parse():
         """ Preprocess the inventory and cache it """
         ret = resolver.parse()
         click.echo("Preprocessed %s texts" % len(ret.readableDescendants))
 
-    @CLI.command()
+    @CLI.command("process_reffs")
     @click.option('--threads', default=0, type=int)
     def process_reffs(threads):
         """ Preprocess the inventory and cache it """

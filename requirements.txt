@@ -1,11 +1,9 @@
 Flask>=0.12
-Werkzeug>=0.11.3
+cachelib>=0.1.0
 redis>=2.10.5
 Flask-Caching>=1.4.0,<2.0.0
-MyCapytain>=3.0.0
+MyCapytain>=3.0.0,<4.0.0
 logassert
 mock==2.0.0
-rdflib-sqlalchemy>=0.3.8
-bsddb3==6.2.6
 typing
-urltools==0.3.2
+urltools>=0.3.2

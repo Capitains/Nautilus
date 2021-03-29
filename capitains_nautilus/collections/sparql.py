@@ -3,7 +3,6 @@ from MyCapytain.common.metadata import Metadata
 from MyCapytain.resources.prototypes.metadata import Collection
 from rdflib import Literal, RDFS, RDF, URIRef, Graph, plugin
 from rdflib.store import Store
-from rdflib_sqlalchemy import registerplugins
 from rdflib.namespace import SKOS
 from warnings import warn
 
@@ -23,48 +22,6 @@ def clear_graph(identifier=None):
         graph.close()
     except:
         warn("Unable to close the Graph")
-
-
-def generate_alchemy_graph(alchemy_uri, prefixes=None, identifier="NautilusSparql"):
-    """ Generate a graph and change the global graph to this one
-
-    :param alchemy_uri: A Uri for the graph
-    :param prefixes: A dictionary of prefixes and namespaces to bind to the graph
-    :param identifier: An identifier that will identify the Graph root
-    """
-    registerplugins()
-    ident = URIRef(identifier)
-    uri = Literal(alchemy_uri)
-    store = plugin.get("SQLAlchemy", Store)(identifier=ident)
-    graph = Graph(store, identifier=ident)
-    graph.open(uri, create=True)
-
-    for prefix, ns in (prefixes or GRAPH_BINDINGS).items():
-        if prefix == "":
-            prefix = "cts"  # Fix until ALchemy Store accepts empty prefixes
-        graph.bind(prefix, ns)
-
-    return graph, identifier, uri
-
-
-def generate_sleepy_cat_graph(filepath, prefixes=None, identifier="NautilusSparql"):
-    """ Generate a graph and change the global graph to this one
-
-    :param filepath: A Uri for the graph
-    :param prefixes: A dictionary of prefixes and namespaces to bind to the graph
-    :param identifier: An identifier that will identify the Graph root
-    """
-    registerplugins()
-    ident = URIRef(identifier)
-    graph = Graph('Sleepycat', identifier=ident)
-    graph.open(filepath, create=True)
-
-    for prefix, ns in (prefixes or GRAPH_BINDINGS).items():
-        if prefix == "":
-            prefix = "cts"  # Fix until ALchemy Store accepts empty prefixes
-        graph.bind(prefix, ns)
-
-    return graph, identifier, filepath
 
 
 def NoneGenerator(object_id):

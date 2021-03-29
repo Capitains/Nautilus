@@ -2,7 +2,7 @@
 
 from capitains_nautilus.flask_ext import FlaskNautilus
 from capitains_nautilus.cts.resolver.base import NautilusCtsResolver
-from werkzeug.contrib.cache import FileSystemCache, RedisCache, NullCache
+from cachelib import FileSystemCache, RedisCache, NullCache
 from flask import Flask
 import argparse
 import logging
