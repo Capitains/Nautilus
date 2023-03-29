@@ -13,7 +13,7 @@ setup(
     "MyCapytain>=2.0.0",
     "Flask>=0.12",
     "cachelib>=0.1.0",
-    "Flask-Caching>=1.4.0,<2.0.0"
+    "Flask-Caching>=1.4.0,<2.0.0",
     "typing",
   ],
   tests_require=[
