@@ -9,6 +9,7 @@ resolver.parse()
 
 app = Flask("Nautilus")
 nautilus = FlaskNautilus(
+    name="nautilus",
     app=app,
     resolver=resolver
 )
