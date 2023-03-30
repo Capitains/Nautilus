@@ -5,6 +5,9 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'requirements.txt')) as f:
     REQUIRED = f.read().splitlines()
 
+with open(os.path.join(here, 'test-requirements.txt')) as f:
+    TEST_REQUIRED = f.read().splitlines()
+
 setup(
   name='capitains_nautilus',
   version="2.0.0",
@@ -15,13 +18,7 @@ setup(
   license='Mozilla Public License Version 2.0',
   packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
   install_requires=REQUIRED,
-  tests_require=[
-    "logassert",
-    "mock",
-    "nose",
-    "typing",
-    "urltools>=0.3.2"
-  ],
+  tests_require=TEST_REQUIRED,
   entry_points={
       'console_scripts': ['capitains-nautilus=capitains_nautilus.cmd:cmd'],
   },

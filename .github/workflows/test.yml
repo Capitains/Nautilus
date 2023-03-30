@@ -18,9 +18,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install nose coveralls
         python setup.py develop
-        pip install -r test-requirements.txt
 #    - name: Lint with flake8
 #      run: |
 #        # stop the build if there are Python syntax errors or undefined names
@@ -29,7 +27,7 @@ jobs:
 #        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with nose
       run: |
-        nosetests --with-coverage --cover-package=capitains_nautilus --verbose --nologcapture --with-doctest ./tests
+        pytest --doctest-modules --cov=capitains_nautilus tests --ignore=app.py
     - name: Coveralls Parallel
       uses: AndreMiras/coveralls-python-action@develop
       if: runner.os == 'Linux'

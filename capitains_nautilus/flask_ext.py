@@ -43,7 +43,7 @@ class FlaskNautilus(object):
     Access_Control_Allow_Origin = "*"
     LoggingHandler = logging.StreamHandler
 
-    def __init__(self, prefix="", app=None, name=None,
+    def __init__(self, prefix="", app=None, name="nautilus",
                  resolver=None,
                  flask_caching=None,
                  access_Control_Allow_Origin=None,
@@ -89,9 +89,6 @@ class FlaskNautilus(object):
             api.init_extension(self)
 
         self.__flask_caching__ = flask_caching
-
-        if self.name is None:
-            self.name = __name__
 
         if app:
             self.init_app(app=app)
