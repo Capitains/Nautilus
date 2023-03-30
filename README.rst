@@ -1,12 +1,10 @@
 Capitains Nautilus
 ==================
 
-.. image:: https://coveralls.io/repos/github/Capitains/Nautilus/badge.svg?branch=master
-    :target: https://coveralls.io/github/Capitains/Nautilus?branch=master
-.. image:: https://travis-ci.org/Capitains/Nautilus.svg?branch=master
-    :target: https://travis-ci.org/Capitains/Nautilus
-.. image:: https://api.codacy.com/project/badge/grade/c76dc6ce6b324246927a49adf7e7fa46
-    :target: https://www.codacy.com/app/leponteineptique/Nautilus
+.. image:: https://coveralls.io/repos/github/Capitains/Nautilus/badge.svg?branch=dev
+    :target: https://coveralls.io/github/Capitains/Nautilus?branch=dev
+.. image:: https://github.com/Capitains/Nautilus/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/Capitains/Nautilus/actions/workflows/test.yml
 .. image:: https://badge.fury.io/py/capitains_nautilus.svg
     :target: https://badge.fury.io/py/capitains_nautilus
 .. image:: https://readthedocs.org/projects/capitains-nautilus/badge/?version=latest

@@ -1,4 +1,12 @@
 from setuptools import setup, find_packages
+import os
+
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, 'requirements.txt')) as f:
+    REQUIRED = f.read().splitlines()
+
+with open(os.path.join(here, 'test-requirements.txt')) as f:
+    TEST_REQUIRED = f.read().splitlines()
 
 setup(
   name='capitains_nautilus',
@@ -9,20 +17,8 @@ setup(
   author_email='leponteineptique@gmail.com',
   license='Mozilla Public License Version 2.0',
   packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
-  install_requires=[
-    "MyCapytain>=2.0.0",
-    "Flask>=0.12",
-    "cachelib>=0.1.0",
-    "Flask-Caching>=1.4.0,<2.0.0",
-    "typing",
-  ],
-  tests_require=[
-    "logassert",
-    "mock",
-    "nose",
-    "typing",
-    "urltools>=0.3.2"
-  ],
+  install_requires=REQUIRED,
+  tests_require=TEST_REQUIRED,
   entry_points={
       'console_scripts': ['capitains-nautilus=capitains_nautilus.cmd:cmd'],
   },
