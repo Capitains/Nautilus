@@ -1,5 +1,7 @@
 from setuptools import setup, find_packages
+import os
 
+here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'requirements.txt')) as f:
     REQUIRED = f.read().splitlines()
 
