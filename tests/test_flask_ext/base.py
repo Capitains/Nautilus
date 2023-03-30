@@ -287,7 +287,7 @@ class CTSModule:
             .data.decode("utf-8").replace("\n", "")
         parsed = xmlparser(data)
         label = parsed.xpath(".//ti:label", namespaces=XPATH_NAMESPACES)
-        label_str = re.sub("\s+", " ", tostring(label[0], encoding=str)).replace("\n", "")
+        label_str = re.sub(r"\s+", " ", tostring(label[0], encoding=str)).replace("\n", "")
         self.assertIn(
             '<groupname xml:lang="eng">Martial</groupname>',
             label_str,

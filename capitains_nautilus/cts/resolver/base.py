@@ -17,7 +17,7 @@ from capitains_nautilus.resolver_prototype import NautilusPrototypeResolver
 import re
 
 
-_re_catch_urn = re.compile("(urn:cts:[\S]+)")
+_re_catch_urn = re.compile(r"(urn:cts:[\S]+)")
 
 
 class ProtoNautilusCtsResolver(CtsCapitainsLocalResolver, NautilusPrototypeResolver):
