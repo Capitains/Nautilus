@@ -1,8 +1,5 @@
-import sys, os
-sys.path.append(os.path.realpath(os.path.dirname(__file__)+"/../.."))
-
 from unittest import TestCase
-from subprocess import call
+from subprocess import run
 from sys import executable
 import glob
 import os
@@ -42,9 +39,13 @@ class TestManager(TestCase):
         pass
 
     def cli(self, *args):
-        output = call([python, "./tests/test_cli/manager.py"] + list(args), cwd=cwd)
-        print(output)
-        if output != 0:
+        output = run(
+            [python, "./tests/test_cli/manager.py"] + list(args),
+            cwd=cwd
+        )
+        if output.returncode != 0:
+            print(output.stdout)
+            print(output.stderr)
             raise Exception("Run failed")
 
     def setUp(self):

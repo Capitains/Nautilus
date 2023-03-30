@@ -27,7 +27,7 @@ jobs:
 #        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with nose
       run: |
-        pytest --doctest-modules --cov=capitains_nautilus --ignore=app.py
+        pytest --doctest-modules --cov=capitains_nautilus --ignore=app.py --verbose
     - name: Coveralls Parallel
       uses: AndreMiras/coveralls-python-action@develop
       if: runner.os == 'Linux'
