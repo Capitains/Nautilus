@@ -44,8 +44,6 @@ class TestManager(TestCase):
             cwd=cwd
         )
         if output.returncode != 0:
-            print(output.stdout)
-            print(output.stderr)
             raise Exception("Run failed")
 
     def setUp(self):

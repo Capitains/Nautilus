@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import sys
+import os
+sys.path.append(os.path.realpath(os.path.dirname(__file__) + "/../.."))
 
 from flask import Flask
 from cachelib import FileSystemCache
