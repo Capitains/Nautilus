@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
 
+with open(os.path.join(here, 'requirements.txt')) as f:
+    REQUIRED = f.read().splitlines()
+
 setup(
   name='capitains_nautilus',
   version="2.0.0",
@@ -9,13 +12,7 @@ setup(
   author_email='leponteineptique@gmail.com',
   license='Mozilla Public License Version 2.0',
   packages=find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"]),
-  install_requires=[
-    "MyCapytain>=2.0.0",
-    "Flask>=0.12",
-    "cachelib>=0.1.0",
-    "Flask-Caching>=1.4.0,<2.0.0",
-    "typing",
-  ],
+  install_requires=REQUIRED,
   tests_require=[
     "logassert",
     "mock",
